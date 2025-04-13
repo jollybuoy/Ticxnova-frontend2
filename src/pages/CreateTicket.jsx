@@ -72,7 +72,7 @@ const CreateTicket = () => {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Info */}
+        {/* Title & Priority */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Title</label>
@@ -124,7 +124,7 @@ const CreateTicket = () => {
           </div>
         </div>
 
-        {/* Department & Assigned */}
+        {/* Department & Assigned To */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Department</label>
@@ -134,7 +134,7 @@ const CreateTicket = () => {
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
-                placeholder="e.g. IT, HR, Admin"
+                placeholder="e.g. IT, HR"
                 className="w-full bg-transparent outline-none"
               />
             </div>
@@ -155,7 +155,7 @@ const CreateTicket = () => {
           </div>
         </div>
 
-        {/* Advanced Info */}
+        {/* Category & SLA Level */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Category</label>
@@ -165,7 +165,7 @@ const CreateTicket = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                placeholder="Hardware, Software, Network"
+                placeholder="e.g. Software"
                 className="w-full bg-transparent outline-none"
               />
             </div>
@@ -186,7 +186,7 @@ const CreateTicket = () => {
           </div>
         </div>
 
-        {/* Tags & Due Date */}
+        {/* Due Date & Tags */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Due Date</label>
@@ -210,7 +210,7 @@ const CreateTicket = () => {
                 name="tags"
                 value={formData.tags}
                 onChange={handleChange}
-                placeholder="urgent, server, ui"
+                placeholder="urgent, server"
                 className="w-full bg-transparent outline-none"
               />
             </div>
@@ -227,7 +227,7 @@ const CreateTicket = () => {
                 name="attachments"
                 value={formData.attachments}
                 onChange={handleChange}
-                placeholder="e.g. file1.pdf, img.png"
+                placeholder="e.g. file1.pdf"
                 className="w-full bg-transparent outline-none"
               />
             </div>
