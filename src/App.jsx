@@ -11,16 +11,20 @@ import TicketDetails from "./pages/TicketDetails";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // 🆕
+  const [loading, setLoading] = useState(true); // 🆕 loading state
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
-    setLoading(false); // ✅ Finish checking
+    setLoading(false); // ✅ done checking token
   }, []);
 
   if (loading) {
-    return <div className="text-white p-8">Loading...</div>; // Optional loader
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white text-xl">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -53,8 +57,6 @@ function App() {
       </Routes>
     </Router>
   );
-}
-
 }
 
 export default App;
