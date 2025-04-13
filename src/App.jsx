@@ -11,11 +11,17 @@ import TicketDetails from "./pages/TicketDetails";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // 🆕
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
+    setLoading(false); // ✅ Finish checking
   }, []);
+
+  if (loading) {
+    return <div className="text-white p-8">Loading...</div>; // Optional loader
+  }
 
   return (
     <Router>
@@ -39,7 +45,7 @@ function App() {
             <Route path="/create-ticket" element={<CreateTicket />} />
             <Route path="/all-tickets" element={<AllTickets />} />
             <Route path="/ticket/:id" element={<TicketDetails />} />
-            </Route>
+          </Route>
         )}
 
         {/* Catch-all redirect */}
@@ -47,6 +53,8 @@ function App() {
       </Routes>
     </Router>
   );
+}
+
 }
 
 export default App;
