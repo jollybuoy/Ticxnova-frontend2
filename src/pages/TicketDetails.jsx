@@ -22,7 +22,7 @@ const TicketDetails = () => {
   const fetchTicket = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.get(`http://localhost:5000/api/tickets/${id}`, {
+      const res = await axios.get(`https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
