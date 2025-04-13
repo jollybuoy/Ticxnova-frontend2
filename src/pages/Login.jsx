@@ -17,7 +17,7 @@ const Login = ({ setAuth }) => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/auth/login", {
         email: username,
         password: password,
       });
