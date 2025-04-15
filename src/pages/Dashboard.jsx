@@ -1,112 +1,98 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../api/axios"; // uses your working axios instance
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import API from "../api/axios";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
+} from "recharts";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [slaStats, setSlaStats] = useState(null);
   const [activityLog, setActivityLog] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState({ summary: false, sla: false, activity: false });
 
   useEffect(() => {
-    // Ticket summary
-    axios.get("/api/tickets/dashboard/summary")
-      .then((res) => setSummary(res.data))
-      .catch(() => setErrors(prev => ({ ...prev, summary: "Failed to load summary." })));
+    API.get("/api/tickets/dashboard/summary")
+      .then(res => setSummary(res.data))
+      .catch(() => setError(prev => ({ ...prev, summary: true })));
 
-    // SLA stats
-    axios.get("/api/tickets/sla-stats")
-      .then((res) => setSlaStats(res.data))
-      .catch(() => setErrors(prev => ({ ...prev, sla: "Failed to load SLA stats." })));
+    API.get("/api/tickets/sla-stats")
+      .then(res => setSlaStats(res.data))
+      .catch(() => setError(prev => ({ ...prev, sla: true })));
 
-    // Activity log
-    axios.get("/api/tickets/activity-log")
-      .then((res) => setActivityLog(res.data))
-      .catch(() => setErrors(prev => ({ ...prev, activity: "Failed to load activity log." })));
+    API.get("/api/tickets/activity-log")
+      .then(res => setActivityLog(res.data))
+      .catch(() => setError(prev => ({ ...prev, activity: true })));
   }, []);
+
+  const summaryData = [
+    { name: "Total", value: summary?.total || 0 },
+    { name: "Open", value: summary?.open || 0 },
+    { name: "Closed", value: summary?.closed || 0 }
+  ];
 
   return (
     <div className="p-6 text-white">
-      <h1 className="text-4xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
-      {/* Ticket Summary */}
-      {errors.summary && <p className="text-red-500">{errors.summary}</p>}
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white text-black p-4 rounded-xl shadow-lg">
-            <h2 className="font-semibold">Total Tickets</h2>
-            <p className="text-2xl">{summary.total}</p>
-          </div>
-          <div className="bg-white text-blue-600 p-4 rounded-xl shadow-lg">
-            <h2 className="font-semibold">Open</h2>
-            <p className="text-2xl">{summary.open}</p>
-          </div>
-          <div className="bg-white text-green-600 p-4 rounded-xl shadow-lg">
-            <h2 className="font-semibold">Closed</h2>
-            <p className="text-2xl">{summary.closed}</p>
-          </div>
-        </div>
-      )}
-
-      {/* SLA Section */}
-      <h2 className="text-2xl font-semibold mt-8 mb-2">SLA Statistics</h2>
-      {errors.sla && <p className="text-red-500">{errors.sla}</p>}
-      {slaStats && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white text-black p-4 rounded-xl shadow">
-            <h3>Avg. Resolution Time</h3>
-            <p className="text-xl">{slaStats.avgResolutionTime} days</p>
-          </div>
-          <div className="bg-white text-red-600 p-4 rounded-xl shadow">
-            <h3>SLA Violations</h3>
-            <p className="text-xl">{slaStats.slaViolations}</p>
-          </div>
-          <div className="bg-white text-yellow-600 p-4 rounded-xl shadow">
-            <h3>Longest Open Ticket</h3>
-            <p className="text-xl">{slaStats.longestOpenTicketDays} days</p>
-          </div>
-          <div className="bg-white text-green-600 p-4 rounded-xl shadow">
-            <h3>Compliance</h3>
-            <p className="text-xl">{slaStats.slaCompliancePercent}%</p>
-          </div>
-        </div>
-      )}
-
-      {/* Activity Log */}
-      <h2 className="text-2xl font-semibold mt-8 mb-2">Recent Ticket Activity</h2>
-      {errors.activity && <p className="text-red-500">{errors.activity}</p>}
-      {activityLog.length > 0 && (
-        <div className="bg-white text-black p-4 rounded-xl shadow max-h-96 overflow-y-auto">
-          <ul className="divide-y">
-            {activityLog.map((log, index) => (
-              <li key={index} className="py-2">
-                <p><strong>{log.user}</strong> <span className="text-purple-600">{log.action}</span> ticket <strong>#{log.ticketId}</strong></p>
-                <p className="text-sm text-gray-500">Status: {log.status || log.priority} • {new Date(log.timestamp).toLocaleString()}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Graph (Optional) */}
-      {summary && (
+      {error.summary ? (
+        <p className="text-red-500 mb-4">Failed to load summary.</p>
+      ) : (
         <>
-          <h2 className="text-2xl font-semibold mt-10 mb-2">Ticket Distribution</h2>
-          <div className="bg-white p-4 rounded-xl shadow max-w-2xl">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={[
-                { name: 'Open', value: summary.open },
-                { name: 'Closed', value: summary.closed }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <div className="grid grid-cols-3 gap-6 mb-6">
+            <div className="bg-white text-black rounded-xl p-4 shadow">
+              <h2 className="font-semibold text-xl">Total Tickets</h2>
+              <p className="text-2xl mt-2">{summary?.total ?? 0}</p>
+            </div>
+            <div className="bg-white text-blue-600 rounded-xl p-4 shadow">
+              <h2 className="font-semibold text-xl">Open</h2>
+              <p className="text-2xl mt-2">{summary?.open ?? 0}</p>
+            </div>
+            <div className="bg-white text-green-600 rounded-xl p-4 shadow">
+              <h2 className="font-semibold text-xl">Closed</h2>
+              <p className="text-2xl mt-2">{summary?.closed ?? 0}</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 className="text-xl font-bold text-black mb-2">Ticket Distribution</h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={summaryData}>
                 <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
+                <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#3182CE" />
+                <Bar dataKey="value" fill="#38bdf8" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </>
+      )}
+
+      <h2 className="text-2xl font-bold mt-8 mb-4">SLA Statistics</h2>
+      {error.sla ? (
+        <p className="text-red-500">Failed to load SLA stats.</p>
+      ) : slaStats && (
+        <div className="grid grid-cols-2 gap-6 text-black">
+          <div className="bg-white rounded-xl p-4 shadow">Avg Resolution Time: {slaStats.avgResolutionTime} hrs</div>
+          <div className="bg-white rounded-xl p-4 shadow">SLA Violations: {slaStats.slaViolations}</div>
+          <div className="bg-white rounded-xl p-4 shadow">Longest Open Ticket: {slaStats.longestOpenTicketDays} days</div>
+          <div className="bg-white rounded-xl p-4 shadow">Compliance: {slaStats.slaCompliancePercent}%</div>
+        </div>
+      )}
+
+      <h2 className="text-2xl font-bold mt-8 mb-4">Recent Ticket Activity</h2>
+      {error.activity ? (
+        <p className="text-red-500">Failed to load activity log.</p>
+      ) : (
+        <div className="space-y-3 text-sm">
+          {activityLog.map((item, index) => (
+            <div key={index} className="bg-white text-black rounded p-3 shadow">
+              <div><strong>{item.user}</strong> {item.action} ticket <strong>#{item.ticketId}</strong></div>
+              <div>Status: {item.status || item.priority}</div>
+              <div className="text-xs text-gray-600">{new Date(item.timestamp).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
