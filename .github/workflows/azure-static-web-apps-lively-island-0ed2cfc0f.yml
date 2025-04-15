@@ -26,14 +26,14 @@ jobs:
       - name: Zip app content
         run: zip -r release.zip .
 
-      # ✅ This is the missing Azure login step!
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # ❌ Temporarily disabled Azure Login and Deploy step
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ticxnova  # 👈 Replace with your actual App Service name
-          package: release.zip
+      # - name: Deploy to Azure Web App
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: ticxnova  # 👈 Replace with your actual App Service name
+      #     package: release.zip
