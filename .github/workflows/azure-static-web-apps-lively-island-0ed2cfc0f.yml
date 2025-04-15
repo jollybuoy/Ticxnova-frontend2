@@ -1,4 +1,4 @@
-name: Build and Deploy Node.js app to Azure Web App - Ticxnova
+name: Build and Deploy Node.js App to Azure Web App
 
 on:
   push:
@@ -6,10 +6,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and Deploy Job
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,21 +15,25 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Use the version your project needs
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
 
       - name: Build project (optional)
-        run: npm run build # Skip or adjust if you're not using a frontend build step
+        run: npm run build
 
       - name: Zip app content
-        run: zip -r app.zip ./*
+        run: zip -r release.zip .
+
+      # ✅ This is the missing Azure login step!
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ticxnova' # 🔁 Replace with your Azure Web App name
-          slot-name: 'production'
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: app.zip
+          app-name: ticxnova  # 👈 Replace with your actual App Service name
+          package: release.zip
