@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../utils/axiosInstance"; // your configured Axios instance
-import { Card, CardContent } from "@/components/ui/card";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
