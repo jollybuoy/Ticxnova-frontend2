@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../api/axios"; // ✅ Correct Axios path
+import API from "../api/axios"; // ✅ Correct axios import
 
-// ✅ Replace these with actual styled divs or custom components
-const Card = ({ children, className }) => (
-  <div className={`rounded-lg border border-gray-200 bg-white ${className}`}>
+// Basic fallback Card components (if no UI lib is used)
+const Card = ({ children, className = "" }) => (
+  <div className={`rounded-lg border border-gray-300 bg-white p-4 shadow-md ${className}`}>
     {children}
   </div>
 );
 
 const CardContent = ({ children }) => (
-  <div className="p-4">{children}</div>
+  <div className="space-y-2">{children}</div>
 );
 
 const Dashboard = () => {
@@ -17,10 +17,9 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axiosInstance
-      .get("/api/tickets/dashboard/summary")
+    API.get("/tickets/dashboard/summary")
       .then((res) => {
-        console.log("📦 Dashboard data:", res.data);
+        console.log("📊 Dashboard data:", res.data);
         setSummary(res.data);
       })
       .catch((err) => {
@@ -37,21 +36,21 @@ const Dashboard = () => {
 
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <Card className="shadow-xl">
+          <Card>
             <CardContent>
               <h2 className="text-lg font-semibold">Total Tickets</h2>
               <p className="text-2xl mt-2">{summary.total ?? 0}</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl">
+          <Card>
             <CardContent>
               <h2 className="text-lg font-semibold text-blue-600">Open</h2>
               <p className="text-2xl mt-2">{summary.open ?? 0}</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl">
+          <Card>
             <CardContent>
               <h2 className="text-lg font-semibold text-green-600">Closed</h2>
               <p className="text-2xl mt-2">{summary.closed ?? 0}</p>
