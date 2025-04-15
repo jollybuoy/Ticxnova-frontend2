@@ -12,7 +12,7 @@ const Dashboard = () => {
   const [error, setError] = useState({ summary: false, sla: false, activity: false });
 
   useEffect(() => {
-    API.get("/api/tickets/dashboard/summary")
+    API.get("/tickets/dashboard/summary")
       .then(res => setSummary(res.data))
       .catch(() => setError(prev => ({ ...prev, summary: true })));
 
