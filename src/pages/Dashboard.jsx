@@ -16,11 +16,11 @@ const Dashboard = () => {
       .then(res => setSummary(res.data))
       .catch(() => setError(prev => ({ ...prev, summary: true })));
 
-    API.get("/api/tickets/sla-stats")
+    API.get("/tickets/sla-stats")
       .then(res => setSlaStats(res.data))
       .catch(() => setError(prev => ({ ...prev, sla: true })));
 
-    API.get("/api/tickets/activity-log")
+    API.get("/tickets/activity-log")
       .then(res => setActivityLog(res.data))
       .catch(() => setError(prev => ({ ...prev, activity: true })));
   }, []);
