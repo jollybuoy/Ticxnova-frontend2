@@ -1,4 +1,4 @@
-// Enhanced dashboard with advanced visuals, animations, filters, KPIs, and recent activity
+// Enhanced dashboard with filters, export options, and SLA tracker
 import React, { useEffect, useState } from "react";
 import API from "../api/axios";
 import {
@@ -13,7 +13,7 @@ import {
 } from "chart.js";
 import { Pie, Line } from "react-chartjs-2";
 import { motion } from "framer-motion";
-import { FiAlertCircle, FiCheckCircle, FiList, FiPieChart } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiList, FiDownloadCloud } from "react-icons/fi";
 import { AiOutlineArrowUp, AiOutlineArrowDown } from "react-icons/ai";
 
 ChartJS.register(
@@ -29,6 +29,7 @@ ChartJS.register(
 const Dashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
   const [activity, setActivity] = useState([
     "User1 updated ticket #101 - Status: In Progress",
     "User2 created ticket #102 - Priority: High",
@@ -49,6 +50,14 @@ const Dashboard = () => {
 
     fetchDashboard();
   }, []);
+
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "dashboard-summary.json";
+    link.click();
+  };
 
   if (loading) return <div className="text-center mt-10 text-white">Loading Dashboard...</div>;
   if (!data) return <div className="text-center mt-10 text-red-500">Failed to load data.</div>;
@@ -126,8 +135,28 @@ const Dashboard = () => {
 
   return (
     <div className="p-8 text-white">
-      <h1 className="text-4xl font-bold mb-2">📊 Dashboard Overview</h1>
-      <p className="text-gray-300 mb-6">Live ticket stats, trends, and insights</p>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-4xl font-bold">📊 Dashboard Overview</h1>
+        <button
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
+          onClick={exportData}
+        >
+          <FiDownloadCloud /> Export JSON
+        </button>
+      </div>
+      <div className="flex items-center gap-3 mb-6">
+        <label className="text-sm">Filter:</label>
+        <select
+          className="text-black px-3 py-1 rounded"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+          <option value="priority">By Priority</option>
+        </select>
+      </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         {statCards.map((card, idx) => (
@@ -138,14 +167,7 @@ const Dashboard = () => {
           >
             <div>
               <h2 className="text-md font-semibold">{card.title}</h2>
-              <motion.p
-                className="text-3xl font-bold mt-2"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                {card.count}
-              </motion.p>
+              <motion.p className="text-3xl font-bold mt-2">{card.count}</motion.p>
               <div className="text-sm mt-1 flex items-center gap-1">
                 {card.trend >= 0 ? (
                   <span className="text-green-200 flex items-center">
@@ -182,13 +204,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="bg-slate-900 p-5 rounded-xl shadow-xl">
-        <h2 className="text-xl font-semibold mb-3">🕒 Recent Ticket Activity</h2>
-        <ul className="list-disc list-inside text-sm text-gray-300">
-          {activity.map((event, i) => (
-            <li key={i} className="mb-1">{event}</li>
-          ))}
-        </ul>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-slate-900 p-5 rounded-xl shadow-xl">
+          <h2 className="text-xl font-semibold mb-3">🕒 Recent Ticket Activity</h2>
+          <ul className="list-disc list-inside text-sm text-gray-300">
+            {activity.map((event, i) => (
+              <li key={i} className="mb-1">{event}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-slate-900 p-5 rounded-xl shadow-xl">
+          <h2 className="text-xl font-semibold mb-3">📏 SLA Tracker</h2>
+          <ul className="text-sm text-gray-300 space-y-2">
+            <li>⚡ Avg Resolution Time: 2.3 hrs</li>
+            <li>🚨 SLA Violations This Month: 1</li>
+            <li>🕓 Longest Open Ticket: 7 days</li>
+            <li>📊 Tickets Closed Under SLA: 90%</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
