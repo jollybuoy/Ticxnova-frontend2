@@ -46,7 +46,7 @@ const Dashboard = () => {
           <h2 className="font-semibold text-xl">Total Tickets</h2>
           <p className="text-3xl mt-2 font-bold">{summary?.total ?? 0}</p>
         </div>
-        <div className="bg-gradient-to-br from-sky-500 to-cyan-500 rounded-xl p-5 shadow-xl">
+<div className="bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl p-5 shadow-xl">
           <h2 className="font-semibold text-xl">Open</h2>
           <p className="text-3xl mt-2 font-bold">{summary?.open ?? 0}</p>
         </div>
