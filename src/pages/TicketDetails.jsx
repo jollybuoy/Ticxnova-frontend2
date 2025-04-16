@@ -23,7 +23,7 @@ const TicketDetails = () => {
 
   const fetchTicket = async () => {
     try {
-      const res = await API.get(`/tickets/${ticketid}`);
+      const res = await API.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
     } catch (err) {
@@ -35,7 +35,7 @@ const TicketDetails = () => {
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post(`/tickets/${ticketid}/notes`, newNote);
+      await API.post(`/tickets/${id}/notes`, newNote);
       setNewNote({ comment: "", status: "" });
       fetchTicket();
     } catch (err) {
@@ -45,7 +45,7 @@ const TicketDetails = () => {
 
   const handleDeleteNote = async (noteId) => {
     try {
-      await API.delete(`/tickets/${ticketid}/notes/${noteId}`);
+      await API.delete(`/tickets/${id}/notes/${noteId}`);
       fetchTicket();
     } catch (err) {
       console.error("❌ Failed to delete note", err);
