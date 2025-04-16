@@ -1,247 +1,129 @@
 // src/pages/CreateTicket.jsx
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import {
-  FiSend,
-  FiTool,
-  FiFileText,
-  FiUser,
-  FiLayers,
-  FiAlertCircle,
-  FiCalendar,
-  FiHash,
-  FiPaperclip,
-  FiClipboard,
-  FiActivity,
-  FiArrowLeft,
-  FiZap,
-  FiCheckCircle,
-  FiBox,
-  FiInfo
-} from "react-icons/fi";
-import { FaBug } from "react-icons/fa";
-import { HiOutlineLightBulb } from "react-icons/hi";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "../api/axios";
 import toast from "react-hot-toast";
 
-const typeOptions = [
-  { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
-  { label: "Service Request", icon: <FiTool />, color: "from-blue-500 to-sky-500" },
-  { label: "Change Request", icon: <FiInfo />, color: "from-purple-500 to-indigo-500" },
-  { label: "Problem", icon: <FiActivity />, color: "from-orange-500 to-yellow-500" },
-  { label: "Task", icon: <FiClipboard />, color: "from-green-500 to-teal-500" }
-];
+const fieldConfig = {
+  Incident: ["title", "description", "priority", "impact", "urgency"],
+  "Service Request": ["title", "description", "requestedItem", "justification"],
+  "Change Request": ["title", "description", "plannedStart", "plannedEnd", "riskLevel"],
+  Problem: ["title", "description", "symptoms", "rootCause"],
+  Task: ["title", "description", "dueDate", "checklist"]
+};
+
+const labels = {
+  title: "Title",
+  description: "Description",
+  priority: "Priority",
+  impact: "Impact",
+  urgency: "Urgency",
+  requestedItem: "Requested Item",
+  justification: "Justification",
+  plannedStart: "Planned Start Date",
+  plannedEnd: "Planned End Date",
+  riskLevel: "Risk Level",
+  symptoms: "Symptoms",
+  rootCause: "Root Cause",
+  dueDate: "Due Date",
+  checklist: "Checklist Items"
+};
 
 const CreateTicket = () => {
+  const { type } = useParams();
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || "");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "Medium",
-    department: "",
     assignedTo: "",
+    department: "",
+    ticketType: type,
+    impact: "",
+    urgency: "",
+    requestedItem: "",
+    justification: "",
+    plannedStart: "",
+    plannedEnd: "",
+    riskLevel: "",
+    symptoms: "",
+    rootCause: "",
     dueDate: "",
-    isInternal: false,
-    attachments: ""
+    checklist: ""
   });
 
-  useEffect(() => {
-    if (selectedType) localStorage.setItem("selectedType", selectedType);
-  }, [selectedType]);
-
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-
     try {
-      const response = await axios.post(
-        "https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets",
-        { ...formData, ticketType: selectedType },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.status === 201) {
-        toast.success("🎉 Ticket created successfully!");
-        localStorage.removeItem("selectedType");
-        navigate("/all-tickets");
-      }
+      await axios.post("/tickets", formData);
+      toast.success("✅ Ticket created successfully!");
+      navigate("/all-tickets");
     } catch (err) {
-      console.error("❌ Ticket creation failed:", err);
-      toast.error("Error creating ticket");
+      console.error("Ticket creation failed", err);
+      toast.error("❌ Failed to create ticket");
     }
   };
 
-  if (!selectedType) {
-    return (
-      <div className="max-w-5xl mx-auto p-10">
-        <h2 className="text-3xl font-bold mb-8 text-white text-center">What type of ticket do you want to create?</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {typeOptions.map((type) => (
-            <div
-              key={type.label}
-              onClick={() => setSelectedType(type.label)}
-              className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-all`}
-              title={type.label}
-            >
-              <div className="text-4xl mb-3">{type.icon}</div>
-              <h3 className="text-xl font-semibold">{type.label}</h3>
-              <p className="text-sm opacity-80 mt-1">Click to create a {type.label.toLowerCase()} ticket</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const fields = fieldConfig[type] || [];
 
   return (
-    <div className="max-w-5xl mx-auto bg-white p-10 shadow-2xl rounded-3xl">
-      <button onClick={() => { setSelectedType(""); localStorage.removeItem("selectedType"); }} className="mb-6 text-gray-500 hover:text-black flex items-center gap-2">
-        <FiArrowLeft /> Back to type selection
-      </button>
-
-      <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 text-green-700">
-        <FiSend /> Create New {selectedType} Ticket
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Title</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiHash />
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter ticket title"
-                className="w-full bg-transparent outline-none"
-                required
-              />
-            </div>
+    <div className="p-6 text-white">
+      <h1 className="text-3xl font-bold mb-6">📝 Create {type} Ticket</h1>
+      <form onSubmit={handleSubmit} className="space-y-5 bg-slate-800 p-6 rounded-xl shadow-xl max-w-3xl mx-auto">
+        {fields.map((field) => (
+          <div key={field}>
+            <label className="block mb-1 text-sm font-semibold text-white/80">{labels[field]}</label>
+            <input
+              type={field.toLowerCase().includes("date") ? "date" : "text"}
+              name={field}
+              value={formData[field] || ""}
+              onChange={handleChange}
+              placeholder={`Enter ${labels[field]}`}
+              className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none placeholder-white/40"
+              required={field === "title" || field === "description"}
+            />
           </div>
+        ))}
 
-          <div>
-            <label className="block font-medium mb-1">Priority</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiAlertCircle />
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="w-full bg-transparent outline-none"
-              >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-          </div>
+        {/* Common Fields */}
+        <div>
+          <label className="block mb-1 text-sm font-semibold text-white/80">Assigned To (email)</label>
+          <input
+            type="text"
+            name="assignedTo"
+            value={formData.assignedTo}
+            onChange={handleChange}
+            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
+          />
         </div>
 
         <div>
-          <label className="block font-medium mb-1">Description</label>
-          <div className="flex items-start gap-2 border p-2 rounded-md">
-            <FiFileText className="mt-1" />
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              placeholder="Describe the issue or request..."
-              className="w-full bg-transparent outline-none"
-              required
-            ></textarea>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Department</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiLayers />
-              <input
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                placeholder="e.g. IT, HR"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Assign To</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiUser />
-              <input
-                name="assignedTo"
-                value={formData.assignedTo}
-                onChange={handleChange}
-                placeholder="Username or Email"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Due Date</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiCalendar />
-              <input
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Attachments (links)</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiPaperclip />
-              <input
-                name="attachments"
-                value={formData.attachments}
-                onChange={handleChange}
-                placeholder="e.g. file1.pdf"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            name="isInternal"
-            checked={formData.isInternal}
+          <label className="block mb-1 text-sm font-semibold text-white/80">Department</label>
+          <select
+            name="department"
+            value={formData.department}
             onChange={handleChange}
-          />
-          <label className="text-sm">
-            Mark as <strong>Internal Note</strong> (visible to staff only)
-          </label>
+            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
+            required
+          >
+            <option value="">Select Department</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Admin">Admin</option>
+          </select>
         </div>
-
-        {/* 🔮 AI Assistant area can be integrated here in future */}
 
         <button
           type="submit"
-          className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all"
+          className="w-full mt-4 bg-gradient-to-r from-lime-500 to-green-600 hover:from-lime-600 hover:to-green-700 transition text-white font-bold py-2 rounded-lg"
         >
-          🚀 Submit Ticket
+          ✅ Submit Ticket
         </button>
       </form>
     </div>
