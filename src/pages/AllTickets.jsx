@@ -132,7 +132,7 @@ const AllTickets = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-6 items-center">
         <div className="flex items-center bg-slate-800 p-2 rounded-lg w-full md:w-1/3">
           <FiSearch className="text-white/70" />
           <input
@@ -150,7 +150,7 @@ const AllTickets = () => {
           className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
           <option value="">🎯 Filter by Type</option>
-          {Object.keys(typeColors).map((type) => (
+          {Array.from(new Set(tickets.map((t) => t.ticketType))).map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
@@ -179,10 +179,10 @@ const AllTickets = () => {
 
         <select
           value={pageSize}
-          onChange={(e) => setPageSize(parseInt(e.target.value))}
+          onChange={(e) => setPageSize(Number(e.target.value))}
           className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
-          {PAGE_SIZE_OPTIONS.map(size => (
+          {PAGE_SIZE_OPTIONS.map((size) => (
             <option key={size} value={size}>{size} per page</option>
           ))}
         </select>
@@ -212,7 +212,7 @@ const AllTickets = () => {
                 <td className="p-3 font-bold">{(page - 1) * pageSize + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3 text-sm font-medium">{ticket.ticketType || "—"}</td>
+                <td className="p-3 text-sm">{ticket.ticketType || "—"}</td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
                     {ticket.priority}
@@ -251,7 +251,6 @@ const AllTickets = () => {
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div className="flex justify-end items-center mt-4 gap-4">
           <button
             disabled={page <= 1}
