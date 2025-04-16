@@ -14,20 +14,19 @@ import {
   FiPaperclip,
   FiClipboard,
   FiActivity,
-  FiSettings,
   FiArrowLeft,
   FiZap,
   FiCheckCircle,
-  FiBox,
-  FiLightbulb
+  FiBox
 } from "react-icons/fi";
-import { FaBug } from "react-icons/fa"; // ✅ Replaced FiBug
+import { FaBug } from "react-icons/fa";
+import { HiOutlineLightBulb } from "react-icons/hi";
 import toast from "react-hot-toast";
 
 const typeOptions = [
   { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
   { label: "Service Request", icon: <FiTool />, color: "from-blue-500 to-sky-500" },
-  { label: "Change Request", icon: <FiLightbulb />, color: "from-purple-500 to-indigo-500" },
+  { label: "Change Request", icon: <HiOutlineLightBulb />, color: "from-purple-500 to-indigo-500" },
   { label: "Problem", icon: <FiActivity />, color: "from-orange-500 to-yellow-500" },
   { label: "Task", icon: <FiClipboard />, color: "from-green-500 to-teal-500" }
 ];
