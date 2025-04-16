@@ -6,43 +6,38 @@ import {
   FiEye,
   FiSearch,
   FiRefreshCw,
-  FiTool,
-  FiAlertCircle,
-  FiSettings,
-  FiActivity,
-  FiRepeat,
   FiChevronUp,
   FiChevronDown,
-  FiPackage,
   FiDownload,
   FiChevronLeft,
-  FiChevronRight,
-  FiFilter,
-  FiUsers,
-  FiUserCheck,
-  FiBox
+  FiChevronRight
 } from "react-icons/fi";
+import { FaBug, FaHeartbeat, FaClipboardCheck } from "react-icons/fa";
+import {
+  HiWrenchScrewdriver,
+  HiOutlineInformationCircle
+} from "react-icons/hi2";
 
 const typeColors = {
-  "Incident": "from-red-100 to-red-200",
+  Incident: "from-red-100 to-red-200",
   "Service Request": "from-blue-100 to-blue-200",
   "Change Request": "from-purple-100 to-purple-200",
-  "Problem": "from-orange-100 to-orange-200",
-  "Task": "from-emerald-100 to-emerald-200",
+  Problem: "from-orange-100 to-orange-200",
+  Task: "from-emerald-100 to-emerald-200",
 };
 
 const priorityColor = {
-  "High": "bg-red-500",
-  "Medium": "bg-yellow-500",
-  "Low": "bg-green-500",
+  High: "bg-red-500",
+  Medium: "bg-yellow-500",
+  Low: "bg-green-500",
 };
 
 const typeIcons = {
-  "Incident": <FiAlertCircle title="Incident" />,       // 🐞
-  "Service Request": <FiTool title="Service Request" />, // 🧰
-  "Change Request": <FiBox title="Change Request" />, // 📦
-  "Problem": <FiActivity title="Problem" />,             // ⚠️
-  "Task": <FiSettings title="Task" />                   // 🛠️
+  Incident: <FaBug title="Incident" />,
+  "Service Request": <HiWrenchScrewdriver title="Service Request" />,
+  "Change Request": <HiOutlineInformationCircle title="Change Request" />,
+  Problem: <FaHeartbeat title="Problem" />,
+  Task: <FaClipboardCheck title="Task" />,
 };
 
 const statusOptions = ["Open", "In Progress", "Completed", "Closed"];
@@ -110,16 +105,16 @@ const AllTickets = () => {
 
   const exportCSV = () => {
     const header = ["Ticket ID", "Title", "Type", "Priority", "Status", "Assigned To", "Created"];
-    const rows = sorted.map(t => [
+    const rows = sorted.map((t) => [
       t.ticketId,
       t.title,
       t.ticketType,
       t.priority,
       t.status,
       t.assignedTo || "Unassigned",
-      new Date(t.createdAt).toLocaleString()
+      new Date(t.createdAt).toLocaleString(),
     ]);
-    const csvContent = [header, ...rows].map(row => row.join(",")).join("\n");
+    const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
