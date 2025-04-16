@@ -57,6 +57,7 @@ const AllTickets = () => {
   const fetchTickets = async () => {
     try {
       const res = await axios.get("/tickets");
+      console.log("🎯 Tickets:", res.data);
       setTickets(res.data);
     } catch (err) {
       console.error("Failed to fetch tickets", err);
@@ -215,7 +216,11 @@ const AllTickets = () => {
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
                 <td className="p-3 text-lg">
-                  {typeIcons[ticket.ticketType] || <span title="Unknown">—</span>}
+                  {ticket.ticketType && typeIcons[ticket.ticketType] ? (
+                    typeIcons[ticket.ticketType]
+                  ) : (
+                    <span title="Unknown">—</span>
+                  )}
                 </td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
