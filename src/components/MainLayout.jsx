@@ -84,14 +84,12 @@ const MainLayout = ({ setAuth }) => {
         </button>
       </div>
 
-      {/* Right Content Area */}
-      <div className="flex-1 p-6 overflow-auto">
-        <Outlet />
-      </div>{/* Right Content Area */}
+    {/* Right Content Area */}
 <div className="flex-1 p-6 overflow-auto relative">
   <Outlet />
   <AIChatBot />
 </div>
+
   );
 };
 
