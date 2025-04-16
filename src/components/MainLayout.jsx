@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/ticxnova-logo.png";
 import { FaUserCircle } from "react-icons/fa";
+import AIChatBot from "../components/AIChatBot";
 
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
@@ -86,7 +87,12 @@ const MainLayout = ({ setAuth }) => {
       {/* Right Content Area */}
       <div className="flex-1 p-6 overflow-auto">
         <Outlet />
-      </div>
+      </div>{/* Right Content Area */}
+<div className="flex-1 p-6 overflow-auto relative">
+  <Outlet />
+  <AIChatBot />
+</div>
+
     </div>
   );
 };
