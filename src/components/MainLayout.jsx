@@ -7,18 +7,18 @@ const navItems = [
   { label: "Dashboard", icon: "📊", route: "/dashboard" },
   { label: "Create Ticket", icon: "➕", route: "/create-ticket" },
   { label: "All Tickets", icon: "📁", route: "/all-tickets" },
-  { label: "Users", icon: "👥" },
+ # { label: "Users", icon: "👥" },
   { label: "Knowledge Base", icon: "📚" },
   { label: "Reports", icon: "📈" },
   { label: "Notifications", icon: "🔔" },
-  { label: "Messages", icon: "📨" },
+ # { label: "Messages", icon: "📨" },
   { label: "Settings", icon: "⚙️" },
   { label: "Admin Panel", icon: "🛠️" },
   { label: "Profile Page", icon: "🧑‍💼" },
   { label: "SLA Tracker", icon: "🎯" },
   { label: "Asset Management", icon: "📦" },
   { label: "Role & Permission Settings", icon: "🔐" },
-  { label: "Email Templates", icon: "📬" },
+  # { label: "Email Templates", icon: "📬" },
 ];
 
 const MainLayout = ({ setAuth }) => {
