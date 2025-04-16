@@ -53,7 +53,7 @@ const AllTickets = () => {
     const matchSearch =
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter ? t.ticketType === typeFilter : true;
+    const matchType = typeFilter ? t.ticketType?.trim() === typeFilter : true;
     const matchPriority = priorityFilter ? t.priority === priorityFilter : true;
     return matchSearch && matchType && matchPriority;
   });
@@ -71,7 +71,7 @@ const AllTickets = () => {
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center bg-white/10 p-2 rounded-lg w-full md:w-1/3">
+        <div className="flex items-center bg-black/20 p-2 rounded-lg w-full md:w-1/3">
           <FiSearch className="text-white/70" />
           <input
             type="text"
@@ -85,7 +85,7 @@ const AllTickets = () => {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-white/10 text-white px-3 py-2 rounded-lg"
+          className="bg-black/20 text-white px-3 py-2 rounded-lg"
         >
           <option value="">🎯 Filter by Type</option>
           <option value="Incident">Incident</option>
@@ -98,7 +98,7 @@ const AllTickets = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="bg-white/10 text-white px-3 py-2 rounded-lg"
+          className="bg-black/20 text-white px-3 py-2 rounded-lg"
         >
           <option value="">⚡ Filter by Priority</option>
           <option value="High">High</option>
@@ -125,11 +125,11 @@ const AllTickets = () => {
             {filtered.map((ticket) => (
               <tr
                 key={ticket.id}
-                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
+                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType?.trim()] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
               >
-                <td className="p-3 font-mono">{ticket.ticketId}</td>
+                <td className="p-3 font-mono font-bold">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3">{ticket.ticketType || "—"}</td>
+                <td className="p-3">{ticket.ticketType?.trim() || "—"}</td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
                     {ticket.priority}
