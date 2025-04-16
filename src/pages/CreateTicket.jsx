@@ -1,5 +1,5 @@
 // src/pages/CreateTicket.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -17,7 +17,8 @@ import {
   FiArrowLeft,
   FiZap,
   FiCheckCircle,
-  FiBox
+  FiBox,
+  FiInfo
 } from "react-icons/fi";
 import { FaBug } from "react-icons/fa";
 import { HiOutlineLightBulb } from "react-icons/hi";
@@ -26,14 +27,14 @@ import toast from "react-hot-toast";
 const typeOptions = [
   { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
   { label: "Service Request", icon: <FiTool />, color: "from-blue-500 to-sky-500" },
-  { label: "Change Request", icon: <HiOutlineLightBulb />, color: "from-purple-500 to-indigo-500" },
+  { label: "Change Request", icon: <FiInfo />, color: "from-purple-500 to-indigo-500" },
   { label: "Problem", icon: <FiActivity />, color: "from-orange-500 to-yellow-500" },
   { label: "Task", icon: <FiClipboard />, color: "from-green-500 to-teal-500" }
 ];
 
 const CreateTicket = () => {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || "");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -44,6 +45,10 @@ const CreateTicket = () => {
     isInternal: false,
     attachments: ""
   });
+
+  useEffect(() => {
+    if (selectedType) localStorage.setItem("selectedType", selectedType);
+  }, [selectedType]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -61,15 +66,12 @@ const CreateTicket = () => {
       const response = await axios.post(
         "https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets",
         { ...formData, ticketType: selectedType },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.status === 201) {
         toast.success("🎉 Ticket created successfully!");
+        localStorage.removeItem("selectedType");
         navigate("/all-tickets");
       }
     } catch (err) {
@@ -88,6 +90,7 @@ const CreateTicket = () => {
               key={type.label}
               onClick={() => setSelectedType(type.label)}
               className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-all`}
+              title={type.label}
             >
               <div className="text-4xl mb-3">{type.icon}</div>
               <h3 className="text-xl font-semibold">{type.label}</h3>
@@ -101,7 +104,7 @@ const CreateTicket = () => {
 
   return (
     <div className="max-w-5xl mx-auto bg-white p-10 shadow-2xl rounded-3xl">
-      <button onClick={() => setSelectedType("")} className="mb-6 text-gray-500 hover:text-black flex items-center gap-2">
+      <button onClick={() => { setSelectedType(""); localStorage.removeItem("selectedType"); }} className="mb-6 text-gray-500 hover:text-black flex items-center gap-2">
         <FiArrowLeft /> Back to type selection
       </button>
 
@@ -231,6 +234,8 @@ const CreateTicket = () => {
             Mark as <strong>Internal Note</strong> (visible to staff only)
           </label>
         </div>
+
+        {/* 🔮 AI Assistant area can be integrated here in future */}
 
         <button
           type="submit"
