@@ -12,7 +12,10 @@ import {
   FiUser,
   FiClock,
   FiLayers,
-  FiFilter
+  FiFilter,
+  FiZap,
+  FiTool,
+  FiAlertCircle,
 } from "react-icons/fi";
 
 const typeColors = {
@@ -27,6 +30,14 @@ const priorityColor = {
   "High": "bg-red-500",
   "Medium": "bg-yellow-500",
   "Low": "bg-green-500",
+};
+
+const typeIcons = {
+  "Incident": <FiAlertCircle className="inline mr-1" />,
+  "Service Request": <FiTool className="inline mr-1" />,
+  "Change Request": <FiShield className="inline mr-1" />,
+  "Problem": <FiHash className="inline mr-1" />,
+  "Task": <FiZap className="inline mr-1" />,
 };
 
 const AllTickets = () => {
@@ -53,7 +64,7 @@ const AllTickets = () => {
     const matchSearch =
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter ? t.ticketType?.trim() === typeFilter : true;
+    const matchType = typeFilter ? t.ticketType === typeFilter : true;
     const matchPriority = priorityFilter ? t.priority === priorityFilter : true;
     return matchSearch && matchType && matchPriority;
   });
@@ -125,11 +136,13 @@ const AllTickets = () => {
             {filtered.map((ticket) => (
               <tr
                 key={ticket.id}
-                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType?.trim()] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
+                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg hover:scale-[1.01] transition`}
               >
                 <td className="p-3 font-mono font-bold">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3">{ticket.ticketType?.trim() || "—"}</td>
+                <td className="p-3">
+                  {typeIcons[ticket.ticketType]} {ticket.ticketType || "—"}
+                </td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
                     {ticket.priority}
