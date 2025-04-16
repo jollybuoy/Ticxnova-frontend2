@@ -34,13 +34,13 @@ const AllTickets = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [assignedFilter, setAssignedFilter] = useState("");
   const [sortField, setSortField] = useState("createdAt");
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchTickets = async () => {
     try {
@@ -59,10 +59,13 @@ const AllTickets = () => {
     const matchSearch =
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter ? t.ticketType === typeFilter : true;
     const matchPriority = priorityFilter ? t.priority === priorityFilter : true;
     const matchStatus = statusFilter ? t.status === statusFilter : true;
-    return matchSearch && matchType && matchPriority && matchStatus;
+    const matchAssigned = assignedFilter
+      ? (assignedFilter === "Unassigned" && !t.assignedTo)
+        || t.assignedTo === assignedFilter
+      : true;
+    return matchSearch && matchPriority && matchStatus && matchAssigned;
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -74,8 +77,8 @@ const AllTickets = () => {
     return 0;
   });
 
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
-  const totalPages = Math.ceil(sorted.length / pageSize);
+  const paginated = sorted.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
 
   const toggleSort = (field) => {
     if (sortField === field) {
@@ -91,38 +94,11 @@ const AllTickets = () => {
     return sortAsc ? <FiChevronUp className="inline ml-1" /> : <FiChevronDown className="inline ml-1" />;
   };
 
-  const exportCSV = () => {
-    const header = ["Ticket ID", "Title", "Type", "Priority", "Status", "Assigned To", "Created"];
-    const rows = sorted.map((t) => [
-      t.ticketId,
-      t.title,
-      t.ticketType,
-      t.priority,
-      t.status,
-      t.assignedTo || "Unassigned",
-      new Date(t.createdAt).toLocaleString(),
-    ]);
-    const csvContent = [header, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "tickets.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="p-6 text-white">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">📁 All Tickets</h1>
         <div className="flex gap-3">
-          <button
-            onClick={exportCSV}
-            className="flex items-center gap-2 bg-gradient-to-r from-lime-500 to-green-600 px-4 py-2 rounded-lg"
-          >
-            <FiDownload /> Export CSV
-          </button>
           <button
             onClick={fetchTickets}
             className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg animate-pulse"
@@ -132,7 +108,7 @@ const AllTickets = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6 items-center">
+      <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex items-center bg-slate-800 p-2 rounded-lg w-full md:w-1/3">
           <FiSearch className="text-white/70" />
           <input
@@ -143,17 +119,6 @@ const AllTickets = () => {
             className="bg-transparent outline-none px-3 w-full text-white"
           />
         </div>
-
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
-        >
-          <option value="">🎯 Filter by Type</option>
-          {Array.from(new Set(tickets.map((t) => t.ticketType))).map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
 
         <select
           value={priorityFilter}
@@ -178,12 +143,24 @@ const AllTickets = () => {
         </select>
 
         <select
-          value={pageSize}
-          onChange={(e) => setPageSize(Number(e.target.value))}
+          value={assignedFilter}
+          onChange={(e) => setAssignedFilter(e.target.value)}
           className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
-          {PAGE_SIZE_OPTIONS.map((size) => (
-            <option key={size} value={size}>{size} per page</option>
+          <option value="">👤 Filter by Assigned To</option>
+          <option value="Unassigned">Unassigned</option>
+          {[...new Set(tickets.map(t => t.assignedTo).filter(Boolean))].map((assignee) => (
+            <option key={assignee} value={assignee}>{assignee}</option>
+          ))}
+        </select>
+
+        <select
+          value={itemsPerPage}
+          onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPage(1); }}
+          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+        >
+          {PAGE_SIZE_OPTIONS.map(n => (
+            <option key={n} value={n}>Show {n}</option>
           ))}
         </select>
       </div>
@@ -195,7 +172,6 @@ const AllTickets = () => {
               <th onClick={() => toggleSort("id")}># {sortIcon("id")}</th>
               <th onClick={() => toggleSort("ticketId")}>🎫 <strong>Ticket ID</strong> {sortIcon("ticketId")}</th>
               <th onClick={() => toggleSort("title")}>📄 <strong>Title</strong> {sortIcon("title")}</th>
-              <th>🏷️ <strong>Type</strong></th>
               <th onClick={() => toggleSort("priority")}>⚡ <strong>Priority</strong> {sortIcon("priority")}</th>
               <th onClick={() => toggleSort("status")}>📌 <strong>Status</strong> {sortIcon("status")}</th>
               <th onClick={() => toggleSort("assignedTo")}>👤 <strong>Assigned To</strong> {sortIcon("assignedTo")}</th>
@@ -209,10 +185,9 @@ const AllTickets = () => {
                 key={ticket.id}
                 className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
               >
-                <td className="p-3 font-bold">{(page - 1) * pageSize + index + 1}</td>
+                <td className="p-3 font-bold">{(page - 1) * itemsPerPage + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3 text-sm">{ticket.ticketType || "—"}</td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
                     {ticket.priority}
@@ -243,7 +218,7 @@ const AllTickets = () => {
             ))}
             {paginated.length === 0 && (
               <tr>
-                <td colSpan="9" className="text-center text-white/50 p-6">
+                <td colSpan="8" className="text-center text-white/50 p-6">
                   No tickets found.
                 </td>
               </tr>
@@ -251,6 +226,7 @@ const AllTickets = () => {
           </tbody>
         </table>
 
+        {/* Pagination */}
         <div className="flex justify-end items-center mt-4 gap-4">
           <button
             disabled={page <= 1}
