@@ -13,14 +13,13 @@ import {
   FiClock,
   FiLayers,
   FiFilter,
+  FiTool,
+  FiAlertCircle,
+  FiSettings,
+  FiActivity,
+  FiRepeat,
+  FiRefreshCcw
 } from "react-icons/fi";
-import {
-  FaBug,
-  FaExchangeAlt,
-  FaCogs,
-  FaClipboardCheck,
-  FaTasks,
-} from "react-icons/fa";
 
 const typeColors = {
   "Incident": "from-red-500 to-pink-500",
@@ -30,18 +29,18 @@ const typeColors = {
   "Task": "from-emerald-500 to-teal-500",
 };
 
-const typeIcons = {
-  "Incident": <FaBug title="Incident" className="text-lg" />,
-  "Service Request": <FaClipboardCheck title="Service Request" className="text-lg" />,
-  "Change Request": <FaExchangeAlt title="Change Request" className="text-lg" />,
-  "Problem": <FaCogs title="Problem" className="text-lg" />,
-  "Task": <FaTasks title="Task" className="text-lg" />,
-};
-
 const priorityColor = {
   "High": "bg-red-500",
   "Medium": "bg-yellow-500",
   "Low": "bg-green-500",
+};
+
+const typeIcons = {
+  "Incident": <FiAlertCircle title="Incident" />,       // 🐞
+  "Service Request": <FiTool title="Service Request" />, // 🧰
+  "Change Request": <FiRepeat title="Change Request" />, // 🔄
+  "Problem": <FiActivity title="Problem" />,             // 🧠
+  "Task": <FiSettings title="Task" />                   // ✅
 };
 
 const AllTickets = () => {
@@ -86,7 +85,7 @@ const AllTickets = () => {
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center bg-black/20 p-2 rounded-lg w-full md:w-1/3">
+        <div className="flex items-center bg-slate-800 p-2 rounded-lg w-full md:w-1/3">
           <FiSearch className="text-white/70" />
           <input
             type="text"
@@ -100,7 +99,7 @@ const AllTickets = () => {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-black/20 text-white px-3 py-2 rounded-lg"
+          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
           <option value="">🎯 Filter by Type</option>
           <option value="Incident">Incident</option>
@@ -113,7 +112,7 @@ const AllTickets = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="bg-black/20 text-white px-3 py-2 rounded-lg"
+          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
           <option value="">⚡ Filter by Priority</option>
           <option value="High">High</option>
@@ -126,14 +125,14 @@ const AllTickets = () => {
         <table className="w-full table-auto text-sm border-separate border-spacing-y-4">
           <thead>
             <tr className="text-left text-white/80">
-              <th>🎫 <b>Ticket ID</b></th>
-              <th>📄 <b>Title</b></th>
-              <th>🏷️ <b>Type</b></th>
-              <th>⚡ <b>Priority</b></th>
-              <th>📌 <b>Status</b></th>
-              <th>👤 <b>Assigned To</b></th>
-              <th>🕒 <b>Created</b></th>
-              <th>🔍 <b>View</b></th>
+              <th>🎫 <strong>Ticket ID</strong></th>
+              <th>📄 <strong>Title</strong></th>
+              <th>🏷️ <strong>Type</strong></th>
+              <th>⚡ <strong>Priority</strong></th>
+              <th>📌 <strong>Status</strong></th>
+              <th>👤 <strong>Assigned To</strong></th>
+              <th>🕒 <strong>Created</strong></th>
+              <th>🔍</th>
             </tr>
           </thead>
           <tbody>
@@ -144,12 +143,8 @@ const AllTickets = () => {
               >
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3">
-                  {ticket.ticketType ? (
-                    <span title={ticket.ticketType}>{typeIcons[ticket.ticketType] || ticket.ticketType}</span>
-                  ) : (
-                    "—"
-                  )}
+                <td className="p-3 text-lg">
+                  {typeIcons[ticket.ticketType] || <span title="Unknown">—</span>}
                 </td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
