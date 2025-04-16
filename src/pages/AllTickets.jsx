@@ -6,19 +6,20 @@ import {
   FiEye,
   FiSearch,
   FiRefreshCw,
-  FiTag,
-  FiShield,
-  FiHash,
-  FiUser,
-  FiClock,
-  FiLayers,
-  FiFilter,
   FiTool,
   FiAlertCircle,
   FiSettings,
   FiActivity,
   FiRepeat,
-  FiRefreshCcw
+  FiChevronUp,
+  FiChevronDown,
+  FiPackage,
+  FiDownload,
+  FiChevronLeft,
+  FiChevronRight,
+  FiFilter,
+  FiUsers,
+  FiUserCheck
 } from "react-icons/fi";
 
 const typeColors = {
@@ -38,10 +39,13 @@ const priorityColor = {
 const typeIcons = {
   "Incident": <FiAlertCircle title="Incident" />,       // 🐞
   "Service Request": <FiTool title="Service Request" />, // 🧰
-  "Change Request": <FiRepeat title="Change Request" />, // 🔄
-  "Problem": <FiActivity title="Problem" />,             // 🧠
-  "Task": <FiSettings title="Task" />                   // ✅
+  "Change Request": <FiPackage title="Change Request" />, // 📦
+  "Problem": <FiActivity title="Problem" />,             // ⚠️
+  "Task": <FiSettings title="Task" />                   // 🛠️
 };
+
+const statusOptions = ["Open", "In Progress", "Completed", "Closed"];
+const PAGE_SIZE = 6;
 
 const AllTickets = () => {
   const navigate = useNavigate();
@@ -49,6 +53,10 @@ const AllTickets = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortField, setSortField] = useState("createdAt");
+  const [sortAsc, setSortAsc] = useState(false);
+  const [page, setPage] = useState(1);
 
   const fetchTickets = async () => {
     try {
@@ -63,25 +71,81 @@ const AllTickets = () => {
     fetchTickets();
   }, []);
 
-  const filtered = tickets.filter(t => {
+  const filtered = tickets.filter((t) => {
     const matchSearch =
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter ? t.ticketType === typeFilter : true;
     const matchPriority = priorityFilter ? t.priority === priorityFilter : true;
-    return matchSearch && matchType && matchPriority;
+    const matchStatus = statusFilter ? t.status === statusFilter : true;
+    return matchSearch && matchType && matchPriority && matchStatus;
   });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortField) return 0;
+    const valA = a[sortField];
+    const valB = b[sortField];
+    if (valA < valB) return sortAsc ? -1 : 1;
+    if (valA > valB) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+
+  const toggleSort = (field) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  const sortIcon = (field) => {
+    if (sortField !== field) return null;
+    return sortAsc ? <FiChevronUp className="inline ml-1" /> : <FiChevronDown className="inline ml-1" />;
+  };
+
+  const exportCSV = () => {
+    const header = ["Ticket ID", "Title", "Type", "Priority", "Status", "Assigned To", "Created"];
+    const rows = sorted.map(t => [
+      t.ticketId,
+      t.title,
+      t.ticketType,
+      t.priority,
+      t.status,
+      t.assignedTo || "Unassigned",
+      new Date(t.createdAt).toLocaleString()
+    ]);
+    const csvContent = [header, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "tickets.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="p-6 text-white">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">📁 All Tickets</h1>
-        <button
-          onClick={fetchTickets}
-          className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg"
-        >
-          <FiRefreshCw /> Refresh
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 bg-gradient-to-r from-lime-500 to-green-600 px-4 py-2 rounded-lg"
+          >
+            <FiDownload /> Export CSV
+          </button>
+          <button
+            onClick={fetchTickets}
+            className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg"
+          >
+            <FiRefreshCw /> Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
@@ -102,11 +166,9 @@ const AllTickets = () => {
           className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
           <option value="">🎯 Filter by Type</option>
-          <option value="Incident">Incident</option>
-          <option value="Service Request">Service Request</option>
-          <option value="Change Request">Change Request</option>
-          <option value="Problem">Problem</option>
-          <option value="Task">Task</option>
+          {Object.keys(typeIcons).map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
         </select>
 
         <select
@@ -119,28 +181,41 @@ const AllTickets = () => {
           <option value="Medium">Medium</option>
           <option value="Low">Low</option>
         </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+        >
+          <option value="">📌 Filter by Status</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full table-auto text-sm border-separate border-spacing-y-4">
           <thead>
             <tr className="text-left text-white/80">
-              <th>🎫 <strong>Ticket ID</strong></th>
-              <th>📄 <strong>Title</strong></th>
+              <th onClick={() => toggleSort("id")}># {sortIcon("id")}</th>
+              <th onClick={() => toggleSort("ticketId")}>🎫 <strong>Ticket ID</strong> {sortIcon("ticketId")}</th>
+              <th onClick={() => toggleSort("title")}>📄 <strong>Title</strong> {sortIcon("title")}</th>
               <th>🏷️ <strong>Type</strong></th>
-              <th>⚡ <strong>Priority</strong></th>
-              <th>📌 <strong>Status</strong></th>
-              <th>👤 <strong>Assigned To</strong></th>
-              <th>🕒 <strong>Created</strong></th>
+              <th onClick={() => toggleSort("priority")}>⚡ <strong>Priority</strong> {sortIcon("priority")}</th>
+              <th onClick={() => toggleSort("status")}>📌 <strong>Status</strong> {sortIcon("status")}</th>
+              <th onClick={() => toggleSort("assignedTo")}>👤 <strong>Assigned To</strong> {sortIcon("assignedTo")}</th>
+              <th onClick={() => toggleSort("createdAt")}>🕒 <strong>Created</strong> {sortIcon("createdAt")}</th>
               <th>🔍</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((ticket) => (
+            {paginated.map((ticket, index) => (
               <tr
                 key={ticket.id}
                 className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
               >
+                <td className="p-3 font-bold">{(page - 1) * PAGE_SIZE + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
                 <td className="p-3 text-lg">
@@ -174,15 +249,34 @@ const AllTickets = () => {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {paginated.length === 0 && (
               <tr>
-                <td colSpan="8" className="text-center text-white/50 p-6">
+                <td colSpan="9" className="text-center text-white/50 p-6">
                   No tickets found.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        <div className="flex justify-end items-center mt-4 gap-4">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded disabled:opacity-50"
+          >
+            <FiChevronLeft /> Prev
+          </button>
+          <span className="text-sm text-white/70">Page {page} of {totalPages}</span>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded disabled:opacity-50"
+          >
+            Next <FiChevronRight />
+          </button>
+        </div>
       </div>
     </div>
   );
