@@ -40,9 +40,15 @@ const MainLayout = ({ setAuth }) => {
           <h2 className="text-2xl font-bold">Ticxnova</h2>
         </div>
 
-        <div className="flex items-center gap-2 mb-8 px-2 text-white/90">
-          <FaUserCircle className="text-2xl text-white/70" />
-          <span className="text-sm truncate">Welcome, {userName}</span>
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <img
+            src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff"
+            alt="Avatar"
+            className="h-8 w-8 rounded-full border border-white shadow"
+          />
+          <span className="text-sm text-orange-400 font-semibold" style={{ fontSize: "1rem" }}>
+            Welcome, {userName}
+          </span>
         </div>
 
         <ul className="space-y-4">
