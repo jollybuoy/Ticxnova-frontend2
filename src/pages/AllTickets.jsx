@@ -12,11 +12,6 @@ import {
   FiChevronLeft,
   FiChevronRight
 } from "react-icons/fi";
-import { FaBug, FaHeartbeat, FaClipboardCheck } from "react-icons/fa";
-import {
-  HiWrenchScrewdriver,
-  HiOutlineInformationCircle
-} from "react-icons/hi2";
 
 const typeColors = {
   Incident: "from-red-100 to-red-200",
@@ -32,16 +27,8 @@ const priorityColor = {
   Low: "bg-green-500",
 };
 
-const typeIcons = {
-  Incident: <FaBug title="Incident" />,
-  "Service Request": <HiWrenchScrewdriver title="Service Request" />,
-  "Change Request": <HiOutlineInformationCircle title="Change Request" />,
-  Problem: <FaHeartbeat title="Problem" />,
-  Task: <FaClipboardCheck title="Task" />,
-};
-
 const statusOptions = ["Open", "In Progress", "Completed", "Closed"];
-const PAGE_SIZE = 6;
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 const AllTickets = () => {
   const navigate = useNavigate();
@@ -53,11 +40,11 @@ const AllTickets = () => {
   const [sortField, setSortField] = useState("createdAt");
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchTickets = async () => {
     try {
       const res = await axios.get("/tickets");
-      console.log("🎯 Tickets:", res.data);
       setTickets(res.data);
     } catch (err) {
       console.error("Failed to fetch tickets", err);
@@ -87,8 +74,8 @@ const AllTickets = () => {
     return 0;
   });
 
-  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(sorted.length / pageSize);
 
   const toggleSort = (field) => {
     if (sortField === field) {
@@ -163,7 +150,7 @@ const AllTickets = () => {
           className="bg-slate-800 text-white px-3 py-2 rounded-lg"
         >
           <option value="">🎯 Filter by Type</option>
-          {Object.keys(typeIcons).map((type) => (
+          {Object.keys(typeColors).map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
@@ -189,6 +176,16 @@ const AllTickets = () => {
             <option key={status} value={status}>{status}</option>
           ))}
         </select>
+
+        <select
+          value={pageSize}
+          onChange={(e) => setPageSize(parseInt(e.target.value))}
+          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+        >
+          {PAGE_SIZE_OPTIONS.map(size => (
+            <option key={size} value={size}>{size} per page</option>
+          ))}
+        </select>
       </div>
 
       <div className="overflow-x-auto">
@@ -212,16 +209,10 @@ const AllTickets = () => {
                 key={ticket.id}
                 className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
               >
-                <td className="p-3 font-bold">{(page - 1) * PAGE_SIZE + index + 1}</td>
+                <td className="p-3 font-bold">{(page - 1) * pageSize + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3 text-lg">
-                  {ticket.ticketType && typeIcons[ticket.ticketType] ? (
-                    typeIcons[ticket.ticketType]
-                  ) : (
-                    <span title="Unknown">—</span>
-                  )}
-                </td>
+                <td className="p-3 text-sm font-medium">{ticket.ticketType || "—"}</td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
                     {ticket.priority}
