@@ -1,15 +1,28 @@
 // src/components/MainLayout.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/ticxnova-logo.png";
+import { FaUserCircle } from "react-icons/fa";
 
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        setUserName(decoded.name || decoded.email || "User");
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        setUserName("User");
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     if (setAuth) setAuth(false);
     navigate("/");
   };
@@ -25,6 +38,11 @@ const MainLayout = ({ setAuth }) => {
             className="h-10 w-10 rounded-full shadow ring-2 ring-white/30"
           />
           <h2 className="text-2xl font-bold">Ticxnova</h2>
+        </div>
+
+        <div className="flex items-center gap-2 mb-8 px-2 text-white/90">
+          <FaUserCircle className="text-2xl text-white/70" />
+          <span className="text-sm truncate">Welcome, {userName}</span>
         </div>
 
         <ul className="space-y-4">
@@ -51,17 +69,9 @@ const MainLayout = ({ setAuth }) => {
           <li className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
         </ul>
 
-        {/* User Info Section */}
-        <div className="mt-10 border-t border-white/20 pt-4 text-sm text-white/70">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">👤</span>
-            <span>{user?.email || "Guest User"}</span>
-          </div>
-        </div>
-
         <button
           onClick={handleLogout}
-          className="mt-4 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
+          className="mt-10 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
         >
           🔓 Logout
         </button>
