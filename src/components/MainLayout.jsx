@@ -5,9 +5,11 @@ import logo from "../assets/ticxnova-logo.png";
 
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     if (setAuth) setAuth(false);
     navigate("/");
   };
@@ -49,9 +51,17 @@ const MainLayout = ({ setAuth }) => {
           <li className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
         </ul>
 
+        {/* User Info Section */}
+        <div className="mt-10 border-t border-white/20 pt-4 text-sm text-white/70">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">👤</span>
+            <span>{user?.email || "Guest User"}</span>
+          </div>
+        </div>
+
         <button
           onClick={handleLogout}
-          className="mt-10 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
+          className="mt-4 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
         >
           🔓 Logout
         </button>
