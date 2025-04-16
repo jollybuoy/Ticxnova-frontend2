@@ -1,7 +1,7 @@
 // src/pages/TicketDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import API from "../api/axios";
+import axios from "axios";
 import {
   FiTag,
   FiUser,
@@ -11,7 +11,6 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
-  FiPaperclip,
 } from "react-icons/fi";
 
 const TicketDetails = () => {
@@ -19,36 +18,59 @@ const TicketDetails = () => {
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
-  const [error, setError] = useState(null);
 
   const fetchTicket = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const res = await API.get(`/tickets/${id}`);
+      const res = await axios.get(
+        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setTicket(res.data);
       setNotes(res.data.notes || []);
     } catch (err) {
-      console.error("❌ Failed to fetch ticket", err);
-      setError("Ticket not found or error loading ticket.");
+      console.error("Failed to fetch ticket", err);
     }
   };
 
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
     try {
-      await API.post(`/tickets/${id}/notes`, newNote);
+      await axios.post(
+        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}/notes`,
+        newNote,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setNewNote({ comment: "", status: "" });
       fetchTicket();
     } catch (err) {
-      console.error("❌ Error adding note", err);
+      console.error("Error adding note", err);
     }
   };
 
   const handleDeleteNote = async (noteId) => {
+    const token = localStorage.getItem("token");
     try {
-      await API.delete(`/tickets/${id}/notes/${noteId}`);
+      await axios.delete(
+        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}/notes/${noteId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       fetchTicket();
     } catch (err) {
-      console.error("❌ Failed to delete note", err);
+      console.error("Failed to delete note", err);
     }
   };
 
@@ -56,60 +78,82 @@ const TicketDetails = () => {
     fetchTicket();
   }, [id]);
 
-  if (error) return <p className="text-red-500 text-center mt-10">{error}</p>;
-  if (!ticket) return <p className="text-white text-center mt-10">Loading ticket...</p>;
+  if (!ticket) return <p className="text-white">Loading ticket...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-4xl font-bold text-cyan-400 mb-6 border-b pb-3 border-cyan-700">
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-yellow-200">
+      <h1 className="text-4xl font-bold mb-2 text-yellow-700 border-b pb-2 border-yellow-300">
         🎫 Ticket #{ticket.ticketId || ticket.id}
       </h1>
+      {ticket.ticketType && (
+        <p className="text-sm text-yellow-800 mb-6 font-semibold uppercase tracking-wide">
+          {ticket.ticketType}
+        </p>
+      )}
 
-      <div className="grid md:grid-cols-2 gap-6 text-white">
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiTag /> <strong>Title:</strong> {ticket.title}</p>
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiTag /> <strong>Title:</strong> {ticket.title}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiEdit3 /> <strong>Status:</strong> {ticket.status}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiEdit3 /> <strong>Status:</strong> {ticket.status}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl md:col-span-2">
-          <p className="flex items-center gap-2"><FiMessageSquare /> <strong>Description:</strong> {ticket.description}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 md:col-span-2">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiMessageSquare /> <strong>Description:</strong> {ticket.description}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiClock /> <strong>Created At:</strong>{" "}
+            {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl">
-          <p className="flex items-center gap-2"><FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}</p>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
+          </p>
         </div>
-        {ticket.attachments && (
-          <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-4 rounded-xl md:col-span-2">
-            <p className="flex items-center gap-2"><FiPaperclip /> <strong>Attachments:</strong> {ticket.attachments}</p>
-          </div>
-        )}
       </div>
 
-      <h2 className="text-2xl text-cyan-300 font-bold mt-10 mb-3">📝 Notes</h2>
-      <div className="space-y-4">
+      <h2 className="text-2xl font-bold mb-4 text-yellow-700">📝 Notes</h2>
+      <div className="space-y-4 mb-6">
         {notes.length > 0 ? (
-          notes.map(note => (
-            <div key={note.id} className="bg-slate-800 text-white p-4 rounded-xl border border-cyan-800">
-              <div className="flex justify-between">
+          notes.map((note) => (
+            <div key={note.id} className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+              <div className="flex justify-between items-start">
                 <div>
-                  <p><strong>Comment:</strong> {note.comment}</p>
-                  <p><strong>Status:</strong> {note.status}</p>
-                  <p className="text-sm text-gray-400">By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}</p>
+                  <p className="text-gray-800">
+                    <strong>Comment:</strong> {note.comment}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong>Status:</strong> {note.status}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}
+                  </p>
                 </div>
                 <button
-                  className="text-red-500 hover:text-red-600"
+                  className="text-red-500 hover:text-red-700"
                   onClick={() => handleDeleteNote(note.id)}
                 >
                   <FiTrash2 />
@@ -118,16 +162,19 @@ const TicketDetails = () => {
             </div>
           ))
         ) : (
-          <p className="text-gray-400">No notes yet.</p>
+          <p className="text-gray-600">No notes yet.</p>
         )}
       </div>
 
-      <form onSubmit={handleNoteSubmit} className="bg-slate-800 p-6 rounded-2xl mt-6 text-white">
-        <h3 className="text-xl font-semibold text-cyan-300 mb-3">➕ Add Note</h3>
+      <form
+        onSubmit={handleNoteSubmit}
+        className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200"
+      >
+        <h3 className="text-xl font-bold text-yellow-700">➕ Add Note</h3>
         <textarea
           value={newNote.comment}
           onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-          className="w-full p-3 rounded-lg bg-slate-700 focus:outline-none"
+          className="w-full p-3 rounded-lg bg-white focus:outline-none"
           rows={3}
           placeholder="Add your comment"
           required
@@ -135,7 +182,7 @@ const TicketDetails = () => {
         <select
           value={newNote.status}
           onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-          className="w-full mt-3 p-2 rounded-lg bg-slate-700 text-white"
+          className="w-full p-2 rounded-lg bg-white"
           required
         >
           <option value="">Select status</option>
@@ -146,7 +193,7 @@ const TicketDetails = () => {
         </select>
         <button
           type="submit"
-          className="w-full py-2 mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 rounded-lg text-white font-semibold"
+          className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold"
         >
           💬 Submit Note
         </button>
