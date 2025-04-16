@@ -13,10 +13,14 @@ import {
   FiClock,
   FiLayers,
   FiFilter,
-  FiZap,
-  FiTool,
-  FiAlertCircle,
 } from "react-icons/fi";
+import {
+  FaBug,
+  FaExchangeAlt,
+  FaCogs,
+  FaClipboardCheck,
+  FaTasks,
+} from "react-icons/fa";
 
 const typeColors = {
   "Incident": "from-red-500 to-pink-500",
@@ -26,18 +30,18 @@ const typeColors = {
   "Task": "from-emerald-500 to-teal-500",
 };
 
+const typeIcons = {
+  "Incident": <FaBug title="Incident" className="text-lg" />,
+  "Service Request": <FaClipboardCheck title="Service Request" className="text-lg" />,
+  "Change Request": <FaExchangeAlt title="Change Request" className="text-lg" />,
+  "Problem": <FaCogs title="Problem" className="text-lg" />,
+  "Task": <FaTasks title="Task" className="text-lg" />,
+};
+
 const priorityColor = {
   "High": "bg-red-500",
   "Medium": "bg-yellow-500",
   "Low": "bg-green-500",
-};
-
-const typeIcons = {
-  "Incident": <FiAlertCircle className="inline mr-1" />,
-  "Service Request": <FiTool className="inline mr-1" />,
-  "Change Request": <FiShield className="inline mr-1" />,
-  "Problem": <FiHash className="inline mr-1" />,
-  "Task": <FiZap className="inline mr-1" />,
 };
 
 const AllTickets = () => {
@@ -122,26 +126,30 @@ const AllTickets = () => {
         <table className="w-full table-auto text-sm border-separate border-spacing-y-4">
           <thead>
             <tr className="text-left text-white/80">
-              <th>🎫 Ticket ID</th>
-              <th>📄 Title</th>
-              <th>🏷️ Type</th>
-              <th>⚡ Priority</th>
-              <th>📌 Status</th>
-              <th>👤 Assigned To</th>
-              <th>🕒 Created</th>
-              <th>🔍 View</th>
+              <th>🎫 <b>Ticket ID</b></th>
+              <th>📄 <b>Title</b></th>
+              <th>🏷️ <b>Type</b></th>
+              <th>⚡ <b>Priority</b></th>
+              <th>📌 <b>Status</b></th>
+              <th>👤 <b>Assigned To</b></th>
+              <th>🕒 <b>Created</b></th>
+              <th>🔍 <b>View</b></th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((ticket) => (
               <tr
                 key={ticket.id}
-                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg hover:scale-[1.01] transition`}
+                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
               >
-                <td className="p-3 font-mono font-bold">{ticket.ticketId}</td>
+                <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
                 <td className="p-3">
-                  {typeIcons[ticket.ticketType]} {ticket.ticketType || "—"}
+                  {ticket.ticketType ? (
+                    <span title={ticket.ticketType}>{typeIcons[ticket.ticketType] || ticket.ticketType}</span>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="p-3">
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
