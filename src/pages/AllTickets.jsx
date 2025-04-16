@@ -19,15 +19,16 @@ import {
   FiChevronRight,
   FiFilter,
   FiUsers,
-  FiUserCheck
+  FiUserCheck,
+  FiBox
 } from "react-icons/fi";
 
 const typeColors = {
-  "Incident": "from-red-500 to-pink-500",
-  "Service Request": "from-blue-500 to-sky-500",
-  "Change Request": "from-purple-500 to-indigo-500",
-  "Problem": "from-orange-500 to-amber-500",
-  "Task": "from-emerald-500 to-teal-500",
+  "Incident": "from-red-100 to-red-200",
+  "Service Request": "from-blue-100 to-blue-200",
+  "Change Request": "from-purple-100 to-purple-200",
+  "Problem": "from-orange-100 to-orange-200",
+  "Task": "from-emerald-100 to-emerald-200",
 };
 
 const priorityColor = {
@@ -39,7 +40,7 @@ const priorityColor = {
 const typeIcons = {
   "Incident": <FiAlertCircle title="Incident" />,       // 🐞
   "Service Request": <FiTool title="Service Request" />, // 🧰
-  "Change Request": <FiPackage title="Change Request" />, // 📦
+  "Change Request": <FiBox title="Change Request" />, // 📦
   "Problem": <FiActivity title="Problem" />,             // ⚠️
   "Task": <FiSettings title="Task" />                   // 🛠️
 };
@@ -141,7 +142,7 @@ const AllTickets = () => {
           </button>
           <button
             onClick={fetchTickets}
-            className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg"
+            className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg animate-pulse"
           >
             <FiRefreshCw /> Refresh
           </button>
