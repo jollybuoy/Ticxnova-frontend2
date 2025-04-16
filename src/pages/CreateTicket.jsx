@@ -2,18 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  FiSend,
-  FiTag,
-  FiFileText,
-  FiUser,
-  FiLayers,
-  FiAlertCircle,
-  FiCalendar,
-  FiHash,
-  FiPaperclip,
-  FiShield
-} from "react-icons/fi";
+import { FiSend, FiTag, FiFileText, FiUser, FiLayers, FiAlertCircle, FiHash, FiPaperclip } from "react-icons/fi";
 import toast from "react-hot-toast";
 
 const CreateTicket = () => {
@@ -24,19 +13,15 @@ const CreateTicket = () => {
     priority: "Medium",
     department: "",
     assignedTo: "",
-    category: "",
-    slaLevel: "",
-    dueDate: "",
-    tags: "",
+    ticketType: "Incident", // New field
     attachments: "",
-    isInternal: false,
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
@@ -56,23 +41,23 @@ const CreateTicket = () => {
       );
 
       if (response.status === 201) {
-        toast.success("🎉 Ticket created successfully!");
+        toast.success("✅ Ticket created successfully!");
         navigate("/all-tickets");
       }
     } catch (err) {
       console.error("❌ Ticket creation failed:", err);
-      toast.error("Error creating ticket");
+      toast.error("Something went wrong while creating the ticket.");
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white p-10 shadow-2xl rounded-3xl">
+    <div className="max-w-4xl mx-auto bg-white p-10 shadow-2xl rounded-3xl">
       <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 text-green-700">
         <FiSend /> Create New Ticket
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Title & Priority */}
+        {/* Title & Type */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Title</label>
@@ -90,18 +75,20 @@ const CreateTicket = () => {
           </div>
 
           <div>
-            <label className="block font-medium mb-1">Priority</label>
+            <label className="block font-medium mb-1">Ticket Type</label>
             <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiAlertCircle />
+              <FiHash />
               <select
-                name="priority"
-                value={formData.priority}
+                name="ticketType"
+                value={formData.ticketType}
                 onChange={handleChange}
                 className="w-full bg-transparent outline-none"
               >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="Incident">Incident</option>
+                <option value="Service Request">Service Request</option>
+                <option value="Change Request">Change Request</option>
+                <option value="Problem">Problem</option>
+                <option value="Task">Task</option>
               </select>
             </div>
           </div>
@@ -124,8 +111,25 @@ const CreateTicket = () => {
           </div>
         </div>
 
-        {/* Department & Assigned To */}
+        {/* Priority & Department */}
         <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block font-medium mb-1">Priority</label>
+            <div className="flex items-center gap-2 border p-2 rounded-md">
+              <FiAlertCircle />
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                className="w-full bg-transparent outline-none"
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="block font-medium mb-1">Department</label>
             <div className="flex items-center gap-2 border p-2 rounded-md">
@@ -139,7 +143,10 @@ const CreateTicket = () => {
               />
             </div>
           </div>
+        </div>
 
+        {/* Assigned To & Attachments */}
+        <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium mb-1">Assign To</label>
             <div className="flex items-center gap-2 border p-2 rounded-md">
@@ -153,99 +160,23 @@ const CreateTicket = () => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Category & SLA Level */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Category</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiHash />
-              <input
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                placeholder="e.g. Software"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
 
           <div>
-            <label className="block font-medium mb-1">SLA Level</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiShield />
-              <input
-                name="slaLevel"
-                value={formData.slaLevel}
-                onChange={handleChange}
-                placeholder="Standard, High, Critical"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Due Date & Tags */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Due Date</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiCalendar />
-              <input
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Tags</label>
-            <div className="flex items-center gap-2 border p-2 rounded-md">
-              <FiHash />
-              <input
-                name="tags"
-                value={formData.tags}
-                onChange={handleChange}
-                placeholder="urgent, server"
-                className="w-full bg-transparent outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Attachments & Internal Note */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-medium mb-1">Attachments (links)</label>
+            <label className="block font-medium mb-1">Attachments (Link)</label>
             <div className="flex items-center gap-2 border p-2 rounded-md">
               <FiPaperclip />
               <input
                 name="attachments"
                 value={formData.attachments}
                 onChange={handleChange}
-                placeholder="e.g. file1.pdf"
+                placeholder="e.g. http://link.com/file.pdf"
                 className="w-full bg-transparent outline-none"
               />
             </div>
           </div>
-
-          <div className="flex items-center gap-3 mt-6">
-            <input
-              type="checkbox"
-              name="isInternal"
-              checked={formData.isInternal}
-              onChange={handleChange}
-            />
-            <label className="text-sm">
-              Mark as <strong>Internal Note</strong> (visible to staff only)
-            </label>
-          </div>
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all"
