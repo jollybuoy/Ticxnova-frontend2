@@ -43,7 +43,7 @@ const MainLayout = ({ setAuth }) => {
 
         <div className="flex items-center gap-3 mb-8 px-2">
           <img
-            src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff"
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D8ABC&color=fff`}
             alt="Avatar"
             className="h-8 w-8 rounded-full border border-white shadow"
           />
@@ -84,7 +84,7 @@ const MainLayout = ({ setAuth }) => {
         </button>
       </div>
 
-      {/* Right Content Area with AI Chatbot */}
+      {/* Right Content Area */}
       <div className="flex-1 p-6 overflow-auto relative">
         <Outlet />
         <AIChatBot />
