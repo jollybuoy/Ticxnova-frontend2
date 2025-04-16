@@ -92,8 +92,6 @@ const MainLayout = ({ setAuth }) => {
   <Outlet />
   <AIChatBot />
 </div>
-
-    </div>
   );
 };
 
