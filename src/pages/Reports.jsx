@@ -15,8 +15,8 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 import {
   FaFilter,
   FaCalendarAlt,
@@ -79,11 +79,11 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 bg-white p-4 rounded-xl shadow">
         <div className="col-span-1">
           <label className="text-sm font-semibold">Start Date</label>
-          <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full px-3 py-2 rounded text-sm bg-gray-100" />
+          <div className="bg-white rounded-lg shadow p-2"><DayPicker mode="single" selected={startDate} onSelect={setStartDate} /></div>
         </div>
         <div className="col-span-1">
           <label className="text-sm font-semibold">End Date</label>
-          <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full px-3 py-2 rounded text-sm bg-gray-100" />
+          <div className="bg-white rounded-lg shadow p-2"><DayPicker mode="single" selected={endDate} onSelect={setEndDate} /></div>
         </div>
         <div className="col-span-1">
           <label className="text-sm font-semibold">Assigned To</label>
