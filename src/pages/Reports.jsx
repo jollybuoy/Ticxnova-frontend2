@@ -1,4 +1,4 @@
-// src/pages/Reports.jsx (Advanced Reports System)
+// src/pages/Reports.jsx (Upgraded Reports System)
 import React, { useState, useEffect } from "react";
 import {
   BarChart,
@@ -15,6 +15,8 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   FaFilter,
   FaCalendarAlt,
@@ -22,21 +24,22 @@ import {
   FaBuilding,
   FaDownload,
   FaSearch,
-  FaTicketAlt,
   FaCheckCircle,
   FaBug,
   FaChartPie,
+  FaCogs,
 } from "react-icons/fa";
 
 const COLORS = ["#4f46e5", "#06b6d4", "#10b981", "#f97316", "#ef4444"];
 
 const Reports = () => {
-  const [dateRange, setDateRange] = useState("last7");
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [assignedTo, setAssignedTo] = useState("");
   const [department, setDepartment] = useState("");
   const [filtered, setFiltered] = useState(false);
+  const [selectedFields, setSelectedFields] = useState({ sla: true, critical: true, resolution: true });
 
-  // Dummy report data
   const trends = [
     { name: "Mon", Open: 12, Closed: 9 },
     { name: "Tue", Open: 15, Closed: 11 },
@@ -55,71 +58,87 @@ const Reports = () => {
   ];
 
   const handleExport = () => {
-    alert("📦 Exporting filtered report as PDF...");
+    alert("📥 Exporting report with selected fields as PDF/CSV...");
   };
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-slate-100 to-white">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📈 Detailed Reports</h1>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl shadow hover:brightness-110"
-        >
-          <FaDownload /> Export PDF
-        </button>
+        <h1 className="text-3xl font-bold text-gray-800">📊 Interactive Reports Panel</h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl shadow hover:scale-105 transition"
+          >
+            <FaDownload /> Export
+          </button>
+        </div>
       </div>
 
       {/* Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-white p-4 rounded-xl shadow">
-        <div className="flex items-center gap-2">
-          <FaCalendarAlt className="text-blue-500" />
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="w-full bg-gray-100 px-3 py-2 rounded text-sm"
-          >
-            <option value="last7">Last 7 Days</option>
-            <option value="last30">Last 30 Days</option>
-            <option value="thisMonth">This Month</option>
-            <option value="custom">Custom Range</option>
-          </select>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 bg-white p-4 rounded-xl shadow">
+        <div className="col-span-1">
+          <label className="text-sm font-semibold">Start Date</label>
+          <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} className="w-full px-3 py-2 rounded text-sm bg-gray-100" />
         </div>
-        <div className="flex items-center gap-2">
-          <FaUserCheck className="text-green-600" />
+        <div className="col-span-1">
+          <label className="text-sm font-semibold">End Date</label>
+          <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} className="w-full px-3 py-2 rounded text-sm bg-gray-100" />
+        </div>
+        <div className="col-span-1">
+          <label className="text-sm font-semibold">Assigned To</label>
           <input
             type="text"
-            placeholder="Assigned To (Name)"
+            placeholder="Agent Name"
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
-            className="w-full bg-gray-100 px-3 py-2 rounded text-sm"
+            className="w-full px-3 py-2 rounded text-sm bg-gray-100"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <FaBuilding className="text-indigo-500" />
+        <div className="col-span-1">
+          <label className="text-sm font-semibold">Department</label>
           <select
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            className="w-full bg-gray-100 px-3 py-2 rounded text-sm"
+            className="w-full px-3 py-2 rounded text-sm bg-gray-100"
           >
-            <option value="">All Departments</option>
+            <option value="">All</option>
             <option value="IT">IT</option>
             <option value="HR">HR</option>
             <option value="Finance">Finance</option>
             <option value="Facilities">Facilities</option>
           </select>
         </div>
-        <button
-          onClick={() => setFiltered(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
-        >
-          <FaSearch /> Apply Filters
-        </button>
+        <div className="col-span-1 flex flex-col justify-end">
+          <button
+            onClick={() => setFiltered(true)}
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+          >
+            <FaSearch /> Apply
+          </button>
+        </div>
+      </div>
+
+      {/* Field Selector */}
+      <div className="bg-white rounded-xl shadow p-4 mb-6">
+        <h3 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+          <FaCogs /> Select Report Fields
+        </h3>
+        <div className="flex gap-6 text-sm">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={selectedFields.sla} onChange={() => setSelectedFields({ ...selectedFields, sla: !selectedFields.sla })} /> SLA Compliance
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={selectedFields.critical} onChange={() => setSelectedFields({ ...selectedFields, critical: !selectedFields.critical })} /> Critical Issues
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={selectedFields.resolution} onChange={() => setSelectedFields({ ...selectedFields, resolution: !selectedFields.resolution })} /> Avg. Resolution Time
+          </label>
+        </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Weekly Trends */}
         <div className="bg-white rounded-2xl shadow-lg p-4">
           <h2 className="text-lg font-semibold text-gray-700 mb-2">📆 Weekly Ticket Flow</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -135,20 +154,11 @@ const Reports = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Pie Chart for Ticket Types */}
         <div className="bg-white rounded-2xl shadow-lg p-4">
           <h2 className="text-lg font-semibold text-gray-700 mb-2">🧾 Ticket Type Distribution</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie
-                data={ticketTypeData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
+              <Pie data={ticketTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                 {ticketTypeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
@@ -159,31 +169,37 @@ const Reports = () => {
         </div>
       </div>
 
-      {/* Advanced Cards */}
+      {/* Selected Data Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
-          <FaCheckCircle className="text-4xl" />
-          <div>
-            <p className="text-sm">Tickets Resolved On-Time</p>
-            <p className="text-xl font-bold">86%</p>
+        {selectedFields.sla && (
+          <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
+            <FaCheckCircle className="text-4xl" />
+            <div>
+              <p className="text-sm">Tickets Resolved On-Time</p>
+              <p className="text-xl font-bold">86%</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
-          <FaBug className="text-4xl" />
-          <div>
-            <p className="text-sm">Critical Issues This Month</p>
-            <p className="text-xl font-bold">12</p>
+        {selectedFields.critical && (
+          <div className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
+            <FaBug className="text-4xl" />
+            <div>
+              <p className="text-sm">Critical Issues This Month</p>
+              <p className="text-xl font-bold">12</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
-          <FaChartPie className="text-4xl" />
-          <div>
-            <p className="text-sm">Avg. Resolution Time</p>
-            <p className="text-xl font-bold">3.4 hrs</p>
+        {selectedFields.resolution && (
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white p-5 rounded-2xl shadow-xl flex items-center gap-4">
+            <FaChartPie className="text-4xl" />
+            <div>
+              <p className="text-sm">Avg. Resolution Time</p>
+              <p className="text-xl font-bold">3.4 hrs</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
