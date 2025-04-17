@@ -14,7 +14,7 @@ const MainLayout = ({ setAuth }) => {
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
-        setUserName(decoded.name || "User");
+        setUserName(decoded.name || decoded.name || "User");
       } catch (err) {
         console.error("Error decoding token:", err);
         setUserName("User");
