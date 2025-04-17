@@ -119,8 +119,8 @@ const Dashboard = () => {
           <PieChart>
             <Pie
               data={[
-                { name: "Compliant", value: slaStats?.slaCompliancePercent || 10 },
-                { name: "Violation", value: 100 - (slaStats?.slaCompliancePercent || 10) }
+                { name: "Compliant", value: slaStats?.slaCompliancePercent || 0 },
+                { name: "Violation", value: 100 - (slaStats?.slaCompliancePercent || 0) }
               ]}
               dataKey="value"
               nameKey="name"
