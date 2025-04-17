@@ -11,7 +11,11 @@ import {
   FiChevronRight,
   FiZap,
   FiClock,
-  FiTag
+  FiTag,
+  FiHash,
+  FiAlignLeft,
+  FiList,
+  FiUserCheck
 } from "react-icons/fi";
 
 const priorityColor = {
@@ -154,6 +158,15 @@ const AllTickets = () => {
         </select>
       </div>
 
+      <div className="grid grid-cols-8 text-sm font-semibold text-gray-500 mb-3 px-6">
+        <div className="col-span-1 flex items-center"><FiHash className="mr-1" /> S.No</div>
+        <div className="col-span-2 flex items-center"><FiAlignLeft className="mr-1" /> Ticket ID</div>
+        <div className="col-span-2">Title</div>
+        <div className="col-span-1">Priority</div>
+        <div className="col-span-1">Status</div>
+        <div className="col-span-1">Type</div>
+      </div>
+
       <div className="grid gap-4">
         {paginated.map((ticket, index) => (
           <div
@@ -161,11 +174,10 @@ const AllTickets = () => {
             onClick={() => navigate(`/ticket/${ticket.id}`)}
             className="cursor-pointer bg-white rounded-full shadow border px-6 py-4 flex flex-wrap items-center justify-between hover:bg-gray-50 transition-all"
           >
-            <div className="flex items-center gap-6 w-full md:w-auto">
-              <div className="text-lg font-extrabold font-mono text-indigo-700">{ticket.ticketId}</div>
-              <div className="text-base font-semibold text-gray-800">{ticket.title}</div>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap mt-2 md:mt-0">
+            <div className="w-full md:w-auto flex flex-wrap gap-6 items-center">
+              <div className="w-10 font-bold text-sm">{(page - 1) * itemsPerPage + index + 1}</div>
+              <div className="font-mono text-indigo-700 font-bold text-base">{ticket.ticketId}</div>
+              <div className="text-gray-800 font-medium">{ticket.title}</div>
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
                 <FiZap className="inline mr-1" /> {ticket.priority}
               </span>
@@ -180,7 +192,7 @@ const AllTickets = () => {
               </span>
               <span className="text-sm text-gray-600">🎟️ {ticket.ticketType || "-"}</span>
               <span className="text-sm text-gray-500"><FiClock className="inline mr-1" /> {new Date(ticket.createdAt).toLocaleString()}</span>
-              <span className="text-sm text-purple-600 font-medium"><FiTag className="inline mr-1" /> {ticket.assignedTo || "Unassigned"}</span>
+              <span className="text-sm text-purple-600 font-medium"><FiUserCheck className="inline mr-1" /> {ticket.assignedTo || "Unassigned"}</span>
             </div>
           </div>
         ))}
