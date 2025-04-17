@@ -8,7 +8,10 @@ import {
   FiChevronUp,
   FiChevronDown,
   FiChevronLeft,
-  FiChevronRight
+  FiChevronRight,
+  FiZap,
+  FiClock,
+  FiTag
 } from "react-icons/fi";
 
 const priorityColor = {
@@ -164,7 +167,7 @@ const AllTickets = () => {
             </div>
             <div className="flex items-center gap-4 flex-wrap mt-2 md:mt-0">
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
-                {ticket.priority}
+                <FiZap className="inline mr-1" /> {ticket.priority}
               </span>
               <span className={`text-xs font-medium px-3 py-1 rounded-full ${
                 ticket.status === "Open"
@@ -173,11 +176,11 @@ const AllTickets = () => {
                   ? "bg-yellow-500 text-black"
                   : "bg-green-500 text-white"
               }`}>
-                {ticket.status}
+                📌 {ticket.status}
               </span>
-              <span className="text-sm text-gray-600">{ticket.ticketType || "-"}</span>
-              <span className="text-sm text-gray-500">{new Date(ticket.createdAt).toLocaleString()}</span>
-              <span className="text-sm text-purple-600 font-medium">{ticket.assignedTo || "Unassigned"}</span>
+              <span className="text-sm text-gray-600">🎟️ {ticket.ticketType || "-"}</span>
+              <span className="text-sm text-gray-500"><FiClock className="inline mr-1" /> {new Date(ticket.createdAt).toLocaleString()}</span>
+              <span className="text-sm text-purple-600 font-medium"><FiTag className="inline mr-1" /> {ticket.assignedTo || "Unassigned"}</span>
             </div>
           </div>
         ))}
