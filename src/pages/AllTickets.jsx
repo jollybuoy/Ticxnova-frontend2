@@ -35,7 +35,7 @@ const AllTickets = () => {
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [assignedFilter, setAssignedFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [sortField, setSortField] = useState("createdAt");
   const [sortAsc, setSortAsc] = useState(false);
   const [page, setPage] = useState(1);
@@ -60,11 +60,8 @@ const AllTickets = () => {
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
     const matchPriority = priorityFilter ? t.priority === priorityFilter : true;
     const matchStatus = statusFilter ? t.status === statusFilter : true;
-    const matchAssigned = assignedFilter
-      ? (assignedFilter === "Unassigned" && !t.assignedTo)
-        || t.assignedTo === assignedFilter
-      : true;
-    return matchSearch && matchPriority && matchStatus && matchAssigned;
+    const matchType = typeFilter ? t.ticketType === typeFilter : true;
+    return matchSearch && matchPriority && matchStatus && matchType;
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -92,6 +89,8 @@ const AllTickets = () => {
     if (sortField !== field) return null;
     return sortAsc ? <FiChevronUp className="inline ml-1" /> : <FiChevronDown className="inline ml-1" />;
   };
+
+  const uniqueTypes = [...new Set(tickets.map(t => t.ticketType).filter(Boolean))];
 
   return (
     <div className="p-6 text-gray-900 bg-white min-h-screen">
@@ -140,14 +139,13 @@ const AllTickets = () => {
         </select>
 
         <select
-          value={assignedFilter}
-          onChange={(e) => setAssignedFilter(e.target.value)}
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
           className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
-          <option value="">👤 Filter by Assigned To</option>
-          <option value="Unassigned">Unassigned</option>
-          {[...new Set(tickets.map(t => t.assignedTo).filter(Boolean))].map((assignee) => (
-            <option key={assignee} value={assignee}>{assignee}</option>
+          <option value="">🎟️ Filter by Ticket Type</option>
+          {uniqueTypes.map((type) => (
+            <option key={type} value={type}>{type}</option>
           ))}
         </select>
 
@@ -171,7 +169,7 @@ const AllTickets = () => {
               <th onClick={() => toggleSort("title")}>📄 <strong>Title</strong> {sortIcon("title")}</th>
               <th onClick={() => toggleSort("priority")}>⚡ <strong>Priority</strong> {sortIcon("priority")}</th>
               <th onClick={() => toggleSort("status")}>📌 <strong>Status</strong> {sortIcon("status")}</th>
-              <th onClick={() => toggleSort("assignedTo")}>👤 <strong>Assigned To</strong> {sortIcon("assignedTo")}</th>
+              <th onClick={() => toggleSort("ticketType")}>🎟️ <strong>Type</strong> {sortIcon("ticketType")}</th>
               <th onClick={() => toggleSort("createdAt")}>🕒 <strong>Created</strong> {sortIcon("createdAt")}</th>
               <th>🔍</th>
             </tr>
@@ -201,7 +199,7 @@ const AllTickets = () => {
                     {ticket.status}
                   </span>
                 </td>
-                <td className="p-3">{ticket.assignedTo || "Unassigned"}</td>
+                <td className="p-3">{ticket.ticketType || "-"}</td>
                 <td className="p-3">{new Date(ticket.createdAt).toLocaleString()}</td>
                 <td className="p-3">
                   <button
