@@ -13,17 +13,17 @@ import {
 } from "react-icons/fi";
 
 const typeColors = {
-  Incident: "bg-[#1e3a8a]/80",
-  "Service Request": "bg-[#0369a1]/80",
-  "Change Request": "bg-[#6d28d9]/80",
-  Problem: "bg-[#92400e]/80",
-  Task: "bg-[#166534]/80",
+  Incident: "bg-blue-100",
+  "Service Request": "bg-cyan-100",
+  "Change Request": "bg-purple-200",
+  Problem: "bg-orange-200",
+  Task: "bg-emerald-200",
 };
 
 const priorityColor = {
-  High: "bg-red-500",
-  Medium: "bg-yellow-500",
-  Low: "bg-green-500",
+  High: "bg-red-500 text-white",
+  Medium: "bg-yellow-400 text-black",
+  Low: "bg-green-500 text-white",
 };
 
 const statusOptions = ["Open", "In Progress", "Completed", "Closed"];
@@ -94,33 +94,33 @@ const AllTickets = () => {
   };
 
   return (
-    <div className="p-6 text-white">
+    <div className="p-6 text-gray-900 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">📁 All Tickets</h1>
         <button
           onClick={fetchTickets}
-          className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg animate-pulse"
+          className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg text-white"
         >
           <FiRefreshCw /> Refresh
         </button>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center bg-slate-800 p-2 rounded-lg w-full md:w-1/3">
-          <FiSearch className="text-white/70" />
+        <div className="flex items-center bg-gray-100 p-2 rounded-lg w-full md:w-1/3">
+          <FiSearch className="text-gray-500" />
           <input
             type="text"
             placeholder="Search by title or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent outline-none px-3 w-full text-white"
+            className="bg-transparent outline-none px-3 w-full text-gray-900"
           />
         </div>
 
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+          className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
           <option value="">⚡ Filter by Priority</option>
           <option value="High">High</option>
@@ -131,7 +131,7 @@ const AllTickets = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+          className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
           <option value="">📌 Filter by Status</option>
           {statusOptions.map((status) => (
@@ -142,7 +142,7 @@ const AllTickets = () => {
         <select
           value={assignedFilter}
           onChange={(e) => setAssignedFilter(e.target.value)}
-          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+          className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
           <option value="">👤 Filter by Assigned To</option>
           <option value="Unassigned">Unassigned</option>
@@ -154,7 +154,7 @@ const AllTickets = () => {
         <select
           value={itemsPerPage}
           onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPage(1); }}
-          className="bg-slate-800 text-white px-3 py-2 rounded-lg"
+          className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
           {PAGE_SIZE_OPTIONS.map(n => (
             <option key={n} value={n}>Show {n}</option>
@@ -165,7 +165,7 @@ const AllTickets = () => {
       <div className="overflow-x-auto">
         <table className="w-full table-auto text-sm border-separate border-spacing-y-4">
           <thead>
-            <tr className="text-left text-white/80">
+            <tr className="text-left text-gray-700">
               <th onClick={() => toggleSort("id")}># {sortIcon("id")}</th>
               <th onClick={() => toggleSort("ticketId")}>🎫 <strong>Ticket ID</strong> {sortIcon("ticketId")}</th>
               <th onClick={() => toggleSort("title")}>📄 <strong>Title</strong> {sortIcon("title")}</th>
@@ -180,23 +180,23 @@ const AllTickets = () => {
             {paginated.map((ticket, index) => (
               <tr
                 key={ticket.id}
-                className={`rounded-xl ${typeColors[ticket.ticketType] || "bg-slate-800"} text-white shadow-md`}
+                className={`rounded-xl ${typeColors[ticket.ticketType] || "bg-gray-100"} text-gray-900 shadow-sm`}
               >
                 <td className="p-3 font-bold">{(page - 1) * itemsPerPage + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
                 <td className="p-3 font-semibold">{ticket.title}</td>
                 <td className="p-3">
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-500"}`}>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
                     {ticket.priority}
                   </span>
                 </td>
                 <td className="p-3 capitalize">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                     ticket.status === "Open"
-                      ? "bg-blue-500"
+                      ? "bg-blue-500 text-white"
                       : ticket.status === "In Progress"
-                      ? "bg-yellow-500"
-                      : "bg-green-500"
+                      ? "bg-yellow-500 text-black"
+                      : "bg-green-500 text-white"
                   }`}>
                     {ticket.status}
                   </span>
@@ -206,7 +206,7 @@ const AllTickets = () => {
                 <td className="p-3">
                   <button
                     onClick={() => navigate(`/ticket/${ticket.id}`)}
-                    className="text-cyan-300 hover:text-white transition-all"
+                    className="text-cyan-600 hover:text-black transition-all"
                   >
                     <FiEye />
                   </button>
@@ -215,7 +215,7 @@ const AllTickets = () => {
             ))}
             {paginated.length === 0 && (
               <tr>
-                <td colSpan="8" className="text-center text-white/50 p-6">
+                <td colSpan="8" className="text-center text-gray-500 p-6">
                   No tickets found.
                 </td>
               </tr>
@@ -227,15 +227,15 @@ const AllTickets = () => {
           <button
             disabled={page <= 1}
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
           >
             <FiChevronLeft /> Prev
           </button>
-          <span className="text-sm text-white/70">Page {page} of {totalPages}</span>
+          <span className="text-sm text-gray-700">Page {page} of {totalPages}</span>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            className="flex items-center gap-2 px-3 py-1 bg-slate-700 rounded disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
           >
             Next <FiChevronRight />
           </button>
