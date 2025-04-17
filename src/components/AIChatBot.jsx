@@ -32,10 +32,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
 
   useEffect(() => {
     localStorage.setItem("ticxbot-history", JSON.stringify(messages));
-    if (messages.length === 1) {
-      const welcome = new SpeechSynthesisUtterance("Welcome to Ticxnova AI. How can I help you today?");
-      window.speechSynthesis.speak(welcome);
-    }
+    
   }, [messages]);
 
   useEffect(() => {
@@ -115,6 +112,18 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
   };
 
   if (!isOpen) return null;
+
+  useEffect(() => {
+    if (isOpen && window.speechSynthesis) {
+      const welcome = new SpeechSynthesisUtterance("Welcome to Ticxnova AI. How can I help you today?");
+      const voices = window.speechSynthesis.getVoices();
+      const softFemale = voices.find(v => /female|woman|girl/i.test(v.name) && v.lang.startsWith('en'));
+      if (softFemale) welcome.voice = softFemale;
+      welcome.rate = 1;
+      welcome.pitch = 1.2;
+      window.speechSynthesis.speak(welcome);
+    }
+  }, [isOpen]);
 
   return (
     <motion.div
