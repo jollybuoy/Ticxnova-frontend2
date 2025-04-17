@@ -97,8 +97,8 @@ const CreateTicket = () => {
 
   if (!selectedType) {
     return (
-      <div className="max-w-5xl mx-auto p-10">
-        <h2 className="text-3xl font-bold mb-8 text-white text-center">
+      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow">
+        <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
           What type of ticket do you want to create?
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
