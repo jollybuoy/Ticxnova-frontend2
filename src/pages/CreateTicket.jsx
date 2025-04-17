@@ -11,11 +11,7 @@ import {
   HiOutlineInformationCircle,
   HiOutlineLightBulb,
 } from "react-icons/hi2";
-return (
-  <div className="bg-white min-h-screen">
-    {/* your existing content */}
-  </div>
-);
+
 const typeOptions = [
   { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
   { label: "Service Request", icon: <HiWrenchScrewdriver />, color: "from-blue-500 to-sky-500" },
