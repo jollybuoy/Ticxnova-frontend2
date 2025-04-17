@@ -8,17 +8,16 @@ import {
   FiRefreshCw,
   FiChevronUp,
   FiChevronDown,
-  FiDownload,
   FiChevronLeft,
   FiChevronRight
 } from "react-icons/fi";
 
 const typeColors = {
-  Incident: "from-red-100 to-red-200",
-  "Service Request": "from-blue-100 to-blue-200",
-  "Change Request": "from-purple-100 to-purple-200",
-  Problem: "from-orange-100 to-orange-200",
-  Task: "from-emerald-100 to-emerald-200",
+  Incident: "bg-[#1e3a8a]/80",
+  "Service Request": "bg-[#0369a1]/80",
+  "Change Request": "bg-[#6d28d9]/80",
+  Problem: "bg-[#92400e]/80",
+  Task: "bg-[#166534]/80",
 };
 
 const priorityColor = {
@@ -98,14 +97,12 @@ const AllTickets = () => {
     <div className="p-6 text-white">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">📁 All Tickets</h1>
-        <div className="flex gap-3">
-          <button
-            onClick={fetchTickets}
-            className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg animate-pulse"
-          >
-            <FiRefreshCw /> Refresh
-          </button>
-        </div>
+        <button
+          onClick={fetchTickets}
+          className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 rounded-lg animate-pulse"
+        >
+          <FiRefreshCw /> Refresh
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
@@ -183,7 +180,7 @@ const AllTickets = () => {
             {paginated.map((ticket, index) => (
               <tr
                 key={ticket.id}
-                className={`rounded-xl bg-gradient-to-r ${typeColors[ticket.ticketType] || "from-slate-700 to-slate-800"} text-white shadow-lg`}
+                className={`rounded-xl ${typeColors[ticket.ticketType] || "bg-slate-800"} text-white shadow-md`}
               >
                 <td className="p-3 font-bold">{(page - 1) * itemsPerPage + index + 1}</td>
                 <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
@@ -226,7 +223,6 @@ const AllTickets = () => {
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div className="flex justify-end items-center mt-4 gap-4">
           <button
             disabled={page <= 1}
