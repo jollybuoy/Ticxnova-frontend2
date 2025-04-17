@@ -9,20 +9,18 @@ import AllTickets from "./pages/AllTickets";
 import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from './components/AIChatBot';
-const [showAI, setShowAI] = useState(false);
-
-<Button onClick={() => setShowAI(true)}>Open AI Assistant</Button>
-<AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken} />
-
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // 🆕 loading state
+  const [loading, setLoading] = useState(true);
+  const [showAI, setShowAI] = useState(false);
+
+  const userToken = localStorage.getItem("token");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
-    setLoading(false); // ✅ done checking token
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -35,32 +33,44 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        {/* Public Route - Login */}
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Login setAuth={setIsAuthenticated} />
-            )
-          }
-        />
+      <div className="relative">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard" />
+              ) : (
+                <Login setAuth={setIsAuthenticated} />
+              )
+            }
+          />
 
-        {/* Protected Routes with Layout */}
+          {isAuthenticated && (
+            <Route element={<MainLayout setAuth={setIsAuthenticated} />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create-ticket" element={<CreateTicket />} />
+              <Route path="/all-tickets" element={<AllTickets />} />
+              <Route path="/ticket/:id" element={<TicketDetails />} />
+            </Route>
+          )}
+
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+
+        {/* Floating AI Assistant Button */}
         {isAuthenticated && (
-          <Route element={<MainLayout setAuth={setIsAuthenticated} />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create-ticket" element={<CreateTicket />} />
-            <Route path="/all-tickets" element={<AllTickets />} />
-            <Route path="/ticket/:id" element={<TicketDetails />} />
-          </Route>
+          <>
+            <button
+              onClick={() => setShowAI(true)}
+              className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg z-40 hover:bg-blue-700 transition"
+            >
+              🤖 AI Assistant
+            </button>
+            <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken} />
+          </>
         )}
-
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      </div>
     </Router>
   );
 }
