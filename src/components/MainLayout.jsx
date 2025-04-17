@@ -1,4 +1,4 @@
-// src/components/MainLayout.jsx
+// ✅ Updated MainLayout.jsx
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/ticxnova-logo.png";
