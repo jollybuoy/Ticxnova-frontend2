@@ -77,7 +77,9 @@ const MainLayout = ({ setAuth }) => {
 <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">
   📈 Reports
 </li>
-          <li className="hover:text-blue-400 cursor-pointer">🔔 Notifications</li>
+          <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">
+🔔 Notifications
+</li>
           <li className="hover:text-blue-400 cursor-pointer">📨 Messages</li>
           <li className="hover:text-blue-400 cursor-pointer">⚙️ Settings</li>
           <li className="hover:text-blue-400 cursor-pointer">🛠️ Admin Panel</li>
