@@ -2,8 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/ticxnova-logo.png";
-import { FaUserCircle } from "react-icons/fa";
-import AIChatBot from "../components/AIChatBot";
+import AIChatBot from "./AIChatBot";
 
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
@@ -13,14 +12,12 @@ const MainLayout = ({ setAuth }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        try {
-  const decoded = JSON.parse(atob(token.split(".")[1]));
-  setUserName(decoded.name || "User");
-} catch (err) {
-  console.error("Error decoding token:", err);
-  setUserName("User");
-
-      
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        setUserName(decoded.name || "User");
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        setUserName("User");
+      }
     }
   }, []);
 
