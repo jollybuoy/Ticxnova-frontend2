@@ -37,7 +37,7 @@ const Dashboard = () => {
   const COLORS = ["#34d399", "#fbbf24", "#60a5fa", "#f87171", "#a78bfa", "#f472b6"];
 
   return (
-    <div className="p-6 text-gray-900 bg-white-300 min-h-screen">
+    <div className="p-6 text-gray-900 bg-white min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       {/* Summary */}
