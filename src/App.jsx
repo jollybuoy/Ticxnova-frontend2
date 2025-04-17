@@ -62,11 +62,22 @@ function App() {
         {isAuthenticated && (
           <>
             <button
-              onClick={() => setShowAI(true)}
-              className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg z-40 hover:bg-blue-700 transition"
-            >
-              🤖 AI Assistant
-            </button>
+  className="fixed bottom-5 right-5 z-50"
+  onClick={() => setShowAI(true)}
+  aria-label="Open Ticxnova AI"
+>
+  <div className="relative w-20 h-20">
+    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl flex items-center justify-center animate-spin-slow relative">
+      <div className="absolute top-1 left-0 w-full text-center">
+        <span className="text-white text-xs font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce animate-pulse">
+          Ticxnova AI
+        </span>
+      </div>
+      <span className="text-3xl">🧠</span>
+    </div>
+  </div>
+</button>
+
             <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken} />
           </>
         )}
