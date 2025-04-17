@@ -42,19 +42,30 @@ const Dashboard = () => {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-6 mb-6">
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-5 shadow-xl">
-          <h2 className="font-semibold text-xl">Total Tickets</h2>
-          <p className="text-3xl mt-2 font-bold">{summary?.total ?? 0}</p>
-        </div>
-<div className="bg-gradient-to-br from-orange-400 to-yellow-200 rounded-xl p-5 shadow-xl">
-          <h2 className="font-semibold text-xl">Open</h2>
-          <p className="text-3xl mt-2 font-bold">{summary?.open ?? 0}</p>
-        </div>
-        <div className="bg-gradient-to-br from-green-500 to-lime-500 rounded-xl p-5 shadow-xl">
-          <h2 className="font-semibold text-xl">Closed</h2>
-          <p className="text-3xl mt-2 font-bold">{summary?.closed ?? 0}</p>
-        </div>
-      </div>
+
+  {/* Total Tickets */}
+  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-5 shadow-2xl overflow-hidden transition transform hover:scale-[1.015]">
+    <div className="absolute w-24 h-24 bg-white/10 rounded-full top-[-20px] right-[-20px] blur-2xl" />
+    <h2 className="font-semibold text-xl relative z-10">Total Tickets</h2>
+    <p className="text-3xl mt-2 font-bold relative z-10">{summary?.total ?? 0}</p>
+  </div>
+
+  {/* Open Tickets */}
+  <div className="relative bg-gradient-to-br from-orange-400 to-yellow-200 rounded-xl p-5 shadow-2xl overflow-hidden transition transform hover:scale-[1.015]">
+    <div className="absolute w-24 h-24 bg-white/20 rounded-full top-[-20px] right-[-20px] blur-2xl" />
+    <h2 className="font-semibold text-xl relative z-10">Open</h2>
+    <p className="text-3xl mt-2 font-bold relative z-10">{summary?.open ?? 0}</p>
+  </div>
+
+  {/* Closed Tickets */}
+  <div className="relative bg-gradient-to-br from-green-500 to-lime-500 rounded-xl p-5 shadow-2xl overflow-hidden transition transform hover:scale-[1.015]">
+    <div className="absolute w-24 h-24 bg-white/10 rounded-full top-[-20px] right-[-20px] blur-2xl" />
+    <h2 className="font-semibold text-xl relative z-10">Closed</h2>
+    <p className="text-3xl mt-2 font-bold relative z-10">{summary?.closed ?? 0}</p>
+  </div>
+
+</div>
+
 
       {/* Charts in 2 rows */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
