@@ -11,6 +11,7 @@ import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from './components/AIChatBot';
 import Reports from "./pages/Reports";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import Notifications from "./pages/Notifications";
 
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
               <Route path="/ticket/:id" element={<TicketDetails />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
+<Route path="/Notifications" element={<Notifications />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
