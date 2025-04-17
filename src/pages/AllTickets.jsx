@@ -162,8 +162,8 @@ const AllTickets = () => {
         <div className="col-span-1 flex items-center cursor-pointer" onClick={() => toggleSort("id")}><FiHash className="mr-1" /> S.No {sortIcon("id")}</div>
         <div className="col-span-2 flex items-center cursor-pointer" onClick={() => toggleSort("ticketId")}><FiAlignLeft className="mr-1" /> Ticket ID {sortIcon("ticketId")}</div>
         <div className="col-span-2 cursor-pointer" onClick={() => toggleSort("title")}>Title {sortIcon("title")}</div>
-        <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("priority")}>Priority {sortIcon("priority")}</div>
-        <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("status")}>Status {sortIcon("status")}</div>
+        <div className="col-span-1 cursor-pointer ml-2" onClick={() => toggleSort("priority")}>Priority {sortIcon("priority")}</div>
+        <div className="col-span-1 cursor-pointer ml-4" onClick={() => toggleSort("status")}>Status {sortIcon("status")}</div>
         <div className="col-span-2 cursor-pointer" onClick={() => toggleSort("ticketType")}>Type {sortIcon("ticketType")}</div>
         <div className="col-span-3 cursor-pointer" onClick={() => toggleSort("assignedTo")}>Assigned To {sortIcon("assignedTo")}</div>
       </div>
@@ -178,12 +178,12 @@ const AllTickets = () => {
             <div className="col-span-1 font-bold text-sm">{(page - 1) * itemsPerPage + index + 1}</div>
             <div className="col-span-2 font-mono text-indigo-700 font-bold text-base">{ticket.ticketId}</div>
             <div className="col-span-2 text-gray-800 font-medium">{ticket.title}</div>
-            <div className="col-span-1">
+            <div className="col-span-1 ml-1">
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
                 <FiZap className="inline mr-1" /> {ticket.priority}
               </span>
             </div>
-            <div className="col-span-1">
+            <div className="col-span-1 ml-4">
               <span className={`text-xs font-medium px-3 py-1 rounded-full ${
                 ticket.status === "Open"
                   ? "bg-blue-500 text-white"
