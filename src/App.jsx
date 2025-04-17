@@ -9,6 +9,8 @@ import AllTickets from "./pages/AllTickets";
 import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from './components/AIChatBot';
+import Reports from "./pages/Reports";
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,6 +49,7 @@ function App() {
               <Route path="/create-ticket" element={<CreateTicket />} />
               <Route path="/all-tickets" element={<AllTickets />} />
               <Route path="/ticket/:id" element={<TicketDetails />} />
+              <Route path="/reports" element={<Reports />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
