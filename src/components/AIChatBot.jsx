@@ -127,8 +127,9 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
       <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow">
-  <span className="text-2xl text-white">🧠</span>
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow relative">
+  <span className="text-white text-xs absolute top-2 w-full text-center tracking-wider">Ticxnova AI</span>
+  <span className="text-3xl">🧠</span>
 </div>
             
           </div>
