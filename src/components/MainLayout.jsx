@@ -19,7 +19,7 @@ const MainLayout = ({ setAuth }) => {
 } catch (err) {
   console.error("Error decoding token:", err);
   setUserName("User");
-}
+
       
     }
   }, []);
