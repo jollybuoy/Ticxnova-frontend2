@@ -9,17 +9,26 @@ const MainLayout = ({ setAuth }) => {
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split(".")[1]));
-        setUserName(decoded.email || "User");
-      } catch (err) {
-        console.error("Error decoding token:", err);
-        setUserName("User");
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      console.log("🔍 Decoded JWT:", decoded);
+      
+      // ✅ If no name in token, force logout
+      if (!decoded.name) {
+        localStorage.removeItem("token");
+        navigate("/login");
       }
+
+      setUserName(decoded.name || "User");
+    } catch (err) {
+      console.error("Error decoding token:", err);
+      setUserName("User");
     }
-  }, []);
+  }
+}, []);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
