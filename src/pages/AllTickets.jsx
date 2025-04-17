@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import {
-  FiEye,
   FiSearch,
   FiRefreshCw,
   FiChevronUp,
@@ -11,14 +10,6 @@ import {
   FiChevronLeft,
   FiChevronRight
 } from "react-icons/fi";
-
-const typeColors = {
-  Incident: "bg-blue-100",
-  "Service Request": "bg-cyan-100",
-  "Change Request": "bg-purple-200",
-  Problem: "bg-orange-200",
-  Task: "bg-emerald-200",
-};
 
 const priorityColor = {
   High: "bg-red-500 text-white",
@@ -160,66 +151,40 @@ const AllTickets = () => {
         </select>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto text-sm border-separate border-spacing-y-4">
-          <thead>
-            <tr className="text-left text-gray-700">
-              <th onClick={() => toggleSort("id")}># {sortIcon("id")}</th>
-              <th onClick={() => toggleSort("ticketId")}>🎫 <strong>Ticket ID</strong> {sortIcon("ticketId")}</th>
-              <th onClick={() => toggleSort("title")}>📄 <strong>Title</strong> {sortIcon("title")}</th>
-              <th onClick={() => toggleSort("priority")}>⚡ <strong>Priority</strong> {sortIcon("priority")}</th>
-              <th onClick={() => toggleSort("status")}>📌 <strong>Status</strong> {sortIcon("status")}</th>
-              <th onClick={() => toggleSort("ticketType")}>🎟️ <strong>Type</strong> {sortIcon("ticketType")}</th>
-              <th onClick={() => toggleSort("createdAt")}>🕒 <strong>Created</strong> {sortIcon("createdAt")}</th>
-              <th>🔍</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.map((ticket, index) => (
-              <tr
-                key={ticket.id}
-                className={`rounded-xl ${typeColors[ticket.ticketType] || "bg-gray-100"} text-gray-900 shadow-sm`}
-              >
-                <td className="p-3 font-bold">{(page - 1) * itemsPerPage + index + 1}</td>
-                <td className="p-3 font-bold font-mono">{ticket.ticketId}</td>
-                <td className="p-3 font-semibold">{ticket.title}</td>
-                <td className="p-3">
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
-                    {ticket.priority}
-                  </span>
-                </td>
-                <td className="p-3 capitalize">
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    ticket.status === "Open"
-                      ? "bg-blue-500 text-white"
-                      : ticket.status === "In Progress"
-                      ? "bg-yellow-500 text-black"
-                      : "bg-green-500 text-white"
-                  }`}>
-                    {ticket.status}
-                  </span>
-                </td>
-                <td className="p-3">{ticket.ticketType || "-"}</td>
-                <td className="p-3">{new Date(ticket.createdAt).toLocaleString()}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => navigate(`/ticket/${ticket.id}`)}
-                    className="text-cyan-600 hover:text-black transition-all"
-                  >
-                    <FiEye />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {paginated.length === 0 && (
-              <tr>
-                <td colSpan="8" className="text-center text-gray-500 p-6">
-                  No tickets found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="grid gap-4">
+        {paginated.map((ticket, index) => (
+          <div
+            key={ticket.id}
+            onClick={() => navigate(`/ticket/${ticket.id}`)}
+            className="cursor-pointer bg-white rounded-full shadow border px-6 py-4 flex flex-wrap items-center justify-between hover:bg-gray-50 transition-all"
+          >
+            <div className="flex items-center gap-6 w-full md:w-auto">
+              <div className="text-lg font-extrabold font-mono text-indigo-700">{ticket.ticketId}</div>
+              <div className="text-base font-semibold text-gray-800">{ticket.title}</div>
+            </div>
+            <div className="flex items-center gap-4 flex-wrap mt-2 md:mt-0">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${priorityColor[ticket.priority] || "bg-gray-300"}`}>
+                {ticket.priority}
+              </span>
+              <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+                ticket.status === "Open"
+                  ? "bg-blue-500 text-white"
+                  : ticket.status === "In Progress"
+                  ? "bg-yellow-500 text-black"
+                  : "bg-green-500 text-white"
+              }`}>
+                {ticket.status}
+              </span>
+              <span className="text-sm text-gray-600">{ticket.ticketType || "-"}</span>
+              <span className="text-sm text-gray-500">{new Date(ticket.createdAt).toLocaleString()}</span>
+              <span className="text-sm text-purple-600 font-medium">{ticket.assignedTo || "Unassigned"}</span>
+            </div>
+          </div>
+        ))}
+
+        {paginated.length === 0 && (
+          <p className="text-center text-gray-500 p-6">No tickets found.</p>
+        )}
 
         <div className="flex justify-end items-center mt-4 gap-4">
           <button
