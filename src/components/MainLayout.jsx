@@ -71,7 +71,9 @@ const MainLayout = ({ setAuth }) => {
             📁 All Tickets
           </li>
           <li className="hover:text-blue-400 cursor-pointer">👥 Users</li>
-          <li className="hover:text-blue-400 cursor-pointer">📚 Knowledge Base</li>
+          <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">
+ 📚 Knowledge Base
+</li>
 <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">
   📈 Reports
 </li>
