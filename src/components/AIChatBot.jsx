@@ -1,4 +1,4 @@
-// src/components/AIChatBot.jsx (Ticxnova AI Assistant with Voice Input + Modern UI + History + Context Awareness)
+// src/components/AIChatBot.jsx (Ticxnova AI with Light Theme Panel)
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -105,12 +105,12 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
 
   return (
     <motion.div
-      className="fixed top-0 right-0 h-full w-[420px] bg-gradient-to-b from-zinc-900 to-zinc-800 text-white shadow-2xl z-50 border-l border-zinc-700"
+      className="fixed top-0 right-0 h-full w-[420px] bg-white text-gray-900 shadow-2xl z-50 border-l border-gray-300"
       initial={{ x: "100%" }}
       animate={{ x: isOpen ? 0 : "100%" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-zinc-900">
+      <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🧠</span>
           <h2 className="text-xl font-bold">Ticxnova AI</h2>
@@ -120,26 +120,26 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
         </button>
       </div>
 
-      <div className="p-4 flex flex-wrap gap-2 border-b border-zinc-700 justify-between">
+      <div className="p-4 flex flex-wrap gap-2 border-b border-gray-200 justify-between">
         <div className="flex gap-2 flex-wrap">
           {quickActions.map((qa, i) => (
             <button
               key={i}
-              className="px-3 py-1 text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-700 hover:to-purple-700 rounded-full"
+              className="px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 rounded-full"
               onClick={() => sendMessage(qa)}
             >
               {qa}
             </button>
           ))}
         </div>
-        <button onClick={clearHistory} className="text-xs text-zinc-400 underline hover:text-white ml-auto">Clear Chat</button>
+        <button onClick={clearHistory} className="text-xs text-gray-500 underline hover:text-black ml-auto">Clear Chat</button>
       </div>
 
       <div className="flex flex-col gap-2 p-4 overflow-y-auto h-[60%]">
         {messages.map((msg, i) => (
           <div key={i}>
             {msg.role === "preview" ? (
-              <div className="border border-zinc-700 bg-zinc-800 rounded-xl p-3 text-sm">
+              <div className="border border-gray-300 bg-gray-100 rounded-xl p-3 text-sm">
                 <p className="font-semibold">📌 Ticket Preview</p>
                 <p><strong>ID:</strong> {msg.data.id}</p>
                 <p><strong>Title:</strong> {msg.data.title}</p>
@@ -149,7 +149,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
             ) : (
               <div
                 className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
-                  msg.role === "user" ? "ml-auto bg-blue-600" : "bg-zinc-800"
+                  msg.role === "user" ? "ml-auto bg-blue-100 text-blue-900" : "bg-gray-200 text-gray-800"
                 }`}
                 dangerouslySetInnerHTML={{ __html: msg.text }}
               />
@@ -158,24 +158,24 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
         ))}
       </div>
 
-      <div className="p-4 border-t border-zinc-700 flex gap-2 items-center">
+      <div className="p-4 border-t border-gray-300 flex gap-2 items-center bg-gray-50">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
-          className="w-full px-4 py-2 rounded-full bg-zinc-800 text-white outline-none border border-zinc-700 focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 rounded-full bg-white text-gray-900 outline-none border border-gray-300 focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleVoice}
-          className={`rounded-full p-2 ${listening ? "bg-red-600 animate-pulse" : "bg-blue-600 hover:bg-blue-700"}`}
+          className={`rounded-full p-2 ${listening ? "bg-red-500 animate-pulse" : "bg-blue-500 hover:bg-blue-600"} text-white`}
           title="Voice input"
         >
           🎤
         </button>
       </div>
-      {loading && <div className="text-xs text-zinc-400 px-4 pb-2 animate-pulse">Thinking...</div>}
+      {loading && <div className="text-xs text-gray-500 px-4 pb-2 animate-pulse">Thinking...</div>}
     </motion.div>
   );
 };
