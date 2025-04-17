@@ -1,11 +1,11 @@
-// src/components/AIChatBot.jsx (Ticxnova AI with Light Theme Panel)
+// src/components/AIChatBot.jsx (Clean & Clickable Full Version with All Features)
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 
 const XIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
@@ -92,7 +92,6 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
 
       setMessages([...newMessages, ...botResponse]);
 
-      // Speak reply if voice is supported
       if (window.speechSynthesis && reply) {
         const voiceReply = new SpeechSynthesisUtterance(reply.replace(/<[^>]+>/g, ''));
         voiceReply.rate = 1;
@@ -115,28 +114,29 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
     setMessages([{ role: "bot", text: "🧠 Chat cleared. How can I assist you now?" }]);
   };
 
-  return (
-    <motion.div className="fixed top-0 right-0 h-full w-[420px] bg-white text-gray-900 shadow-2xl z-50 border-l border-gray-300 overflow-hidden relative">
-  <audio id="ambient-audio" loop autoPlay className="hidden">
-    <source src="/ambient-soft-tone.mp3" type="audio/mpeg" />
-  </audio>
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-purple-100 animate-fade-in opacity-10"></div>
-      </div>
-      <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
-        <div className="flex items-center gap-4 animate-fade-in">
-  <div className="relative w-28 h-28">
-    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-purple-600 rounded-[30%] shadow-2xl flex items-center justify-center animate-spin-slow">
-      <img src="/ticxnova-ai-symbol.png" alt="Ticxnova AI Icon" className="w-12 h-12" />
-    </div>
-    <div className="absolute inset-0 flex items-center justify-center">
-      <span className="text-[12px] text-white font-bold animate-pulse rotate-[25deg]">Ticxnova AI</span>
-    </div>
-  </div>
-  <h2 className="text-3xl font-extrabold text-blue-700 animate-bounce">Ticxnova AI</h2>
-</div>
+  if (!isOpen) return null;
 
-<button onClick={onClose} aria-label="Close panel">
+  return (
+    <motion.div
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="fixed top-0 right-0 h-full w-[420px] bg-white text-gray-900 shadow-2xl z-50 border-l border-gray-300 flex flex-col"
+    >
+      <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="relative w-20 h-20">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow">
+              <img src="/ticxnova-ai-symbol.png" alt="Ticxnova AI" className="w-10 h-10" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs text-white font-bold animate-pulse rotate-[20deg]">Ticxnova AI</span>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-blue-700">Ticxnova AI</h2>
+        </div>
+        <button onClick={onClose} aria-label="Close panel">
           <XIcon />
         </button>
       </div>
@@ -156,7 +156,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
         <button onClick={clearHistory} className="text-xs text-gray-500 underline hover:text-black ml-auto">Clear Chat</button>
       </div>
 
-      <div className="flex flex-col gap-2 p-4 overflow-y-auto h-[60%]">
+      <div className="flex-1 overflow-y-auto p-4">
         {messages.map((msg, i) => (
           <div key={i}>
             {msg.role === "preview" ? (
@@ -169,9 +169,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
               </div>
             ) : (
               <div
-                className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
-                  msg.role === "user" ? "ml-auto bg-blue-100 text-blue-900" : "bg-gray-200 text-gray-800"
-                }`}
+                className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${msg.role === "user" ? "ml-auto bg-blue-100 text-blue-900" : "bg-gray-200 text-gray-800"}`}
                 dangerouslySetInnerHTML={{ __html: msg.text }}
               />
             )}
@@ -179,7 +177,6 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
         ))}
       </div>
 
-      {/* Voice waveform animation */}
       {listening && (
         <div className="px-4 pb-1">
           <div className="flex gap-1 h-5 items-end">
