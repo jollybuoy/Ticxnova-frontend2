@@ -8,6 +8,12 @@ import CreateTicket from "./pages/CreateTicket";
 import AllTickets from "./pages/AllTickets";
 import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
+import AIChatBot from './components/AIChatBot';
+const [showAI, setShowAI] = useState(false);
+
+<Button onClick={() => setShowAI(true)}>Open AI Assistant</Button>
+<AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken} />
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
