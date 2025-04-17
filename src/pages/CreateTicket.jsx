@@ -120,6 +120,12 @@ const CreateTicket = () => {
       </div>
     );
   }
+return (
+  <div className="bg-white min-h-screen">
+    {/* your existing content */}
+  </div>
+);
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-2xl shadow-xl">
