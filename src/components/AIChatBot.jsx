@@ -111,10 +111,16 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
       <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🧠</span>
-          <h2 className="text-xl font-bold">Ticxnova AI</h2>
-        </div>
+        <div className="flex items-center gap-3 relative">
+  <div className="relative w-16 h-16">
+    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow">
+      💡
+    </div>
+    <div className="absolute inset-0 flex items-center justify-center">
+      <span className="text-[10px] text-white font-bold animate-pulse rotate-[20deg]">Ticxnova AI</span>
+    </div>
+  </div>
+</div>
         <button onClick={onClose} aria-label="Close panel">
           <XIcon />
         </button>
