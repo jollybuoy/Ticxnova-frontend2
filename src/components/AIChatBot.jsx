@@ -111,11 +111,17 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
       <div className="flex justify-between items-center p-4 border-b border-gray-300 bg-gray-100">
-        <div className="flex items-center gap-3 relative">
-  <div className="relative w-16 h-16">
-    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow">
-      💡
+        <div className="flex items-center gap-4">
+  <div className="relative w-20 h-20">
+    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center animate-spin-slow">
+      <img src="/ticxnova-ai-symbol.png" alt="Ticxnova AI" className="w-8 h-8" />
     </div>
+    <div className="absolute inset-0 flex items-center justify-center">
+      <span className="text-sm text-white font-semibold animate-pulse rotate-[20deg]">Ticxnova AI</span>
+    </div>
+  </div>
+  <h2 className="text-xl font-bold text-gray-800">Ticxnova AI</h2>
+</div>
     <div className="absolute inset-0 flex items-center justify-center">
       <span className="text-[10px] text-white font-bold animate-pulse rotate-[20deg]">Ticxnova AI</span>
     </div>
