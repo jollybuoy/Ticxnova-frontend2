@@ -16,7 +16,7 @@ const MainLayout = ({ setAuth }) => {
         setUserName(decoded.name || "User");
       } catch (err) {
         console.error("Error decoding token:", err);
-        setUserName("User");
+        setUserName(decoded.name || "User");
       }
     }
   }, []);
