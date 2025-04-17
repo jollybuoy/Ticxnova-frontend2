@@ -1,103 +1,121 @@
-// src/components/AIChatBot.jsx
-import React, { useState, useRef, useEffect } from "react";
-import { FaRobot, FaTimes, FaPaperPlane } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+// src/components/AIChatBot.jsx (Advanced AI Panel with Ticket Preview)
+import React, { useState } from "react";
+import { X } from "lucide-react";
+import { motion } from "framer-motion";
+import axios from "axios";
 
-const AIChatBot = () => {
-  const [open, setOpen] = useState(false);
+const AIChatBot = ({ isOpen, onClose, token }) => {
   const [messages, setMessages] = useState([
-    { type: "bot", text: "👋 Hi there! I’m TicxBot. How can I assist you today?" },
+    { role: "bot", text: "👋 Hi! I’m your Smart Assistant. Ask me anything about your tickets." }
   ]);
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const userMessage = { type: "user", text: input };
-    setMessages((prev) => [...prev, userMessage]);
+  const quickActions = [
+    "Show my open tickets",
+    "Create a new ticket",
+    "SLA compliance report",
+    "Last 5 closed tickets"
+  ];
+
+  const sendMessage = async (msg) => {
+    const textToSend = msg || input;
+    if (!textToSend.trim()) return;
+    const newMessages = [...messages, { role: "user", text: textToSend }];
+    setMessages(newMessages);
     setInput("");
+    setLoading(true);
 
-    // Simulate a bot response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: "🤖 I'm still learning. In the future, I’ll help with ticketing, SLA tracking, and more." },
-      ]);
-    }, 1200);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/aichat/ask`,
+        { message: textToSend },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const reply = res.data?.reply || "Sorry, I couldn't understand that.";
+      const previewCard = res.data?.preview; // optional preview card
+
+      const botResponse = [{ role: "bot", text: reply }];
+
+      if (previewCard) {
+        botResponse.push({ role: "preview", data: previewCard });
+      }
+
+      setMessages([...newMessages, ...botResponse]);
+    } catch (err) {
+      setMessages([...newMessages, { role: "bot", text: "❌ Error connecting to AI service." }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") sendMessage();
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="w-80 h-[420px] bg-white text-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 p-4 flex items-center justify-between">
-              <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                <FaRobot /> TicxBot
-              </h2>
-              <button onClick={() => setOpen(false)} className="text-white hover:text-gray-200">
-                <FaTimes />
-              </button>
-            </div>
-            <div className="flex-1 p-3 overflow-y-auto space-y-2 text-sm bg-white">
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`px-3 py-2 rounded-xl max-w-[90%] ${
-                    msg.type === "user"
-                      ? "bg-blue-100 self-end ml-auto text-right"
-                      : "bg-gray-200 self-start"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="p-2 border-t bg-white">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  placeholder="Type your question..."
-                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white p-2 rounded-lg hover:opacity-90"
-                >
-                  <FaPaperPlane />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <motion.div
+      className="fixed top-0 right-0 h-full w-[400px] bg-zinc-900 text-white shadow-2xl z-50 border-l border-zinc-700"
+      initial={{ x: "100%" }}
+      animate={{ x: isOpen ? 0 : "100%" }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <div className="flex justify-between items-center p-4 border-b border-zinc-700">
+        <h2 className="text-lg font-bold">🤖 Smart IT Assistant</h2>
+        <button onClick={onClose}>
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-      {/* Floating Button */}
-      {!open && (
-        <motion.button
-          onClick={() => setOpen(true)}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg flex items-center justify-center text-white text-2xl hover:scale-105 transition-all animate-bounce"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <FaRobot />
-        </motion.button>
-      )}
-    </div>
+      <div className="p-4 flex flex-wrap gap-2 border-b border-zinc-700">
+        {quickActions.map((qa, i) => (
+          <button
+            key={i}
+            className="px-3 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-full"
+            onClick={() => sendMessage(qa)}
+          >
+            {qa}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-2 p-4 overflow-y-auto h-[60%]">
+        {messages.map((msg, i) => (
+          <div key={i}>
+            {msg.role === "preview" ? (
+              <div className="border border-zinc-700 bg-zinc-800 rounded-xl p-3 text-sm">
+                <p className="font-semibold">📌 Ticket Preview</p>
+                <p><strong>ID:</strong> {msg.data.id}</p>
+                <p><strong>Title:</strong> {msg.data.title}</p>
+                <p><strong>Status:</strong> {msg.data.status}</p>
+                <p><strong>Assigned To:</strong> {msg.data.assignedTo}</p>
+              </div>
+            ) : (
+              <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${msg.role === "user" ? "ml-auto bg-blue-600" : "bg-zinc-800"}`}>
+                {msg.text}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="p-4 border-t border-zinc-700">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your question..."
+          className="w-full px-4 py-2 rounded-full bg-zinc-800 text-white outline-none"
+        />
+        {loading && <div className="text-xs text-zinc-400 mt-1">Thinking...</div>}
+      </div>
+    </motion.div>
   );
 };
 
