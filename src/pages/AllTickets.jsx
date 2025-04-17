@@ -158,14 +158,14 @@ const AllTickets = () => {
         </select>
       </div>
 
-      <div className="grid grid-cols-9 text-sm font-semibold text-gray-500 mb-3 px-6">
+      <div className="grid grid-cols-12 text-sm font-semibold text-gray-500 mb-3 px-6">
         <div className="col-span-1 flex items-center cursor-pointer" onClick={() => toggleSort("id")}><FiHash className="mr-1" /> S.No {sortIcon("id")}</div>
         <div className="col-span-2 flex items-center cursor-pointer" onClick={() => toggleSort("ticketId")}><FiAlignLeft className="mr-1" /> Ticket ID {sortIcon("ticketId")}</div>
         <div className="col-span-2 cursor-pointer" onClick={() => toggleSort("title")}>Title {sortIcon("title")}</div>
         <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("priority")}>Priority {sortIcon("priority")}</div>
         <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("status")}>Status {sortIcon("status")}</div>
-        <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("ticketType")}>Type {sortIcon("ticketType")}</div>
-        <div className="col-span-1 cursor-pointer" onClick={() => toggleSort("assignedTo")}>Assigned To {sortIcon("assignedTo")}</div>
+        <div className="col-span-2 cursor-pointer" onClick={() => toggleSort("ticketType")}>Type {sortIcon("ticketType")}</div>
+        <div className="col-span-3 cursor-pointer" onClick={() => toggleSort("assignedTo")}>Assigned To {sortIcon("assignedTo")}</div>
       </div>
 
       <div className="grid gap-4">
@@ -173,7 +173,7 @@ const AllTickets = () => {
           <div
             key={ticket.id}
             onClick={() => navigate(`/ticket/${ticket.id}`)}
-            className="cursor-pointer bg-white rounded-full shadow border px-6 py-4 grid grid-cols-9 items-center hover:bg-gray-50 transition-all"
+            className="cursor-pointer bg-white rounded-full shadow border px-6 py-4 grid grid-cols-12 items-center hover:bg-gray-50 transition-all"
           >
             <div className="col-span-1 font-bold text-sm">{(page - 1) * itemsPerPage + index + 1}</div>
             <div className="col-span-2 font-mono text-indigo-700 font-bold text-base">{ticket.ticketId}</div>
@@ -194,8 +194,8 @@ const AllTickets = () => {
                 📌 {ticket.status}
               </span>
             </div>
-            <div className="col-span-1 text-sm text-gray-600">🎟️ {ticket.ticketType || "-"}</div>
-            <div className="col-span-1 text-sm text-purple-600 font-medium"><FiUserCheck className="inline mr-1" />{ticket.assignedTo || "Unassigned"}</div>
+            <div className="col-span-2 text-sm text-gray-600">🎟️ {ticket.ticketType || "-"}</div>
+            <div className="col-span-3 text-sm text-purple-600 font-medium"><FiUserCheck className="inline mr-1" />{ticket.assignedTo || "Unassigned"}</div>
           </div>
         ))}
 
