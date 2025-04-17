@@ -89,12 +89,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
 
       setMessages([...newMessages, ...botResponse]);
 
-      if (window.speechSynthesis && reply) {
-        const voiceReply = new SpeechSynthesisUtterance(reply.replace(/<[^>]+>/g, ''));
-        voiceReply.rate = 1;
-        voiceReply.pitch = 1;
-        window.speechSynthesis.speak(voiceReply);
-      }
+      
     } catch (err) {
       setMessages([...newMessages, { role: "bot", text: "⚠️ Error connecting to AI service." }]);
     } finally {
@@ -113,17 +108,7 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
 
   if (!isOpen) return null;
 
-  useEffect(() => {
-    if (isOpen && window.speechSynthesis) {
-      const welcome = new SpeechSynthesisUtterance("Welcome to Ticxnova AI. How can I help you today?");
-      const voices = window.speechSynthesis.getVoices();
-      const softFemale = voices.find(v => /female|woman|girl/i.test(v.name) && v.lang.startsWith('en'));
-      if (softFemale) welcome.voice = softFemale;
-      welcome.rate = 1;
-      welcome.pitch = 1.2;
-      window.speechSynthesis.speak(welcome);
-    }
-  }, [isOpen]);
+  
 
   return (
     <motion.div
