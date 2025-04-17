@@ -1,8 +1,13 @@
-// src/components/AIChatBot.jsx (Advanced AI Panel with Ticket Preview)
+// src/components/AIChatBot.jsx (Advanced AI Panel with Ticket Preview, No External Icons)
 import React, { useState } from "react";
-import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
+
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
 
 const AIChatBot = ({ isOpen, onClose, token }) => {
   const [messages, setMessages] = useState([
@@ -38,10 +43,9 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
       );
 
       const reply = res.data?.reply || "Sorry, I couldn't understand that.";
-      const previewCard = res.data?.preview; // optional preview card
+      const previewCard = res.data?.preview;
 
       const botResponse = [{ role: "bot", text: reply }];
-
       if (previewCard) {
         botResponse.push({ role: "preview", data: previewCard });
       }
@@ -67,8 +71,8 @@ const AIChatBot = ({ isOpen, onClose, token }) => {
     >
       <div className="flex justify-between items-center p-4 border-b border-zinc-700">
         <h2 className="text-lg font-bold">🤖 Smart IT Assistant</h2>
-        <button onClick={onClose}>
-          <X className="w-5 h-5" />
+        <button onClick={onClose} aria-label="Close panel">
+          <XIcon />
         </button>
       </div>
 
