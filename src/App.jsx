@@ -10,6 +10,7 @@ import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from './components/AIChatBot';
 import Reports from "./pages/Reports";
+import KnowledgeBase from "./pages/KnowledgeBase";
 
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
               <Route path="/all-tickets" element={<AllTickets />} />
               <Route path="/ticket/:id" element={<TicketDetails />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
