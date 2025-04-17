@@ -66,17 +66,30 @@ function App() {
   onClick={() => setShowAI(true)}
   aria-label="Open Ticxnova AI"
 >
-  <div className="relative w-20 h-20">
-    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl flex items-center justify-center animate-spin-slow relative">
-      <div className="absolute top-1 left-0 w-full text-center">
-        <span className="text-white text-xs font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce animate-pulse">
+  <div className="relative w-28 h-28 group">
+    {/* Outer Glow Ring */}
+    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 opacity-40 blur-lg animate-pulse" />
+
+    {/* Main Gradient Circle */}
+    <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-purple-700 rounded-full shadow-2xl flex items-center justify-center animate-spin-slow relative z-10">
+      {/* Top Robo Icon */}
+      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white text-xl">
+        🤖
+      </div>
+
+      {/* Label Text Above Brain */}
+      <div className="absolute top-2 left-0 w-full text-center">
+        <span className="text-white text-sm font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce">
           Ticxnova AI
         </span>
       </div>
-      <span className="text-3xl">🧠</span>
+
+      {/* Brain Icon */}
+      <span className="text-4xl">🧠</span>
     </div>
   </div>
 </button>
+
 
             <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken} />
           </>
