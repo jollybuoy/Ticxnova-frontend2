@@ -69,7 +69,7 @@ const Dashboard = () => {
 
       {/* Charts in 2 rows */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={types} dataKey="count" nameKey="type" outerRadius={80} label>
               {types.map((_, index) => (
