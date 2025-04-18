@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import AdminPanel from "./pages/AdminPanel"; // ✅ Use proper casing
 import SlaTracker from "./pages/SlaTracker";
 import AssetManagement from "./pages/AssetManagement";
+import EmailTemplates from "./pages/EmailTemplates";
 
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
               <Route path="/adminpanel" element={<AdminPanel />} />
                <Route path="/slatracker" element={<SlaTracker />} />
                <Route path="/assetmanagement" element={<AssetManagement />} />
+              <Route path="/emailtemplates" element={<EmailTemplates />} />
 
             </Route>
           )}
