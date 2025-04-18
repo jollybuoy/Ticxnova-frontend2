@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
+import Messages from "./pages/Messages";
 
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
               <Route path="/KnowledgeBase" element={<KnowledgeBase />} />
 <Route path="/Notifications" element={<Notifications />} />
               <Route path="/Users" element={<Users />} />
+              <Route path="/Messages" element={<Messages />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
