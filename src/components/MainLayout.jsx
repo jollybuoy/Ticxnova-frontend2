@@ -97,8 +97,9 @@ const MainLayout = ({ setAuth }) => {
            <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">
 📦 Asset Management
            </li>
-          <li className="hover:text-blue-400 cursor-pointer">📦 Asset Management</li>
-          <li className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
+          <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">
+📬 Email Templates
+           </li>
         </ul>
 
         <button
