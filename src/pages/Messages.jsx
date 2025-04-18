@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   FiMail,
   FiSearch,
-  FiReply,
   FiDownload,
   FiInbox,
   FiRefreshCw,
@@ -121,7 +120,7 @@ const Messages = () => {
                 </button>
               )}
               <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
-                <FiReply /> Reply
+                <FiMail /> Reply
               </button>
             </>
           ) : (
