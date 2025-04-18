@@ -70,7 +70,9 @@ const MainLayout = ({ setAuth }) => {
           <li onClick={() => navigate("/all-tickets")} className="hover:text-blue-400 cursor-pointer">
             📁 All Tickets
           </li>
-          <li className="hover:text-blue-400 cursor-pointer">👥 Users</li>
+          <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">
+  👥 Users
+</li>
           <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">
  📚 Knowledge Base
 </li>
