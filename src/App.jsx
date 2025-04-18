@@ -15,6 +15,7 @@ import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
+import Adminpanel from "./pages/Adminpanel";
 
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
               <Route path="/Users" element={<Users />} />
               <Route path="/Messages" element={<Messages />} />
                <Route path="/Settings" element={<Settings />} />
+              <Route path="/Adminpanel" element={<Adminpanel />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
