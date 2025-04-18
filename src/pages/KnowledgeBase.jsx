@@ -1,6 +1,7 @@
 // src/pages/KnowledgeBase.jsx
 import React, { useState } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
+import UploadDocument from "../components/UploadDocument";
 
 const mockPublicDocs = [
   {
@@ -23,7 +24,7 @@ const mockPublicDocs = [
   }
 ];
 
-const mockUserDocs = [
+const initialUserDocs = [
   {
     id: 101,
     title: "VPN Fix for Mac",
@@ -38,8 +39,13 @@ const mockUserDocs = [
 const KnowledgeBase = () => {
   const [activeTab, setActiveTab] = useState("public");
   const [search, setSearch] = useState("");
+  const [userDocs, setUserDocs] = useState(initialUserDocs);
 
-  const filteredDocs = (activeTab === "public" ? mockPublicDocs : mockUserDocs).filter(doc =>
+  const handleUserUpload = (newDoc) => {
+    setUserDocs((prev) => [newDoc, ...prev]);
+  };
+
+  const filteredDocs = (activeTab === "public" ? mockPublicDocs : userDocs).filter(doc =>
     doc.title.toLowerCase().includes(search.toLowerCase()) ||
     doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
   );
@@ -80,7 +86,9 @@ const KnowledgeBase = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {activeTab === "user" && <UploadDocument onUpload={handleUserUpload} />}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {filteredDocs.map((doc) => (
           <div key={doc.id} className="border border-gray-200 rounded-2xl shadow-lg bg-gradient-to-br from-white to-blue-50 p-5">
             <div className="flex items-center justify-between mb-2">
