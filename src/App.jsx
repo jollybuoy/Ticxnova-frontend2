@@ -54,12 +54,12 @@ function App() {
               <Route path="/all-tickets" element={<AllTickets />} />
               <Route path="/ticket/:id" element={<TicketDetails />} />
               <Route path="/reports" element={<Reports />} />
-              <Route path="/knowledge-base" element={<KnowledgeBase />} />
+              <Route path="/knowledgebase" element={<KnowledgeBase />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/users" element={<Users />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/adminpanel" element={<AdminPanel />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
