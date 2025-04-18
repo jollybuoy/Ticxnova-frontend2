@@ -91,7 +91,9 @@ const MainLayout = ({ setAuth }) => {
           <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">
 🛠️ Admin Panel
 </li>
-          <li className="hover:text-blue-400 cursor-pointer">🎯 SLA Tracker</li>
+          <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">
+🎯 SLA Tracker
+</li>
           <li className="hover:text-blue-400 cursor-pointer">📦 Asset Management</li>
           <li className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
         </ul>
