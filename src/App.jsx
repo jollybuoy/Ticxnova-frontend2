@@ -16,7 +16,7 @@ import Users from "./pages/Users";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import AdminPanel from "./pages/AdminPanel"; // ✅ Use proper casing
-import SLATracker from "./pages/SLATracker";
+import SlaTracker from "./pages/SlaTracker";
 
 
 function App() {
@@ -62,7 +62,7 @@ function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/adminpanel" element={<AdminPanel />} />
-               <Route path="/slatracker" element={<SLATracker />} />
+               <Route path="/slatracker" element={<SlaTracker />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
