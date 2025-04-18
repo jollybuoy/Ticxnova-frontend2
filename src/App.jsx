@@ -14,6 +14,7 @@ import KnowledgeBase from "./pages/KnowledgeBase";
 import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
 import Messages from "./pages/Messages";
+import Settings from "./pages/Settings";
 
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
 <Route path="/Notifications" element={<Notifications />} />
               <Route path="/Users" element={<Users />} />
               <Route path="/Messages" element={<Messages />} />
+               <Route path="/Settings" element={<Settings />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to="/" />} />
