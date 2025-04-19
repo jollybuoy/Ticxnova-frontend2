@@ -1,40 +1,17 @@
-// src/pages/Login.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useMsal } from "@azure/msal-react";
 import { motion } from "framer-motion";
-import axios from "axios";
 import loginIllustration from "../assets/login-illustration.svg";
 import logo from "../assets/ticxnova-logo.png";
 
-const Login = ({ setAuth }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+const Login = () => {
+  const { instance } = useMsal();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const res = await axios.post("https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/auth/login", {
-        email: username,
-        password: password,
-      });
-
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        setAuth(true);
-        navigate("/dashboard");
-      } else {
-        alert("Invalid credentials");
-      }
-    } catch (err) {
-      console.error("Login failed:", err);
-      alert("Login failed. Please check your credentials.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleMicrosoftLogin = () => {
+    instance.loginRedirect({
+      scopes: ["User.Read"],
+      prompt: "select_account"
+    });
   };
 
   return (
@@ -45,7 +22,6 @@ const Login = ({ setAuth }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        {/* Left Illustration */}
         <motion.div
           className="hidden md:flex w-1/2 items-center justify-center bg-white/5 backdrop-blur-xl p-6"
           initial={{ opacity: 0, x: -50 }}
@@ -55,7 +31,6 @@ const Login = ({ setAuth }) => {
           <img src={loginIllustration} alt="Login Illustration" className="h-80 object-contain" />
         </motion.div>
 
-        {/* Right Login Form */}
         <motion.div
           className="w-full md:w-1/2 p-10 text-white"
           initial={{ opacity: 0, x: 50 }}
@@ -84,39 +59,12 @@ const Login = ({ setAuth }) => {
             The smarter, faster way to manage your service requests and support workflows.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="relative">
-              <label className="block mb-1">👤 Email</label>
-              <input
-                type="email"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter email"
-                required
-              />
-            </div>
-
-            <div className="relative">
-              <label className="block mb-1">🔒 Password</label>
-              <input
-                type="password"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-pink-400"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-2 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition duration-300 disabled:opacity-60"
-            >
-              {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
-            </button>
-          </form>
+          <button
+            onClick={handleMicrosoftLogin}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-lg text-lg font-semibold hover:opacity-90 transition duration-300"
+          >
+            🔐 Sign in with Microsoft
+          </button>
 
           <p className="mt-6 text-center text-sm text-gray-400">
             Trouble accessing? <span className="text-blue-300 cursor-pointer hover:underline">Contact admin</span>
