@@ -79,6 +79,7 @@ function App() {
               <Route path="/slatracker" element={<SlaTracker user={user} />} />
               <Route path="/assetmanagement" element={<AssetManagement user={user} />} />
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
+              <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
