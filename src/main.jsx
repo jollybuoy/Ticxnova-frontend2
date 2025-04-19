@@ -1,15 +1,10 @@
-// src/index.jsx
+// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import App from "./App";
-import { msalConfig } from "./auth/msalConfig";
+import { msalInstance } from "./auth/msalConfig";
 
-// Create MSAL instance
-const msalInstance = new PublicClientApplication(msalConfig);
-
-// Handle redirect response (critical)
 msalInstance.handleRedirectPromise().then(() => {
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(
