@@ -8,30 +8,34 @@ import {
   FiAlertTriangle,
   FiMessageSquare,
   FiClock,
-  FiTrash2
+  FiTrash2,
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import io from "socket.io-client";
 
-const socket = io("https://your-backend-domain.com"); // Replace with your backend URL
+// ✅ Update this to your deployed backend
+const socket = io("https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net");
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    // Mock initial load from backend
-    fetch("/api/notifications")
+    // Initial fetch from backend
+    fetch("https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/notifications")
       .then((res) => res.json())
-      .then((data) => setNotifications(data));
+      .then((data) => setNotifications(data))
+      .catch((err) => console.error("Error fetching notifications", err));
 
-    // WebSocket: Receive new notifications
+    // WebSocket: Listen for new notifications
     socket.on("new-notification", (notif) => {
       setNotifications((prev) => [notif, ...prev]);
-      toast.success(notif.message);
+      toast.success(`🔔 ${notif.message}`);
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const markAllAsRead = () => {
@@ -111,7 +115,9 @@ const Notifications = () => {
               </div>
             </div>
             {!n.isRead && (
-              <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full">New</span>
+              <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full">
+                New
+              </span>
             )}
           </div>
         ))}
@@ -128,11 +134,16 @@ const Notifications = () => {
 
 const getIcon = (type) => {
   switch (type) {
-    case "assignment": return <FiUserPlus className="text-green-600" />;
-    case "status": return <FiEdit className="text-yellow-500" />;
-    case "note": return <FiMessageSquare className="text-blue-500" />;
-    case "broadcast": return <FiAlertTriangle className="text-red-600" />;
-    default: return <FiCheckCircle className="text-gray-400" />;
+    case "assignment":
+      return <FiUserPlus className="text-green-600" />;
+    case "status":
+      return <FiEdit className="text-yellow-500" />;
+    case "note":
+      return <FiMessageSquare className="text-blue-500" />;
+    case "broadcast":
+      return <FiAlertTriangle className="text-red-600" />;
+    default:
+      return <FiCheckCircle className="text-gray-400" />;
   }
 };
 
