@@ -28,19 +28,22 @@ const MainLayout = ({ setAuth }) => {
   }, []);
 
   const handleLogout = () => {
-    const loginMethod = localStorage.getItem("loginMethod");
+  const loginMethod = localStorage.getItem("loginMethod");
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("loginMethod");
+  // Clear all tokens and login method
+  localStorage.removeItem("token");
+  localStorage.removeItem("loginMethod");
 
-    if (setAuth) setAuth(false);
+  if (setAuth) setAuth(false);
 
-    if (loginMethod === "microsoft") {
-      instance.logoutRedirect(); // 🟦 Microsoft logout
-    } else {
-      navigate("/"); // 🟨 Custom login logout
-    }
-  };
+  // Redirect to login based on method
+  if (loginMethod === "microsoft") {
+    instance.logoutRedirect();
+  } else {
+    navigate("/", { replace: true }); // ✅ Go back to login screen
+  }
+};
+
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-green-900 via-cyan-800 to-indigo-900 text-orange">
