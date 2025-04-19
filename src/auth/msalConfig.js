@@ -1,16 +1,19 @@
-// src/auth/msalConfig.js
 import { PublicClientApplication } from "@azure/msal-browser";
 
-const msalConfig = {
+export const msalConfig = {
   auth: {
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
-    authority: `https://login.microsoftonline.com/${import.meta.env.VITE_AZURE_TENANT_ID}`,
-    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI,
+    clientId: "147aaa02-15de-4717-bd44-fb43a7468fa0",
+    authority: "https://login.microsoftonline.com/91dce830-003d-4d46-abfc-4fe21dfab134",
+    redirectUri: "https://yellow-dune-0ed10881e.6.azurestaticapps.net/auth/callback"
   },
   cache: {
     cacheLocation: "localStorage",
-    storeAuthStateInCookie: false,
-  },
+    storeAuthStateInCookie: false
+  }
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
+
+export const loginRequest = {
+  scopes: ["User.Read"]
+};
