@@ -8,14 +8,32 @@ import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./auth/msalConfig";
 
-// MSAL Instance
 const msalInstance = new PublicClientApplication(msalConfig);
 
-// Ensure MSAL handles redirect flow before rendering
+// Show loading spinner until MSAL finishes
+const rootElement = document.getElementById("root");
+const root = ReactDOM.createRoot(rootElement);
+
+// Optional: Show a loader while waiting
+const showLoader = () => {
+  root.render(
+    <div className="min-h-screen flex items-center justify-center text-lg font-semibold">
+      Loading authentication...
+    </div>
+  );
+};
+
+showLoader();
+
 msalInstance
   .handleRedirectPromise()
-  .then(() => {
-    const root = ReactDOM.createRoot(document.getElementById("root"));
+  .then((authResult) => {
+    if (authResult) {
+      console.log("MSAL login success:", authResult);
+    } else {
+      console.log("No redirect login detected, continuing...");
+    }
+
     root.render(
       <React.StrictMode>
         <MsalProvider instance={msalInstance}>
@@ -26,4 +44,10 @@ msalInstance
   })
   .catch((error) => {
     console.error("MSAL redirect error:", error);
+
+    root.render(
+      <div className="min-h-screen flex items-center justify-center text-red-500 font-semibold">
+        Authentication error: {error.message}
+      </div>
+    );
   });
