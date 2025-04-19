@@ -28,6 +28,7 @@ const Login = ({ setAuth }) => {
 
       if (res.data && res.data.token) {
         localStorage.setItem("token", res.data.token);
+        localStorage.setItem("loginMethod", "custom"); // ✅ Set login type
         setAuth(true);
         navigate("/dashboard");
       } else {
@@ -42,6 +43,7 @@ const Login = ({ setAuth }) => {
   };
 
   const handleMicrosoftLogin = () => {
+    localStorage.setItem("loginMethod", "microsoft"); // ✅ Set login type
     instance.loginRedirect(loginRequest);
   };
 
