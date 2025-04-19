@@ -30,19 +30,20 @@ const MainLayout = ({ setAuth }) => {
   const handleLogout = () => {
   const loginMethod = localStorage.getItem("loginMethod");
 
-  // Clear all tokens and login method
+  // Clear everything
   localStorage.removeItem("token");
   localStorage.removeItem("loginMethod");
 
   if (setAuth) setAuth(false);
 
-  // Redirect to login based on method
+  // Logout based on login type
   if (loginMethod === "microsoft") {
-    instance.logoutRedirect();
+    instance.logoutRedirect(); // full redirect
   } else {
-    navigate("/", { replace: true }); // ✅ Go back to login screen
+    window.location.href = "/"; // 🔥 full page reload to login
   }
 };
+
 
 
   return (
