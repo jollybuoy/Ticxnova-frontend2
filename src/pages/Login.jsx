@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
 import API from "../api/axios";
@@ -22,7 +21,7 @@ const Login = ({ setAuth }) => {
     setIsLoading(true);
 
     try {
-      const res = await api.post("/auth/login", {
+      const res = await API.post("/auth/login", {
         email: username,
         password: password,
       });
