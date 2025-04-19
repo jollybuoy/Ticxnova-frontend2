@@ -24,26 +24,37 @@ import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
 
 function App() {
-  const isAuthenticated = useIsAuthenticated();
   const { instance, accounts } = useMsal();
+  const msalAuthenticated = useIsAuthenticated();
+
+  const [customAuth, setCustomAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAI, setShowAI] = useState(false);
 
-  const user = accounts[0]; // current signed-in user
+  const userToken = localStorage.getItem("token");
+  const user = accounts[0] || null;
 
   useEffect(() => {
+    setCustomAuth(!!userToken);
     setLoading(false);
-  }, []);
+  }, [userToken, msalAuthenticated]);
 
   const handleLogin = () => {
     instance.loginRedirect().catch((err) => {
-      console.error("Login failed:", err);
+      console.error("Microsoft login failed:", err);
     });
   };
 
   const handleLogout = () => {
-    instance.logoutRedirect();
+    localStorage.removeItem("token");
+    if (msalAuthenticated) {
+      instance.logoutRedirect();
+    } else {
+      setCustomAuth(false);
+    }
   };
+
+  const isAuthenticated = msalAuthenticated || customAuth;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -59,7 +70,7 @@ function App() {
               isAuthenticated ? (
                 <Navigate to="/dashboard" />
               ) : (
-                <Login handleLogin={handleLogin} />
+                <Login setAuth={setCustomAuth} handleLogin={handleLogin} />
               )
             }
           />
@@ -85,7 +96,6 @@ function App() {
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
         </Routes>
 
-        {/* ✅ AI Bot Button */}
         {isAuthenticated && (
           <>
             <button
@@ -106,8 +116,7 @@ function App() {
                 </div>
               </div>
             </button>
-
-            <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={user?.idToken} />
+            <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken || user?.idToken} />
           </>
         )}
       </div>
