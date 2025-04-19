@@ -8,33 +8,38 @@ import { useMsal } from "@azure/msal-react";
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
-  const { instance } = useMsal(); // ✅ MSAL instance for logout
+  const { instance } = useMsal(); // ✅ MSAL instance for Microsoft logout
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
-        console.log("🔍 Decoded JWT:", decoded);
-
-        // If no name in token, force logout
         if (!decoded.name) {
           localStorage.removeItem("token");
           navigate("/login");
         }
-
         setUserName(decoded.name || "User");
       } catch (err) {
-        console.error("Error decoding token:", err);
+        console.error("Token decode error:", err);
         setUserName("User");
       }
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // ✅ Clear your app token
-    if (setAuth) setAuth(false);      // ✅ Update auth state
-    instance.logoutRedirect();        // ✅ Microsoft logout
+    const loginMethod = localStorage.getItem("loginMethod");
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("loginMethod");
+
+    if (setAuth) setAuth(false);
+
+    if (loginMethod === "microsoft") {
+      instance.logoutRedirect(); // 🟦 Microsoft logout
+    } else {
+      navigate("/"); // 🟨 Custom login logout
+    }
   };
 
   return (
@@ -62,45 +67,19 @@ const MainLayout = ({ setAuth }) => {
         </div>
 
         <ul className="space-y-4">
-          <li onClick={() => navigate("/dashboard")} className="hover:text-blue-400 cursor-pointer">
-            📊 Dashboard
-          </li>
-          <li onClick={() => navigate("/create-ticket")} className="hover:text-blue-400 cursor-pointer">
-            ➕ Create Ticket
-          </li>
-          <li onClick={() => navigate("/all-tickets")} className="hover:text-blue-400 cursor-pointer">
-            📁 All Tickets
-          </li>
-          <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">
-            👥 Users
-          </li>
-          <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">
-            📚 Knowledge Base
-          </li>
-          <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">
-            📈 Reports
-          </li>
-          <li onClick={() => navigate("/notifications")} className="hover:text-blue-400 cursor-pointer">
-            🔔 Notifications
-          </li>
-          <li onClick={() => navigate("/messages")} className="hover:text-blue-400 cursor-pointer">
-            📨 Messages
-          </li>
-          <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">
-            ⚙️ Settings
-          </li>
-          <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">
-            🛠️ Admin Panel
-          </li>
-          <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">
-            🎯 SLA Tracker
-          </li>
-          <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">
-            📦 Asset Management
-          </li>
-          <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">
-            📬 Email Templates
-          </li>
+          <li onClick={() => navigate("/dashboard")} className="hover:text-blue-400 cursor-pointer">📊 Dashboard</li>
+          <li onClick={() => navigate("/create-ticket")} className="hover:text-blue-400 cursor-pointer">➕ Create Ticket</li>
+          <li onClick={() => navigate("/all-tickets")} className="hover:text-blue-400 cursor-pointer">📁 All Tickets</li>
+          <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">👥 Users</li>
+          <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">📚 Knowledge Base</li>
+          <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">📈 Reports</li>
+          <li onClick={() => navigate("/notifications")} className="hover:text-blue-400 cursor-pointer">🔔 Notifications</li>
+          <li onClick={() => navigate("/messages")} className="hover:text-blue-400 cursor-pointer">📨 Messages</li>
+          <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">⚙️ Settings</li>
+          <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">🛠️ Admin Panel</li>
+          <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">🎯 SLA Tracker</li>
+          <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">📦 Asset Management</li>
+          <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
         </ul>
 
         <button
@@ -111,7 +90,7 @@ const MainLayout = ({ setAuth }) => {
         </button>
       </div>
 
-      {/* Right Content Area */}
+      {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto relative">
         <Outlet />
         <AIChatBot />
