@@ -7,6 +7,7 @@ import "./index.css";
 import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./auth/msalConfig";
+import axios from "axios";
 
 // Create MSAL instance
 const msalInstance = new PublicClientApplication(msalConfig);
@@ -28,10 +29,24 @@ async function renderApp() {
     // MSAL initialization
     await msalInstance.initialize();
 
-    // Handle MSAL redirect login (Microsoft auth)
-    await msalInstance.handleRedirectPromise();
+    // Handle redirect
+    const response = await msalInstance.handleRedirectPromise();
 
-    // Render the app with MSAL provider
+    // Auto-register Microsoft user in backend and get JWT
+    const account = msalInstance.getAllAccounts()[0];
+    if (account) {
+      const res = await axios.post(
+        import.meta.env.VITE_API_BASE_URL + "/auth/microsoft-login",
+        {
+          name: account.name,
+          email: account.username,
+        }
+      );
+
+      localStorage.setItem("token", res.data.token);
+    }
+
+    // Render the app
     root.render(
       <React.StrictMode>
         <MsalProvider instance={msalInstance}>
