@@ -1,39 +1,40 @@
-// ✅ Updated MainLayout.jsx
+// src/components/MainLayout.jsx
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import logo from "../assets/ticxnova-logo.png";
 import AIChatBot from "./AIChatBot";
+import { useMsal } from "@azure/msal-react";
 
 const MainLayout = ({ setAuth }) => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const { instance } = useMsal(); // ✅ MSAL instance for logout
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    try {
-      const decoded = JSON.parse(atob(token.split(".")[1]));
-      console.log("🔍 Decoded JWT:", decoded);
-      
-      // ✅ If no name in token, force logout
-      if (!decoded.name) {
-        localStorage.removeItem("token");
-        navigate("/login");
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        console.log("🔍 Decoded JWT:", decoded);
+
+        // If no name in token, force logout
+        if (!decoded.name) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+
+        setUserName(decoded.name || "User");
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        setUserName("User");
       }
-
-      setUserName(decoded.name || "User");
-    } catch (err) {
-      console.error("Error decoding token:", err);
-      setUserName("User");
     }
-  }
-}, []);
-
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    if (setAuth) setAuth(false);
-    navigate("/");
+    localStorage.removeItem("token"); // ✅ Clear your app token
+    if (setAuth) setAuth(false);      // ✅ Update auth state
+    instance.logoutRedirect();        // ✅ Microsoft logout
   };
 
   return (
@@ -71,35 +72,35 @@ const MainLayout = ({ setAuth }) => {
             📁 All Tickets
           </li>
           <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">
-  👥 Users
-</li>
+            👥 Users
+          </li>
           <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">
- 📚 Knowledge Base
-</li>
-<li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">
-  📈 Reports
-</li>
+            📚 Knowledge Base
+          </li>
+          <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">
+            📈 Reports
+          </li>
           <li onClick={() => navigate("/notifications")} className="hover:text-blue-400 cursor-pointer">
-🔔 Notifications
-</li>
+            🔔 Notifications
+          </li>
           <li onClick={() => navigate("/messages")} className="hover:text-blue-400 cursor-pointer">
-📨 Messages
-</li>
-           <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">
-⚙️ Settings
-</li>
+            📨 Messages
+          </li>
+          <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">
+            ⚙️ Settings
+          </li>
           <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">
-🛠️ Admin Panel
-</li>
+            🛠️ Admin Panel
+          </li>
           <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">
-🎯 SLA Tracker
-</li>
-           <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">
-📦 Asset Management
-           </li>
+            🎯 SLA Tracker
+          </li>
+          <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">
+            📦 Asset Management
+          </li>
           <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">
-📬 Email Templates
-           </li>
+            📬 Email Templates
+          </li>
         </ul>
 
         <button
