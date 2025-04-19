@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
+import API from "../api/axios";
 
 import loginIllustration from "../assets/login-illustration.svg";
 import logo from "../assets/ticxnova-logo.png";
@@ -21,7 +22,7 @@ const Login = ({ setAuth }) => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("/auth/login", {
+      const res = await api.post("/auth/login", {
         email: username,
         password: password,
       });
