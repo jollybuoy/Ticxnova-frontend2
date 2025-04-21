@@ -29,8 +29,8 @@ const TicketDetails = () => {
       const res = await axios.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
-      setDepartment(res.data.department);
-      setAssignedTo(res.data.assignedTo);
+      setDepartment(res.data.department || "");
+      setAssignedTo(res.data.assignedTo || "");
     } catch (err) {
       console.error("Failed to fetch ticket", err);
     }
