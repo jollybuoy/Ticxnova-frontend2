@@ -2,19 +2,60 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import {
+  FaBug,
+  FaClipboardCheck,
+} from "react-icons/fa";
+import {
+  HiWrenchScrewdriver,
+  HiOutlineInformationCircle,
+  HiOutlineLightBulb,
+} from "react-icons/hi2";
 
-const ticketTypes = [
-  { type: "Incident", fields: ["title", "description", "priority"] },
-  { type: "Service Request", fields: ["title", "description"] },
-  { type: "Change Request", fields: ["title", "description", "priority", "plannedStart", "plannedEnd"] },
-  { type: "Problem", fields: ["title", "description", "impact"] },
-  { type: "Task", fields: ["title", "description"] },
+const typeOptions = [
+  { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
+  { label: "Service Request", icon: <HiWrenchScrewdriver />, color: "from-blue-500 to-sky-500" },
+  { label: "Change Request", icon: <HiOutlineInformationCircle />, color: "from-purple-500 to-indigo-500" },
+  { label: "Problem", icon: <HiOutlineLightBulb />, color: "from-orange-500 to-yellow-500" },
+  { label: "Task", icon: <FaClipboardCheck />, color: "from-green-500 to-emerald-500" },
 ];
+
+const fieldConfig = {
+  Incident: ["title", "description", "priority", "impact", "urgency"],
+  "Service Request": ["title", "description", "requestedItem", "justification"],
+  "Change Request": ["title", "description", "plannedStart", "plannedEnd", "riskLevel"],
+  Problem: ["title", "description", "symptoms", "rootCause"],
+  Task: ["title", "description", "dueDate", "checklist"],
+};
+
+const labels = {
+  title: "Title",
+  description: "Description",
+  priority: "Priority",
+  impact: "Impact",
+  urgency: "Urgency",
+  requestedItem: "Requested Item",
+  justification: "Justification",
+  plannedStart: "Planned Start Date",
+  plannedEnd: "Planned End Date",
+  riskLevel: "Risk Level",
+  symptoms: "Symptoms",
+  rootCause: "Root Cause",
+  dueDate: "Due Date",
+  checklist: "Checklist Items",
+};
 
 const CreateTicket = () => {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState("");
-  const [form, setForm] = useState({});
+  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || "");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    priority: "Medium",
+    assignedTo: "",
+    department: "",
+    ticketType: selectedType,
+  });
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
 
@@ -32,158 +73,137 @@ const CreateTicket = () => {
   };
 
   useEffect(() => {
+    if (selectedType) {
+      setFormData((prev) => ({ ...prev, ticketType: selectedType }));
+      localStorage.setItem("selectedType", selectedType);
+    }
+  }, [selectedType]);
+
+  useEffect(() => {
     fetchMetadata();
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/tickets", { ...form, ticketType: selectedType });
+      await axios.post("/tickets", formData);
+      localStorage.removeItem("selectedType");
       navigate("/all-tickets");
     } catch (err) {
       console.error("Ticket creation failed", err);
     }
   };
 
-  const fieldsToRender = ticketTypes.find((t) => t.type === selectedType)?.fields || [];
+  const fields = fieldConfig[selectedType] || [];
+
+  if (!selectedType) {
+    return (
+      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow">
+        <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
+          What type of ticket do you want to create?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {typeOptions.map((type) => (
+            <div
+              key={type.label}
+              onClick={() => setSelectedType(type.label)}
+              className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-all`}
+              title={type.label}
+            >
+              <div className="text-4xl mb-3">{type.icon}</div>
+              <h3 className="text-xl font-semibold">{type.label}</h3>
+              <p className="text-sm opacity-80 mt-1">
+                Click to create a {type.label.toLowerCase()} ticket
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-xl mt-6">
-      {!selectedType ? (
-        <>
-          <h1 className="text-2xl font-bold mb-4">Select Ticket Type</h1>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {ticketTypes.map((t) => (
-              <button
-                key={t.type}
-                onClick={() => setSelectedType(t.type)}
-                className="bg-indigo-600 text-white p-4 rounded-lg shadow hover:bg-indigo-700"
-              >
-                {t.type}
-              </button>
-            ))}
+    <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-2xl shadow-xl">
+      <button
+        onClick={() => {
+          setSelectedType("");
+          localStorage.removeItem("selectedType");
+        }}
+        className="mb-4 text-white text-sm hover:underline"
+      >
+        ← Back to type selection
+      </button>
+
+      <h1 className="text-3xl font-bold mb-6 text-white">
+        📝 Create {selectedType} Ticket
+      </h1>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {fields.map((field) => (
+          <div key={field}>
+            <label className="block mb-1 text-sm font-semibold text-white/80">
+              {labels[field]}
+            </label>
+            <input
+              type={field.toLowerCase().includes("date") ? "date" : "text"}
+              name={field}
+              value={formData[field] || ""}
+              onChange={handleChange}
+              placeholder={`Enter ${labels[field]}`}
+              className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none placeholder-white/40"
+              required={field === "title" || field === "description"}
+            />
           </div>
-        </>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h2 className="text-xl font-bold text-indigo-700">📝 Create {selectedType}</h2>
+        ))}
 
-          {fieldsToRender.includes("title") && (
-            <input
-              type="text"
-              name="title"
-              placeholder="Title"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            />
-          )}
-
-          {fieldsToRender.includes("description") && (
-            <textarea
-              name="description"
-              placeholder="Description"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-              rows={3}
-            ></textarea>
-          )}
-
-          {fieldsToRender.includes("priority") && (
-            <select
-              name="priority"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            >
-              <option value="">Select Priority</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          )}
-
-          {fieldsToRender.includes("impact") && (
-            <select
-              name="impact"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            >
-              <option value="">Select Impact</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          )}
-
-          {fieldsToRender.includes("plannedStart") && (
-            <input
-              type="datetime-local"
-              name="plannedStart"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            />
-          )}
-
-          {fieldsToRender.includes("plannedEnd") && (
-            <input
-              type="datetime-local"
-              name="plannedEnd"
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            />
-          )}
-
+        <div>
+          <label className="block mb-1 text-sm font-semibold text-white/80">Department</label>
           <select
             name="department"
+            value={formData.department}
             onChange={handleChange}
-            value={form.department || ""}
+            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
             required
-            className="w-full border p-2 rounded"
           >
             <option value="">Select Department</option>
             {departments.map((dept) => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
           </select>
+        </div>
 
+        <div>
+          <label className="block mb-1 text-sm font-semibold text-white/80">Assigned To</label>
           <select
             name="assignedTo"
+            value={formData.assignedTo}
             onChange={handleChange}
-            value={form.assignedTo || ""}
+            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
             required
-            className="w-full border p-2 rounded"
           >
             <option value="">Select Assignee</option>
             {users
-              .filter((user) => user.department === form.department)
+              .filter((user) => user.department === formData.department)
               .map((user) => (
-                <option key={user.email} value={user.email}>{user.name} ({user.email})</option>
+                <option key={user.email} value={user.email}>
+                  {user.name} ({user.email})
+                </option>
               ))}
           </select>
+        </div>
 
-          <div className="flex gap-4">
-            <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded">
-              ✅ Create Ticket
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedType("")}
-              className="bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded"
-            >
-              🔙 Back
-            </button>
-          </div>
-        </form>
-      )}
+        <button
+          type="submit"
+          className="w-full mt-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg"
+        >
+          🚀 Submit Ticket
+        </button>
+      </form>
     </div>
   );
 };
