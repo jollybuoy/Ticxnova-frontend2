@@ -94,23 +94,23 @@ const MainLayout = ({ setAuth }) => {
     </button>
   </div>
 
-  {/* Mini Icon Menu (Always Visible) */}
-  <div className="flex flex-col items-center gap-6 mt-8">
-    <button onClick={() => navigate("/dashboard")} title="Dashboard">📊</button>
-    <button onClick={() => navigate("/create-ticket")} title="Create Ticket">➕</button>
-    <button onClick={() => navigate("/all-tickets")} title="All Tickets">📁</button>
-    <button onClick={() => navigate("/users")} title="Users">👥</button>
-    <button onClick={() => navigate("/knowledgebase")} title="Knowledge Base">📚</button>
-    <button onClick={() => navigate("/reports")} title="Reports">📈</button>
-    <button onClick={() => navigate("/notifications")} title="Notifications">🔔</button>
-    <button onClick={() => navigate("/messages")} title="Messages">📨</button>
-    <button onClick={() => navigate("/settings")} title="Settings">⚙️</button>
-    <button onClick={() => navigate("/adminpanel")} title="Admin Panel">🛠️</button>
-    <button onClick={() => navigate("/slatracker")} title="SLA Tracker">🎯</button>
-    <button onClick={() => navigate("/assetmanagement")} title="Assets">📦</button>
-    <button onClick={() => navigate("/emailtemplates")} title="Templates">📬</button>
-  </div>
+ {/* Mini Icon Menu (Always Visible, hides on hover) */}
+<div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-300 group-hover:opacity-0 group-hover:pointer-events-none">
+  <button onClick={() => navigate("/dashboard")} title="Dashboard">📊</button>
+  <button onClick={() => navigate("/create-ticket")} title="Create Ticket">➕</button>
+  <button onClick={() => navigate("/all-tickets")} title="All Tickets">📁</button>
+  <button onClick={() => navigate("/users")} title="Users">👥</button>
+  <button onClick={() => navigate("/knowledgebase")} title="Knowledge Base">📚</button>
+  <button onClick={() => navigate("/reports")} title="Reports">📈</button>
+  <button onClick={() => navigate("/notifications")} title="Notifications">🔔</button>
+  <button onClick={() => navigate("/messages")} title="Messages">📨</button>
+  <button onClick={() => navigate("/settings")} title="Settings">⚙️</button>
+  <button onClick={() => navigate("/adminpanel")} title="Admin Panel">🛠️</button>
+  <button onClick={() => navigate("/slatracker")} title="SLA Tracker">🎯</button>
+  <button onClick={() => navigate("/assetmanagement")} title="Assets">📦</button>
+  <button onClick={() => navigate("/emailtemplates")} title="Templates">📬</button>
 </div>
+
 
 
       {/* Main Content */}
