@@ -11,23 +11,70 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
-  FiRefreshCw
+  FiRefreshCw,
+  FiChevronDown,
+  FiChevronUp
 } from "react-icons/fi";
+import { Dialog } from "@headlessui/react";
 
 const TicketDetails = () => {
   const { id } = useParams();
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
+  const [departments, setDepartments] = useState([]);
+  const [users, setUsers] = useState([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [updatedDept, setUpdatedDept] = useState("");
+  const [updatedAssignee, setUpdatedAssignee] = useState("");
+  const [updatedStatus, setUpdatedStatus] = useState("");
 
   const fetchTicket = async () => {
     try {
       const res = await API.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
+      setUpdatedDept(res.data.department);
+      setUpdatedAssignee(res.data.assignedTo);
     } catch (err) {
       console.error("Failed to fetch ticket", err);
+    }
+  };
+
+  const fetchMetadata = async () => {
+    try {
+      const [deptRes, userRes] = await Promise.all([
+        API.get("/metadata/departments"),
+        API.get("/metadata/users")
+      ]);
+      setDepartments(deptRes.data);
+      setUsers(userRes.data);
+    } catch (err) {
+      console.error("Failed to fetch metadata", err);
+    }
+  };
+
+  const handleStatusChange = () => setShowModal(true);
+
+  const confirmStatusUpdate = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      await API.patch(`/tickets/${id}`, {
+        status: updatedStatus,
+        department: updatedDept,
+        assignedTo: updatedAssignee
+      });
+      await API.post(`/tickets/${id}/notes`, {
+        comment: `Ticket updated with status '${updatedStatus}', department '${updatedDept}', and assigned to '${updatedAssignee}'`,
+        status: updatedStatus
+      });
+      setShowModal(false);
+      fetchTicket();
+    } catch (err) {
+      console.error("Failed to update ticket", err);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -51,32 +98,15 @@ const TicketDetails = () => {
     }
   };
 
-  const handleStatusChange = async (e) => {
-    const newStatus = e.target.value;
-    if (newStatus === ticket.status) return;
-    setIsUpdatingStatus(true);
-    try {
-      await API.patch(`/tickets/${id}/status`, { status: newStatus });
-      await API.post(`/tickets/${id}/notes`, {
-        status: newStatus,
-        comment: `Status changed from '${ticket.status}' to '${newStatus}'`
-      });
-      fetchTicket();
-    } catch (err) {
-      console.error("Failed to update status", err);
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
-
   useEffect(() => {
     fetchTicket();
+    fetchMetadata();
   }, [id]);
 
   if (!ticket) return <p className="text-white">Loading ticket...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-yellow-200">
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-xl border border-yellow-300">
       <h1 className="text-4xl font-bold mb-2 text-yellow-700 border-b pb-2 border-yellow-300">
         🎫 Ticket #{ticket.ticketId || ticket.id}
       </h1>
@@ -96,18 +126,12 @@ const TicketDetails = () => {
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <label className="flex items-center gap-2 text-gray-800">
             <FiEdit3 /> <strong>Status:</strong>
-            <select
-              value={ticket.status}
-              onChange={handleStatusChange}
-              className="ml-2 border border-gray-300 rounded px-2 py-1 text-sm"
-              disabled={isUpdatingStatus}
+            <button
+              onClick={handleStatusChange}
+              className="ml-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded hover:bg-yellow-200 text-sm"
             >
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Closed">Closed</option>
-            </select>
-            {isUpdatingStatus && <FiRefreshCw className="animate-spin ml-1 text-yellow-500" />}
+              {ticket.status} <FiChevronDown className="inline ml-1" />
+            </button>
           </label>
         </div>
 
@@ -136,15 +160,39 @@ const TicketDetails = () => {
         </div>
 
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <p className="flex items-center gap-2 text-gray-800">
-            <FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}
-          </p>
+          <label className="flex flex-col text-gray-800">
+            <span className="flex gap-2 items-center mb-1">
+              <FiLayers /> <strong>Department:</strong>
+            </span>
+            <select
+              value={updatedDept}
+              onChange={(e) => setUpdatedDept(e.target.value)}
+              className="border rounded px-3 py-2"
+            >
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <p className="flex items-center gap-2 text-gray-800">
-            <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
-          </p>
+          <label className="flex flex-col text-gray-800">
+            <span className="flex gap-2 items-center mb-1">
+              <FiUser /> <strong>Assigned To:</strong>
+            </span>
+            <select
+              value={updatedAssignee}
+              onChange={(e) => setUpdatedAssignee(e.target.value)}
+              className="border rounded px-3 py-2"
+            >
+              {users
+                .filter((u) => u.department === updatedDept)
+                .map((user) => (
+                  <option key={user.email} value={user.email}>{user.name}</option>
+                ))}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -211,6 +259,45 @@ const TicketDetails = () => {
           💬 Submit Note
         </button>
       </form>
+
+      <Dialog open={showModal} onClose={() => setShowModal(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white max-w-md w-full rounded-xl p-6 shadow-xl border border-yellow-300">
+            <Dialog.Title className="text-lg font-bold mb-4 text-yellow-700">Update Ticket Details</Dialog.Title>
+
+            <label className="block mb-3">
+              <span className="block mb-1 text-sm font-medium">Select New Status</span>
+              <select
+                className="w-full border rounded px-3 py-2"
+                value={updatedStatus || ticket.status}
+                onChange={(e) => setUpdatedStatus(e.target.value)}
+              >
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </label>
+
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-black"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStatusUpdate}
+                disabled={isUpdatingStatus}
+                className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+              >
+                {isUpdatingStatus ? "Saving..." : "Update Ticket"}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 };
