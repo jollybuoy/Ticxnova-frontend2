@@ -11,6 +11,7 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
+  FiRefreshCw
 } from "react-icons/fi";
 
 const TicketDetails = () => {
@@ -18,6 +19,7 @@ const TicketDetails = () => {
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const fetchTicket = async () => {
     try {
@@ -49,6 +51,24 @@ const TicketDetails = () => {
     }
   };
 
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    if (newStatus === ticket.status) return;
+    setIsUpdatingStatus(true);
+    try {
+      await API.patch(`/tickets/${id}/status`, { status: newStatus });
+      await API.post(`/tickets/${id}/notes`, {
+        status: newStatus,
+        comment: `Status changed from '${ticket.status}' to '${newStatus}'`
+      });
+      fetchTicket();
+    } catch (err) {
+      console.error("Failed to update status", err);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   useEffect(() => {
     fetchTicket();
   }, [id]);
@@ -72,37 +92,55 @@ const TicketDetails = () => {
             <FiTag /> <strong>Title:</strong> {ticket.title}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <p className="flex items-center gap-2 text-gray-800">
-            <FiEdit3 /> <strong>Status:</strong> {ticket.status}
-          </p>
+          <label className="flex items-center gap-2 text-gray-800">
+            <FiEdit3 /> <strong>Status:</strong>
+            <select
+              value={ticket.status}
+              onChange={handleStatusChange}
+              className="ml-2 border border-gray-300 rounded px-2 py-1 text-sm"
+              disabled={isUpdatingStatus}
+            >
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
+            {isUpdatingStatus && <FiRefreshCw className="animate-spin ml-1 text-yellow-500" />}
+          </label>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 md:col-span-2">
           <p className="flex items-center gap-2 text-gray-800">
             <FiMessageSquare /> <strong>Description:</strong> {ticket.description}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
-            <FiClock /> <strong>Created At:</strong>{" "}
-            {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
+            <FiClock /> <strong>Created At:</strong> {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}
           </p>
         </div>
+
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
