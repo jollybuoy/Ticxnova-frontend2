@@ -46,53 +46,72 @@ const MainLayout = ({ setAuth }) => {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-green-900 via-cyan-800 to-indigo-900 text-orange">
-      {/* Sidebar */}
-      <div className="group relative hover:w-72 w-3 transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-lg overflow-hidden">
-        <div className="p-5 w-72 absolute left-0 top-0 h-full group-hover:opacity-100 opacity-0 transition-opacity duration-300">
-          <div className="flex items-center gap-2 mb-12">
-            <img
-              src={logo}
-              alt="Ticxnova Logo"
-              className="h-10 w-10 rounded-full shadow ring-2 ring-white/30"
-            />
-            <h2 className="text-2xl font-bold">Ticxnova</h2>
-          </div>
+     {/* Sidebar */}
+<div className="group relative hover:w-72 w-16 transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-lg overflow-hidden flex flex-col items-center">
+  <div className="absolute left-0 top-0 h-full w-72 p-5 group-hover:opacity-100 opacity-0 transition-opacity duration-300">
 
-          <div className="flex items-center gap-3 mb-8 px-2">
-            <img
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D8ABC&color=fff`}
-              alt="Avatar"
-              className="h-8 w-8 rounded-full border border-white shadow"
-            />
-            <span className="text-sm text-orange-400 font-semibold" style={{ fontSize: "1rem" }}>
-              Welcome, {userName}
-            </span>
-          </div>
+    <div className="flex items-center gap-2 mb-12">
+      <img
+        src={logo}
+        alt="Ticxnova Logo"
+        className="h-10 w-10 rounded-full shadow ring-2 ring-white/30"
+      />
+      <h2 className="text-2xl font-bold">Ticxnova</h2>
+    </div>
 
-          <ul className="space-y-4">
-            <li onClick={() => navigate("/dashboard")} className="hover:text-blue-400 cursor-pointer">📊 Dashboard</li>
-            <li onClick={() => navigate("/create-ticket")} className="hover:text-blue-400 cursor-pointer">➕ Create Ticket</li>
-            <li onClick={() => navigate("/all-tickets")} className="hover:text-blue-400 cursor-pointer">📁 All Tickets</li>
-            <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">👥 Users</li>
-            <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">📚 Knowledge Base</li>
-            <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">📈 Reports</li>
-            <li onClick={() => navigate("/notifications")} className="hover:text-blue-400 cursor-pointer">🔔 Notifications</li>
-            <li onClick={() => navigate("/messages")} className="hover:text-blue-400 cursor-pointer">📨 Messages</li>
-            <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">⚙️ Settings</li>
-            <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">🛠️ Admin Panel</li>
-            <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">🎯 SLA Tracker</li>
-            <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">📦 Asset Management</li>
-            <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
-          </ul>
+    <div className="flex items-center gap-3 mb-8 px-2">
+      <img
+        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D8ABC&color=fff`}
+        alt="Avatar"
+        className="h-8 w-8 rounded-full border border-white shadow"
+      />
+      <span className="text-sm text-orange-400 font-semibold" style={{ fontSize: "1rem" }}>
+        Welcome, {userName}
+      </span>
+    </div>
 
-          <button
-            onClick={handleLogout}
-            className="mt-10 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
-          >
-            🔓 Logout
-          </button>
-        </div>
-      </div>
+    <ul className="space-y-4">
+      <li onClick={() => navigate("/dashboard")} className="hover:text-blue-400 cursor-pointer">📊 Dashboard</li>
+      <li onClick={() => navigate("/create-ticket")} className="hover:text-blue-400 cursor-pointer">➕ Create Ticket</li>
+      <li onClick={() => navigate("/all-tickets")} className="hover:text-blue-400 cursor-pointer">📁 All Tickets</li>
+      <li onClick={() => navigate("/users")} className="hover:text-blue-400 cursor-pointer">👥 Users</li>
+      <li onClick={() => navigate("/knowledgebase")} className="hover:text-blue-400 cursor-pointer">📚 Knowledge Base</li>
+      <li onClick={() => navigate("/reports")} className="hover:text-blue-400 cursor-pointer">📈 Reports</li>
+      <li onClick={() => navigate("/notifications")} className="hover:text-blue-400 cursor-pointer">🔔 Notifications</li>
+      <li onClick={() => navigate("/messages")} className="hover:text-blue-400 cursor-pointer">📨 Messages</li>
+      <li onClick={() => navigate("/settings")} className="hover:text-blue-400 cursor-pointer">⚙️ Settings</li>
+      <li onClick={() => navigate("/adminpanel")} className="hover:text-blue-400 cursor-pointer">🛠️ Admin Panel</li>
+      <li onClick={() => navigate("/slatracker")} className="hover:text-blue-400 cursor-pointer">🎯 SLA Tracker</li>
+      <li onClick={() => navigate("/assetmanagement")} className="hover:text-blue-400 cursor-pointer">📦 Asset Management</li>
+      <li onClick={() => navigate("/emailtemplates")} className="hover:text-blue-400 cursor-pointer">📬 Email Templates</li>
+    </ul>
+
+    <button
+      onClick={handleLogout}
+      className="mt-10 w-full bg-gradient-to-r from-yellow-500 to-pink-600 px-4 py-2 rounded-lg shadow hover:from-red-600 hover:to-pink-700 transition duration-300"
+    >
+      🔓 Logout
+    </button>
+  </div>
+
+  {/* Mini Icon Menu (Always Visible) */}
+  <div className="flex flex-col items-center gap-6 mt-8">
+    <button onClick={() => navigate("/dashboard")} title="Dashboard">📊</button>
+    <button onClick={() => navigate("/create-ticket")} title="Create Ticket">➕</button>
+    <button onClick={() => navigate("/all-tickets")} title="All Tickets">📁</button>
+    <button onClick={() => navigate("/users")} title="Users">👥</button>
+    <button onClick={() => navigate("/knowledgebase")} title="Knowledge Base">📚</button>
+    <button onClick={() => navigate("/reports")} title="Reports">📈</button>
+    <button onClick={() => navigate("/notifications")} title="Notifications">🔔</button>
+    <button onClick={() => navigate("/messages")} title="Messages">📨</button>
+    <button onClick={() => navigate("/settings")} title="Settings">⚙️</button>
+    <button onClick={() => navigate("/adminpanel")} title="Admin Panel">🛠️</button>
+    <button onClick={() => navigate("/slatracker")} title="SLA Tracker">🎯</button>
+    <button onClick={() => navigate("/assetmanagement")} title="Assets">📦</button>
+    <button onClick={() => navigate("/emailtemplates")} title="Templates">📬</button>
+  </div>
+</div>
+
 
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto relative">
