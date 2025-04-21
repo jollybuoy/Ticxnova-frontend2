@@ -11,9 +11,6 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
-  FiRefreshCw,
-  FiChevronDown,
-  FiChevronUp
 } from "react-icons/fi";
 import { Dialog } from "@headlessui/react";
 
@@ -22,59 +19,24 @@ const TicketDetails = () => {
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [updatedDept, setUpdatedDept] = useState("");
-  const [updatedAssignee, setUpdatedAssignee] = useState("");
-  const [updatedStatus, setUpdatedStatus] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [status, setStatus] = useState("");
 
   const fetchTicket = async () => {
     try {
       const res = await API.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
-      setUpdatedDept(res.data.department);
-      setUpdatedAssignee(res.data.assignedTo);
+      setSelectedDepartment(res.data.department || "");
+      setAssignedTo(res.data.assignedTo || "");
+      setStatus(res.data.status || "");
     } catch (err) {
       console.error("Failed to fetch ticket", err);
-    }
-  };
-
-  const fetchMetadata = async () => {
-    try {
-      const [deptRes, userRes] = await Promise.all([
-        API.get("/metadata/departments"),
-        API.get("/metadata/users")
-      ]);
-      setDepartments(deptRes.data);
-      setUsers(userRes.data);
-    } catch (err) {
-      console.error("Failed to fetch metadata", err);
-    }
-  };
-
-  const handleStatusChange = () => setShowModal(true);
-
-  const confirmStatusUpdate = async () => {
-    setIsUpdatingStatus(true);
-    try {
-      await API.patch(`/tickets/${id}`, {
-        status: updatedStatus,
-        department: updatedDept,
-        assignedTo: updatedAssignee
-      });
-      await API.post(`/tickets/${id}/notes`, {
-        comment: `Ticket updated with status '${updatedStatus}', department '${updatedDept}', and assigned to '${updatedAssignee}'`,
-        status: updatedStatus
-      });
-      setShowModal(false);
-      fetchTicket();
-    } catch (err) {
-      console.error("Failed to update ticket", err);
-    } finally {
-      setIsUpdatingStatus(false);
     }
   };
 
@@ -83,19 +45,34 @@ const TicketDetails = () => {
     try {
       await API.post(`/tickets/${id}/notes`, newNote);
       setNewNote({ comment: "", status: "" });
+      setShowUpdateModal(true);
       fetchTicket();
     } catch (err) {
       console.error("Error adding note", err);
     }
   };
 
-  const handleDeleteNote = async (noteId) => {
+  const handleTicketUpdate = async () => {
     try {
-      await API.delete(`/tickets/${id}/notes/${noteId}`);
+      await API.patch(`/tickets/${id}`, {
+        department: selectedDepartment,
+        assignedTo,
+        status,
+      });
+      setShowUpdateModal(false);
       fetchTicket();
     } catch (err) {
-      console.error("Failed to delete note", err);
+      console.error("Failed to update ticket", err);
     }
+  };
+
+  const fetchMetadata = async () => {
+    const [depRes, userRes] = await Promise.all([
+      API.get("/tickets/metadata/departments"),
+      API.get("/tickets/metadata/users"),
+    ]);
+    setDepartments(depRes.data);
+    setUsers(userRes.data);
   };
 
   useEffect(() => {
@@ -106,7 +83,7 @@ const TicketDetails = () => {
   if (!ticket) return <p className="text-white">Loading ticket...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-xl border border-yellow-300">
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-yellow-200">
       <h1 className="text-4xl font-bold mb-2 text-yellow-700 border-b pb-2 border-yellow-300">
         🎫 Ticket #{ticket.ticketId || ticket.id}
       </h1>
@@ -122,77 +99,40 @@ const TicketDetails = () => {
             <FiTag /> <strong>Title:</strong> {ticket.title}
           </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <label className="flex items-center gap-2 text-gray-800">
-            <FiEdit3 /> <strong>Status:</strong>
-            <button
-              onClick={handleStatusChange}
-              className="ml-2 bg-yellow-100 text-yellow-800 px-3 py-1 rounded hover:bg-yellow-200 text-sm"
-            >
-              {ticket.status} <FiChevronDown className="inline ml-1" />
-            </button>
-          </label>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiEdit3 /> <strong>Status:</strong> {ticket.status}
+          </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 md:col-span-2">
           <p className="flex items-center gap-2 text-gray-800">
             <FiMessageSquare /> <strong>Description:</strong> {ticket.description}
           </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}
           </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
             <FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}
           </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
-            <FiClock /> <strong>Created At:</strong> {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
+            <FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}
           </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <label className="flex flex-col text-gray-800">
-            <span className="flex gap-2 items-center mb-1">
-              <FiLayers /> <strong>Department:</strong>
-            </span>
-            <select
-              value={updatedDept}
-              onChange={(e) => setUpdatedDept(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>{dept}</option>
-              ))}
-            </select>
-          </label>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}
+          </p>
         </div>
-
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-          <label className="flex flex-col text-gray-800">
-            <span className="flex gap-2 items-center mb-1">
-              <FiUser /> <strong>Assigned To:</strong>
-            </span>
-            <select
-              value={updatedAssignee}
-              onChange={(e) => setUpdatedAssignee(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              {users
-                .filter((u) => u.department === updatedDept)
-                .map((user) => (
-                  <option key={user.email} value={user.email}>{user.name}</option>
-                ))}
-            </select>
-          </label>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
+          </p>
         </div>
       </div>
 
@@ -213,10 +153,7 @@ const TicketDetails = () => {
                     By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => handleDeleteNote(note.id)}
-                >
+                <button className="text-red-500 hover:text-red-700" onClick={() => handleDeleteNote(note.id)}>
                   <FiTrash2 />
                 </button>
               </div>
@@ -227,10 +164,7 @@ const TicketDetails = () => {
         )}
       </div>
 
-      <form
-        onSubmit={handleNoteSubmit}
-        className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200"
-      >
+      <form onSubmit={handleNoteSubmit} className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200">
         <h3 className="text-xl font-bold text-yellow-700">➕ Add Note</h3>
         <textarea
           value={newNote.comment}
@@ -252,47 +186,59 @@ const TicketDetails = () => {
           <option value="Completed">Completed</option>
           <option value="Closed">Closed</option>
         </select>
-        <button
-          type="submit"
-          className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold"
-        >
+        <button type="submit" className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold">
           💬 Submit Note
         </button>
       </form>
 
-      <Dialog open={showModal} onClose={() => setShowModal(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white max-w-md w-full rounded-xl p-6 shadow-xl border border-yellow-300">
-            <Dialog.Title className="text-lg font-bold mb-4 text-yellow-700">Update Ticket Details</Dialog.Title>
+      {/* Modal for update after note submission */}
+      <Dialog open={showUpdateModal} onClose={() => setShowUpdateModal(false)} className="fixed z-50 inset-0 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <Dialog.Panel className="bg-white p-6 rounded-xl max-w-md w-full border border-yellow-300">
+            <Dialog.Title className="text-lg font-bold text-yellow-700 mb-4">🛠 Update Ticket Info</Dialog.Title>
 
-            <label className="block mb-3">
-              <span className="block mb-1 text-sm font-medium">Select New Status</span>
+            <div className="space-y-4">
               <select
-                className="w-full border rounded px-3 py-2"
-                value={updatedStatus || ticket.status}
-                onChange={(e) => setUpdatedStatus(e.target.value)}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full p-2 rounded border"
               >
+                <option value="">Select Status</option>
                 <option value="Open">Open</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
                 <option value="Closed">Closed</option>
               </select>
-            </label>
 
-            <div className="flex justify-end mt-4 gap-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-black"
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="w-full p-2 rounded border"
               >
-                Cancel
-              </button>
-              <button
-                onClick={confirmStatusUpdate}
-                disabled={isUpdatingStatus}
-                className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                <option value="">Select Department</option>
+                {departments.map((dept, idx) => (
+                  <option key={idx} value={dept}>{dept}</option>
+                ))}
+              </select>
+
+              <select
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                className="w-full p-2 rounded border"
               >
-                {isUpdatingStatus ? "Saving..." : "Update Ticket"}
+                <option value="">Select Assignee</option>
+                {users
+                  .filter(u => u.department === selectedDepartment)
+                  .map((user, idx) => (
+                    <option key={idx} value={user.email}>{user.name}</option>
+                  ))}
+              </select>
+
+              <button
+                onClick={handleTicketUpdate}
+                className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg"
+              >
+                ✅ Submit Updates
               </button>
             </div>
           </Dialog.Panel>
