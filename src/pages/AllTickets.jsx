@@ -43,9 +43,10 @@ const AllTickets = () => {
   const fetchTickets = async () => {
     try {
       const res = await axios.get("/tickets", { params: { filterBy } });
+      console.log("✅ Tickets Response:", res.data);
       setTickets(res.data);
     } catch (err) {
-      console.error("Failed to fetch tickets", err);
+      console.error("❌ Failed to fetch tickets", err);
     }
   };
 
@@ -54,6 +55,7 @@ const AllTickets = () => {
   }, [filterBy]);
 
   const filtered = tickets.filter((t) => {
+    console.log("🔍 Ticket Being Filtered:", t);
     const matchSearch =
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.ticketId?.toLowerCase().includes(search.toLowerCase());
