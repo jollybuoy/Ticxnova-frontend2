@@ -23,6 +23,8 @@ import AdminPanel from "./pages/AdminPanel";
 import SlaTracker from "./pages/SlaTracker";
 import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+
 
 function App() {
   const { instance, accounts } = useMsal();
@@ -123,6 +125,8 @@ function App() {
               <Route path="/assetmanagement" element={<AssetManagement user={user} />} />
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
