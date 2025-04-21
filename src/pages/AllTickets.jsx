@@ -15,7 +15,7 @@ import {
   FiHash,
   FiAlignLeft,
   FiList,
-  FiUserCheck
+  FiUserCheck,
 } from "react-icons/fi";
 
 const priorityColor = {
@@ -89,7 +89,7 @@ const AllTickets = () => {
     return sortAsc ? <FiChevronUp className="inline ml-1" /> : <FiChevronDown className="inline ml-1" />;
   };
 
-  const uniqueTypes = [...new Set(tickets.map(t => t.ticketType).filter(Boolean))];
+  const uniqueTypes = [...new Set(tickets.map((t) => t.ticketType).filter(Boolean))];
 
   return (
     <div className="p-6 text-gray-900 bg-white min-h-screen">
@@ -160,10 +160,13 @@ const AllTickets = () => {
 
         <select
           value={itemsPerPage}
-          onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPage(1); }}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+            setPage(1);
+          }}
           className="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg"
         >
-          {PAGE_SIZE_OPTIONS.map(n => (
+          {PAGE_SIZE_OPTIONS.map((n) => (
             <option key={n} value={n}>Show {n}</option>
           ))}
         </select>
