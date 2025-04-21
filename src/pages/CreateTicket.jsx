@@ -103,6 +103,7 @@ const CreateTicket = () => {
       localStorage.removeItem("selectedType");
     } catch (err) {
       console.error("Ticket creation failed", err);
+      toast.error("❌ Failed to create ticket. Please check the required fields.");
     }
   };
 
@@ -111,7 +112,7 @@ const CreateTicket = () => {
 
   if (!selectedType) {
     return (
-      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow">
+      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow animate-fade-in">
         <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
           What type of ticket do you want to create?
         </h2>
@@ -172,7 +173,7 @@ const CreateTicket = () => {
               ></textarea>
             ) : (
               <input
-                type={field.toLowerCase().includes("date") ? "date" : "text"}
+                type={field.includes("Date") || field === "plannedStart" || field === "plannedEnd" ? "date" : "text"}
                 name={field}
                 value={formData[field] || ""}
                 onChange={handleChange}
