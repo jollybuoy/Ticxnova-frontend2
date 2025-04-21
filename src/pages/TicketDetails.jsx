@@ -1,7 +1,7 @@
 // src/pages/TicketDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import API from "../api/axios";
+import axios from "../api/axios";
 import {
   FiTag,
   FiUser,
@@ -12,7 +12,6 @@ import {
   FiMessageSquare,
   FiTrash2,
 } from "react-icons/fi";
-import { Dialog } from "@headlessui/react";
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -20,21 +19,11 @@ const TicketDetails = () => {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
 
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [departments, setDepartments] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
-  const [status, setStatus] = useState("");
-
   const fetchTicket = async () => {
     try {
-      const res = await API.get(`/tickets/${id}`);
+      const res = await axios.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
-      setSelectedDepartment(res.data.department || "");
-      setAssignedTo(res.data.assignedTo || "");
-      setStatus(res.data.status || "");
     } catch (err) {
       console.error("Failed to fetch ticket", err);
     }
@@ -43,41 +32,25 @@ const TicketDetails = () => {
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post(`/tickets/${id}/notes`, newNote);
+      await axios.post(`/tickets/${id}/notes`, newNote);
       setNewNote({ comment: "", status: "" });
-      setShowUpdateModal(true);
       fetchTicket();
     } catch (err) {
       console.error("Error adding note", err);
     }
   };
 
-  const handleTicketUpdate = async () => {
+  const handleDeleteNote = async (noteId) => {
     try {
-      await API.patch(`/tickets/${id}`, {
-        department: selectedDepartment,
-        assignedTo,
-        status,
-      });
-      setShowUpdateModal(false);
+      await axios.delete(`/tickets/${id}/notes/${noteId}`);
       fetchTicket();
     } catch (err) {
-      console.error("Failed to update ticket", err);
+      console.error("Failed to delete note", err);
     }
-  };
-
-  const fetchMetadata = async () => {
-    const [depRes, userRes] = await Promise.all([
-      API.get("/tickets/metadata/departments"),
-      API.get("/tickets/metadata/users"),
-    ]);
-    setDepartments(depRes.data);
-    setUsers(userRes.data);
   };
 
   useEffect(() => {
     fetchTicket();
-    fetchMetadata();
   }, [id]);
 
   if (!ticket) return <p className="text-white">Loading ticket...</p>;
@@ -121,7 +94,8 @@ const TicketDetails = () => {
         </div>
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
           <p className="flex items-center gap-2 text-gray-800">
-            <FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}
+            <FiClock /> <strong>Created At:</strong>{" "}
+            {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
           </p>
         </div>
         <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
@@ -153,7 +127,10 @@ const TicketDetails = () => {
                     By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <button className="text-red-500 hover:text-red-700" onClick={() => handleDeleteNote(note.id)}>
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => handleDeleteNote(note.id)}
+                >
                   <FiTrash2 />
                 </button>
               </div>
@@ -164,7 +141,10 @@ const TicketDetails = () => {
         )}
       </div>
 
-      <form onSubmit={handleNoteSubmit} className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200">
+      <form
+        onSubmit={handleNoteSubmit}
+        className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200"
+      >
         <h3 className="text-xl font-bold text-yellow-700">➕ Add Note</h3>
         <textarea
           value={newNote.comment}
@@ -186,64 +166,13 @@ const TicketDetails = () => {
           <option value="Completed">Completed</option>
           <option value="Closed">Closed</option>
         </select>
-        <button type="submit" className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold">
+        <button
+          type="submit"
+          className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold"
+        >
           💬 Submit Note
         </button>
       </form>
-
-      {/* Modal for update after note submission */}
-      <Dialog open={showUpdateModal} onClose={() => setShowUpdateModal(false)} className="fixed z-50 inset-0 overflow-y-auto">
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <Dialog.Panel className="bg-white p-6 rounded-xl max-w-md w-full border border-yellow-300">
-            <Dialog.Title className="text-lg font-bold text-yellow-700 mb-4">🛠 Update Ticket Info</Dialog.Title>
-
-            <div className="space-y-4">
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2 rounded border"
-              >
-                <option value="">Select Status</option>
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Closed">Closed</option>
-              </select>
-
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full p-2 rounded border"
-              >
-                <option value="">Select Department</option>
-                {departments.map((dept, idx) => (
-                  <option key={idx} value={dept}>{dept}</option>
-                ))}
-              </select>
-
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full p-2 rounded border"
-              >
-                <option value="">Select Assignee</option>
-                {users
-                  .filter(u => u.department === selectedDepartment)
-                  .map((user, idx) => (
-                    <option key={idx} value={user.email}>{user.name}</option>
-                  ))}
-              </select>
-
-              <button
-                onClick={handleTicketUpdate}
-                className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg"
-              >
-                ✅ Submit Updates
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </div>
   );
 };
