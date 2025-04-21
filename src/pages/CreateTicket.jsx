@@ -21,7 +21,7 @@ const typeOptions = [
 ];
 
 const fieldConfig = {
-  Incident: ["title", "description", "priority", "impact", "urgency"],
+  Incident: ["title", "description", "priority"],
   "Service Request": ["title", "description", "requestedItem", "justification"],
   "Change Request": ["title", "description", "plannedStart", "plannedEnd", "riskLevel"],
   Problem: ["title", "description", "symptoms", "rootCause"],
@@ -128,25 +128,25 @@ const CreateTicket = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-2xl shadow-xl">
+    <div className="max-w-5xl mx-auto p-8 bg-white rounded-2xl shadow-xl">
       <button
         onClick={() => {
           setSelectedType("");
           localStorage.removeItem("selectedType");
         }}
-        className="mb-4 text-white text-sm hover:underline"
+        className="mb-4 text-sm text-gray-600 hover:underline"
       >
         ← Back to type selection
       </button>
 
-      <h1 className="text-3xl font-bold mb-6 text-white">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">
         📝 Create {selectedType} Ticket
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
-          <div key={field}>
-            <label className="block mb-1 text-sm font-semibold text-white/80">
+          <div key={field} className="col-span-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               {labels[field]}
             </label>
             <input
@@ -155,19 +155,19 @@ const CreateTicket = () => {
               value={formData[field] || ""}
               onChange={handleChange}
               placeholder={`Enter ${labels[field]}`}
-              className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none placeholder-white/40"
+              className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-lg shadow-sm"
               required={field === "title" || field === "description"}
             />
           </div>
         ))}
 
-        <div>
-          <label className="block mb-1 text-sm font-semibold text-white/80">Department</label>
+        <div className="col-span-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">Department</label>
           <select
             name="department"
             value={formData.department}
             onChange={handleChange}
-            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
+            className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-lg shadow-sm"
             required
           >
             <option value="">Select Department</option>
@@ -177,13 +177,13 @@ const CreateTicket = () => {
           </select>
         </div>
 
-        <div>
-          <label className="block mb-1 text-sm font-semibold text-white/80">Assigned To</label>
+        <div className="col-span-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">Assigned To</label>
           <select
             name="assignedTo"
             value={formData.assignedTo}
             onChange={handleChange}
-            className="w-full bg-slate-700 text-white p-3 rounded-lg outline-none"
+            className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-lg shadow-sm"
             required
           >
             <option value="">Select Assignee</option>
@@ -197,12 +197,23 @@ const CreateTicket = () => {
           </select>
         </div>
 
-        <button
-          type="submit"
-          className="w-full mt-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg"
-        >
-          🚀 Submit Ticket
-        </button>
+        <div className="col-span-2">
+          <label className="block mb-1 text-sm font-medium text-gray-700">Attachment (Optional)</label>
+          <input
+            type="file"
+            name="attachment"
+            className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-lg shadow-sm"
+          />
+        </div>
+
+        <div className="col-span-2">
+          <button
+            type="submit"
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg"
+          >
+            🚀 Submit Ticket
+          </button>
+        </div>
       </form>
     </div>
   );
