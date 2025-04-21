@@ -1,7 +1,7 @@
 // src/pages/TicketDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import API from "../api/axios";
 import {
   FiTag,
   FiUser,
@@ -20,16 +20,8 @@ const TicketDetails = () => {
   const [newNote, setNewNote] = useState({ comment: "", status: "" });
 
   const fetchTicket = async () => {
-    const token = localStorage.getItem("token");
     try {
-      const res = await axios.get(
-        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await API.get(`/tickets/${id}`);
       setTicket(res.data);
       setNotes(res.data.notes || []);
     } catch (err) {
@@ -39,17 +31,8 @@ const TicketDetails = () => {
 
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
     try {
-      await axios.post(
-        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}/notes`,
-        newNote,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await API.post(`/tickets/${id}/notes`, newNote);
       setNewNote({ comment: "", status: "" });
       fetchTicket();
     } catch (err) {
@@ -58,16 +41,8 @@ const TicketDetails = () => {
   };
 
   const handleDeleteNote = async (noteId) => {
-    const token = localStorage.getItem("token");
     try {
-      await axios.delete(
-        `https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets/${id}/notes/${noteId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await API.delete(`/tickets/${id}/notes/${noteId}`);
       fetchTicket();
     } catch (err) {
       console.error("Failed to delete note", err);
