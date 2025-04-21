@@ -25,7 +25,6 @@ import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
-
 function App() {
   const { instance, accounts } = useMsal();
   const msalAuthenticated = useIsAuthenticated();
@@ -57,6 +56,7 @@ function App() {
         });
 
         const userData = await graphResponse.json();
+        console.log("✅ Microsoft Graph user data:", userData); // Debugging
 
         await axios.post("/auth/microsoft-user", {
           email: userData.mail || userData.userPrincipalName,
@@ -126,7 +126,6 @@ function App() {
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
-
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
