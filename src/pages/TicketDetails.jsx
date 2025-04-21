@@ -176,7 +176,7 @@ const TicketDetails = () => {
             <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="flex-1 p-2 rounded-lg border border-gray-300"
+              className="flex-1 p-2 rounded-lg border border-gray-300 bg-white"
             >
               <option value="">Select Department</option>
               {departments.map((d) => (
@@ -186,7 +186,7 @@ const TicketDetails = () => {
             <select
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
-              className="flex-1 p-2 rounded-lg border border-gray-300"
+              className="flex-1 p-2 rounded-lg border border-gray-300 bg-white"
             >
               <option value="">Select Assigned User</option>
               {users
