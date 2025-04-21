@@ -110,7 +110,7 @@ const MainLayout = ({ setAuth }) => {
   <button onClick={() => navigate("/assetmanagement")} title="Assets">📦</button>
   <button onClick={() => navigate("/emailtemplates")} title="Templates">📬</button>
 </div>
-
+</div>
 
 
       {/* Main Content */}
