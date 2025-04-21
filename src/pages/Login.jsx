@@ -129,16 +129,21 @@ const Login = ({ setAuth }) => {
           >
             🔐 Sign in with Microsoft
           </button>
+<button onClick={handleLogin}>
+  Sign in with Microsoft
+</button>
 
-          <p className="mt-6 text-center text-sm text-gray-400">
-            Trouble accessing? <span className="text-blue-300 cursor-pointer hover:underline">Contact admin</span>
-          </p>
 <p className="text-sm text-gray-600 mt-4 text-center">
   By logging in, you agree to our{" "}
   <a href="/privacy" className="text-blue-600 hover:underline">
     Privacy Policy
   </a>.
 </p>
+
+          <p className="mt-6 text-center text-sm text-gray-400">
+            Trouble accessing? <span className="text-blue-300 cursor-pointer hover:underline">Contact admin</span>
+          </p>
+
 
           <motion.div
             className="mt-6 text-center text-xs text-white/60"
