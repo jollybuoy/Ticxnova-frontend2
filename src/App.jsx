@@ -56,9 +56,8 @@ function App() {
         });
 
         const userData = await graphResponse.json();
-        console.log("✅ Microsoft Graph user data:", userData); // Debugging
 
-        await axios.post("/auth/microsoft-user", {
+        await axios.post("/auth/microsoft-login", {
           email: userData.mail || userData.userPrincipalName,
           name: userData.displayName,
           department: userData.department || "General",
