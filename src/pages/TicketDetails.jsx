@@ -1,272 +1,180 @@
-const express = require("express");
-const { pool, sql, poolConnect } = require("../config/db");
-const authMiddleware = require("../middleware/auth");
+// src/pages/TicketDetails.jsx
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import API from "../api/axios";
+import {
+  FiTag,
+  FiUser,
+  FiLayers,
+  FiAlertCircle,
+  FiClock,
+  FiEdit3,
+  FiMessageSquare,
+  FiTrash2,
+} from "react-icons/fi";
 
-const router = express.Router();
+const TicketDetails = () => {
+  const { id } = useParams();
+  const [ticket, setTicket] = useState(null);
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState({ comment: "", status: "" });
 
-// ✅ SLA Stats
-router.get("/sla-stats", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const stats = {
-      avgResolutionTime: 2.3,
-      slaViolations: 1,
-      longestOpenTicketDays: 7,
-      slaCompliancePercent: 90
-    };
-
-    res.json(stats);
-  } catch (err) {
-    console.error("❌ SLA stats fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch SLA stats" });
-  }
-});
-
-// ✅ Ticket Activity Log
-router.get("/activity-log", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { email } = req.user;
-
-  try {
-    const sampleActivity = [
-      {
-        user: email,
-        ticketId: 101,
-        action: "updated",
-        status: "In Progress",
-        timestamp: new Date().toISOString()
-      },
-      {
-        user: email,
-        ticketId: 102,
-        action: "created",
-        priority: "High",
-        timestamp: new Date().toISOString()
-      }
-    ];
-    res.json(sampleActivity);
-  } catch (err) {
-    console.error("❌ Activity log fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch activity log" });
-  }
-});
-
-// ✅ Dashboard Summary
-router.get("/dashboard/summary", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = `
-      SELECT 
-        COUNT(*) AS totalTickets,
-        SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) AS openTickets,
-        SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) AS closedTickets
-      FROM Tickets
-      WHERE domain = @domain
-    `;
-
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
+  const fetchTicket = async () => {
+    try {
+      const res = await API.get(`/tickets/${id}`);
+      setTicket(res.data);
+      setNotes(res.data.notes || []);
+    } catch (err) {
+      console.error("Failed to fetch ticket", err);
     }
+  };
 
-    const result = await request.query(query);
-    const summary = result.recordset[0];
-
-    res.json({
-      total: summary.totalTickets,
-      open: summary.openTickets,
-      closed: summary.closedTickets
-    });
-  } catch (err) {
-    console.error("❌ Dashboard summary fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch dashboard summary" });
-  }
-});
-
-// ✅ Ticket Type Stats
-router.get("/dashboard/types", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = `
-      SELECT ticketType AS type, COUNT(*) as count
-      FROM Tickets
-      WHERE domain = @domain
-    `;
-
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
+  const handleNoteSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await API.post(`/tickets/${id}/notes`, newNote);
+      setNewNote({ comment: "", status: "" });
+      fetchTicket();
+    } catch (err) {
+      console.error("Error adding note", err);
     }
+  };
 
-    query += " GROUP BY ticketType";
-
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (err) {
-    console.error("❌ Types fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch ticket types" });
-  }
-});
-
-// ✅ Ticket Status Stats
-router.get("/dashboard/status", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = `
-      SELECT status, COUNT(*) as count
-      FROM Tickets
-      WHERE domain = @domain
-    `;
-
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await API.delete(`/tickets/${id}/notes/${noteId}`);
+      fetchTicket();
+    } catch (err) {
+      console.error("Failed to delete note", err);
     }
+  };
 
-    query += " GROUP BY status";
+  useEffect(() => {
+    fetchTicket();
+  }, [id]);
 
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (err) {
-    console.error("❌ Status fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch ticket status" });
-  }
-});
+  if (!ticket) return <p className="text-white">Loading ticket...</p>;
 
-// ✅ Ticket Priority Stats
-router.get("/dashboard/priorities", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
+  return (
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-yellow-200">
+      <h1 className="text-4xl font-bold mb-2 text-yellow-700 border-b pb-2 border-yellow-300">
+        🎫 Ticket #{ticket.ticketId || ticket.id}
+      </h1>
+      {ticket.ticketType && (
+        <p className="text-sm text-yellow-800 mb-6 font-semibold uppercase tracking-wide">
+          {ticket.ticketType}
+        </p>
+      )}
 
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = `
-      SELECT priority, COUNT(*) as count
-      FROM Tickets
-      WHERE domain = @domain
-    `;
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiTag /> <strong>Title:</strong> {ticket.title}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiEdit3 /> <strong>Status:</strong> {ticket.status}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 md:col-span-2">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiMessageSquare /> <strong>Description:</strong> {ticket.description}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiClock /> <strong>Created At:</strong>{" "}
+            {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "Invalid Date"}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiLayers /> <strong>Department:</strong> {ticket.department || "N/A"}
+          </p>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
+          </p>
+        </div>
+      </div>
 
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
-    }
+      <h2 className="text-2xl font-bold mb-4 text-yellow-700">📝 Notes</h2>
+      <div className="space-y-4 mb-6">
+        {notes.length > 0 ? (
+          notes.map((note) => (
+            <div key={note.id} className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-800">
+                    <strong>Comment:</strong> {note.comment}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong>Status:</strong> {note.status}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => handleDeleteNote(note.id)}
+                >
+                  <FiTrash2 />
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600">No notes yet.</p>
+        )}
+      </div>
 
-    query += " GROUP BY priority";
+      <form
+        onSubmit={handleNoteSubmit}
+        className="space-y-4 bg-yellow-50 p-6 rounded-2xl border border-yellow-200"
+      >
+        <h3 className="text-xl font-bold text-yellow-700">➕ Add Note</h3>
+        <textarea
+          value={newNote.comment}
+          onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
+          className="w-full p-3 rounded-lg bg-white focus:outline-none"
+          rows={3}
+          placeholder="Add your comment"
+          required
+        ></textarea>
+        <select
+          value={newNote.status}
+          onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+          className="w-full p-2 rounded-lg bg-white"
+          required
+        >
+          <option value="">Select status</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="Closed">Closed</option>
+        </select>
+        <button
+          type="submit"
+          className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold"
+        >
+          💬 Submit Note
+        </button>
+      </form>
+    </div>
+  );
+};
 
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (err) {
-    console.error("❌ Priority fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch ticket priorities" });
-  }
-});
-
-// ✅ Get All Tickets (with optional filterBy = "mine")
-router.get("/", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = "SELECT * FROM Tickets WHERE domain = @domain";
-
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
-    }
-
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (err) {
-    console.error("❌ Failed to fetch tickets:", err);
-    res.status(500).json({ error: "Failed to fetch tickets" });
-  }
-});
-
-// ✅ Monthly Trends
-router.get("/dashboard/monthly-trends", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { domain, email } = req.user;
-  const { filterBy } = req.query;
-
-  try {
-    const request = pool.request().input("domain", sql.NVarChar, domain);
-    let query = `
-      SELECT FORMAT(createdAt, 'yyyy-MM') AS month, COUNT(*) AS count
-      FROM Tickets
-      WHERE domain = @domain
-    `;
-
-    if (filterBy === "mine") {
-      query += " AND assignedTo = @assignedTo";
-      request.input("assignedTo", sql.NVarChar, email);
-    }
-
-    query += `
-      GROUP BY FORMAT(createdAt, 'yyyy-MM')
-      ORDER BY month
-    `;
-
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (err) {
-    console.error("❌ Monthly trends fetch failed:", err);
-    res.status(500).json({ error: "Failed to fetch monthly trends" });
-  }
-});
-
-// ✅ Get Ticket By ID
-router.get("/:id", authMiddleware, async (req, res) => {
-  await poolConnect;
-  const { id } = req.params;
-  const { domain } = req.user;
-
-  try {
-    const request = pool.request()
-      .input("id", sql.Int, id)
-      .input("domain", sql.NVarChar, domain);
-
-    const ticketQuery = `
-      SELECT * FROM Tickets WHERE id = @id AND domain = @domain
-    `;
-    const notesQuery = `
-      SELECT * FROM TicketNotes WHERE ticketId = @id ORDER BY createdAt DESC
-    `;
-
-    const [ticketResult, notesResult] = await Promise.all([
-      request.query(ticketQuery),
-      request.query(notesQuery)
-    ]);
-
-    if (ticketResult.recordset.length === 0) {
-      return res.status(404).json({ error: "Ticket not found" });
-    }
-
-    const ticket = ticketResult.recordset[0];
-    ticket.notes = notesResult.recordset;
-
-    res.json(ticket);
-  } catch (err) {
-    console.error("❌ Failed to fetch ticket by ID:", err);
-    res.status(500).json({ error: "Failed to fetch ticket" });
-  }
-});
-
-module.exports = router;
+export default TicketDetails;
