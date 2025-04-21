@@ -20,7 +20,7 @@ const TicketForm = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:5000/api/tickets',
+        'https://ticxnova-a6e8f0cmaxguhpfm.canadacentral-01.azurewebsites.net/api/tickets',
         { ...formData, createdBy: 'ram@example.com' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
