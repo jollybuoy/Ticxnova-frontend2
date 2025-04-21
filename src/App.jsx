@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { InteractionType } from "@azure/msal-browser";
+import axios from "./api/axios";
 
 // Pages & Components
 import Login from "./pages/Login";
@@ -38,6 +39,37 @@ function App() {
     setCustomAuth(!!userToken);
     setLoading(false);
   }, [userToken, msalAuthenticated]);
+
+  useEffect(() => {
+    const fetchMicrosoftUserDetails = async () => {
+      try {
+        const response = await instance.acquireTokenSilent({
+          scopes: ["User.Read"],
+          account: accounts[0],
+        });
+
+        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+          headers: {
+            Authorization: `Bearer ${response.accessToken}`,
+          },
+        });
+
+        const userData = await graphResponse.json();
+
+        await axios.post("/auth/microsoft-user", {
+          email: userData.mail || userData.userPrincipalName,
+          name: userData.displayName,
+          department: userData.department || "General",
+        });
+      } catch (err) {
+        console.error("❌ Failed to fetch Microsoft user details", err);
+      }
+    };
+
+    if (msalAuthenticated) {
+      fetchMicrosoftUserDetails();
+    }
+  }, [msalAuthenticated]);
 
   const handleLogin = () => {
     instance.loginRedirect().catch((err) => {
