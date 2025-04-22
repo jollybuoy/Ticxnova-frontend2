@@ -133,7 +133,7 @@ const CreateTicket = () => {
       localStorage.removeItem("selectedType");
     } catch (err) {
       console.error("Ticket creation failed", err);
-      toast.error("❌ Failed to create ticket. Please check the required fields.");
+      toast.error("\u274C Failed to create ticket. Please check the required fields.");
     }
   };
 
