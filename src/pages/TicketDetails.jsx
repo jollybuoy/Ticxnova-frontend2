@@ -65,15 +65,13 @@ const TicketDetails = () => {
   };
 
   const handleTicketUpdate = async () => {
-    try {
-      if (
-        status === "Closed" &&
-        loggedInUser !== (assignedTo || "").trim().toLowerCase()
-      ) {
-        toast.warning("Please assign the ticket to yourself before closing it.");
-        return;
-      }
+    const assignedEmail = (assignedTo.match(/\(([^)]+)\)/) || [])[1]?.toLowerCase();
+    if (status === "Closed" && loggedInUser !== assignedEmail) {
+      toast.warning("Please assign the ticket to yourself before closing it.");
+      return;
+    }
 
+    try {
       await axios.patch(`/tickets/${id}`, {
         department,
         assignedTo,
@@ -212,7 +210,7 @@ const TicketDetails = () => {
             <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
               <option value="">Select Assigned User</option>
               {users.filter((u) => u.department === department).map((u) => (
-                <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
+                <option key={u.email} value={`${u.name} (${u.email})`}>{u.name} ({u.email})</option>
               ))}
             </select>
             <button
