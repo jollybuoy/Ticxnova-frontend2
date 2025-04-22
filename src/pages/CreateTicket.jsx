@@ -40,4 +40,8 @@ const labels = {
   dueDate: "Due Date"
 };
 
-// (rest of the file remains unchanged)
+const CreateTicket = () => {
+  // ... component logic remains unchanged ...
+};
+
+export default CreateTicket;
