@@ -42,7 +42,7 @@ const labels = {
 
 const CreateTicket = () => {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || null);
+  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || "");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -60,6 +60,7 @@ const CreateTicket = () => {
   const [users, setUsers] = useState([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdTicketId, setCreatedTicketId] = useState(null);
+  const [createdTicketDbId, setCreatedTicketDbId] = useState(null);
 
   const fetchMetadata = async () => {
     try {
@@ -94,8 +95,10 @@ const CreateTicket = () => {
     e.preventDefault();
     try {
       const res = await axios.post("/tickets", formData);
-      const newTicketId = res.data.ticketId || res.data.id;
+      const newTicketId = res.data.ticketId;
+      const newId = res.data.id;
       setCreatedTicketId(newTicketId);
+      setCreatedTicketDbId(newId);
       setShowSuccessModal(true);
       localStorage.removeItem("selectedType");
     } catch (err) {
@@ -137,7 +140,7 @@ const CreateTicket = () => {
     <div className="max-w-5xl mx-auto p-8 bg-white rounded-2xl shadow-xl animate-fade-in">
       <button
         onClick={() => {
-          setSelectedType(null);
+          setSelectedType("");
           localStorage.removeItem("selectedType");
         }}
         className="mb-4 text-sm text-gray-600 hover:underline"
@@ -250,7 +253,7 @@ const CreateTicket = () => {
               {selectedType} Ticket <strong>{createdTicketId}</strong> has been successfully created.
             </p>
             <button
-              onClick={() => navigate(`/ticket/${createdTicketId}`)}
+              onClick={() => navigate(`/ticket/${createdTicketDbId}`)}
               className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               🔍 View Ticket
