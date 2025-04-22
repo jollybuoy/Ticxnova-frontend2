@@ -12,7 +12,8 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
-  FiX
+  FiX,
+  FiDownload
 } from "react-icons/fi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -64,7 +65,10 @@ const TicketDetails = () => {
   };
 
   const handleTicketUpdate = async () => {
-if (status === "Closed" && loggedInUser?.trim().toLowerCase() !== assignedTo?.trim().toLowerCase()) {
+    if (
+      status === "Closed" &&
+      loggedInUser?.trim().toLowerCase() !== assignedTo?.trim().toLowerCase()
+    ) {
       toast.warning("Please assign the ticket to yourself before closing it.");
       return;
     }
@@ -147,80 +151,38 @@ if (status === "Closed" && loggedInUser?.trim().toLowerCase() !== assignedTo?.tr
         </div>
       </div>
 
-      {/* draggable note form + update box + toast */}
-      <Draggable handle=".drag-handle">
-        <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
-          <div className="drag-handle cursor-move mb-3">
-            <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
-          </div>
-          <form onSubmit={handleNoteSubmit} className="space-y-4">
-            <textarea
-              value={newNote.comment}
-              onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-              className="w-full p-3 rounded-lg border border-gray-300"
-              rows={3}
-              placeholder="Add your comment"
-              required
-            ></textarea>
-            <input
-              type="file"
-              onChange={(e) => setNewNote({ ...newNote, file: e.target.files[0] })}
-              className="w-full text-sm"
-            />
-            <button
-              type="submit"
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
-            >
-              💬 Submit Note
-            </button>
-          </form>
-        </div>
-      </Draggable>
-
-      {showUpdateBox && (
-        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-indigo-700">🔄 Update Ticket Info</h3>
-            <button onClick={() => setShowUpdateBox(false)} className="text-gray-500 hover:text-red-500">
-              <FiX size={20} />
-            </button>
-          </div>
-          <div className="flex flex-col gap-4">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Status</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Closed">Closed</option>
-            </select>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Priority</option>
-              <option value="P1">P1 - Critical</option>
-              <option value="P2">P2 - High</option>
-              <option value="P3">P3 - Medium</option>
-              <option value="P4">P4 - Low</option>
-            </select>
-            <select value={department} onChange={(e) => setDepartment(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Assigned User</option>
-              {users.filter((u) => u.department === department).map((u) => (
-                <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
-              ))}
-            </select>
-            <button
-              onClick={handleTicketUpdate}
-              className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
-            >
-              ✅ Submit Ticket Update
-            </button>
-          </div>
-        </div>
-      )}
+      <h2 className="text-2xl font-bold mb-4 text-indigo-700">📝 Notes</h2>
+      <div className="space-y-4 mb-6">
+        {notes.length > 0 ? (
+          notes.map((note) => (
+            <div key={note.id} className="bg-gray-50 p-4 rounded-xl border">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-800"><strong>Comment:</strong> {note.comment}</p>
+                  <p className="text-gray-800"><strong>Status:</strong> {note.status}</p>
+                  {note.fileUrl && (
+                    <p className="text-gray-800 flex items-center gap-2">
+                      <strong>Attachment:</strong>
+                      <a
+                        href={note.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline flex items-center gap-1"
+                      >
+                        <FiDownload /> Download
+                      </a>
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-500">By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}</p>
+                </div>
+                <button onClick={() => handleDeleteNote(note.id)} className="text-red-500 hover:text-red-700"><FiTrash2 /></button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600">No notes yet.</p>
+        )}
+      </div>
 
       <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
