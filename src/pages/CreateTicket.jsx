@@ -51,7 +51,7 @@ const CreateTicket = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    priority: "Medium",
+    priority: "P3",
     assignedTo: "",
     department: "",
     ticketType: selectedType,
@@ -170,6 +170,19 @@ const CreateTicket = () => {
                 rows={5}
                 required
               ></textarea>
+            ) : field === "priority" ? (
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-xl shadow-sm"
+                required
+              >
+                <option value="P1">P1 - Critical</option>
+                <option value="P2">P2 - High</option>
+                <option value="P3">P3 - Medium</option>
+                <option value="P4">P4 - Low</option>
+              </select>
             ) : (
               <input
                 type={field.includes("Date") ? "date" : "text"}
@@ -218,15 +231,6 @@ const CreateTicket = () => {
                 </option>
               ))}
           </select>
-        </div>
-
-        <div className="col-span-2">
-          <label className="block mb-1 text-sm font-medium text-gray-700">Attachment (Optional)</label>
-          <input
-            type="file"
-            name="attachment"
-            className="w-full bg-white border border-gray-300 text-gray-900 p-3 rounded-xl shadow-sm"
-          />
         </div>
 
         <div className="col-span-2">
