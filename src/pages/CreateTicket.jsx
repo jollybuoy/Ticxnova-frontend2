@@ -135,6 +135,32 @@ const CreateTicket = () => {
   const fields = fieldConfig[selectedType] || [];
   const typeIcon = typeOptions.find((t) => t.label === selectedType)?.icon;
 
+  if (!selectedType) {
+    return (
+      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow animate-fade-in">
+        <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
+          What type of ticket do you want to create?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {typeOptions.map((type) => (
+            <div
+              key={type.label}
+              onClick={() => setSelectedType(type.label)}
+              className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out`}
+              title={type.label}
+            >
+              <div className="text-4xl mb-3 animate-pulse">{type.icon}</div>
+              <h3 className="text-xl font-semibold">{type.label}</h3>
+              <p className="text-sm opacity-80 mt-1">
+                Click to create a {type.label.toLowerCase()} ticket
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto p-8 bg-white rounded-2xl shadow-xl animate-fade-in">
       <button
