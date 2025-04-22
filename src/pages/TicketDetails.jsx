@@ -27,6 +27,7 @@ const TicketDetails = () => {
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
   const [showUpdateBox, setShowUpdateBox] = useState(false);
+  const loggedInUser = localStorage.getItem("email") || "";
 
   const fetchTicket = async () => {
     try {
@@ -57,21 +58,27 @@ const TicketDetails = () => {
 
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
-    setShowUpdateBox(true); // Show popup after note comment entered
+    setShowUpdateBox(true);
   };
 
   const handleTicketUpdate = async () => {
     try {
-      await axios.patch(`/tickets/${id}`, {
-        status,
-        department,
-        assignedTo,
-        priority,
-      });
+      let updateData = { status, department, assignedTo, priority };
+
+      if (status === "Closed") {
+        updateData.assignedTo = loggedInUser;
+        const userMatch = users.find((u) => u.email === loggedInUser);
+        if (userMatch) {
+          updateData.department = userMatch.department;
+        }
+      }
+
+      await axios.patch(`/tickets/${id}`, updateData);
       await axios.post(`/tickets/${id}/notes`, {
         comment: newNote.comment,
         status,
       });
+
       setNewNote({ comment: "" });
       setShowUpdateBox(false);
       fetchTicket();
@@ -176,29 +183,31 @@ const TicketDetails = () => {
         )}
       </div>
 
-      <Draggable handle=".drag-handle">
-        <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
-          <div className="drag-handle cursor-move mb-3">
-            <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
+      {ticket.status !== "Closed" && (
+        <Draggable handle=".drag-handle">
+          <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
+            <div className="drag-handle cursor-move mb-3">
+              <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
+            </div>
+            <form onSubmit={handleNoteSubmit} className="space-y-4">
+              <textarea
+                value={newNote.comment}
+                onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
+                className="w-full p-3 rounded-lg border border-gray-300"
+                rows={3}
+                placeholder="Add your comment"
+                required
+              ></textarea>
+              <button
+                type="submit"
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
+              >
+                💬 Submit Note
+              </button>
+            </form>
           </div>
-          <form onSubmit={handleNoteSubmit} className="space-y-4">
-            <textarea
-              value={newNote.comment}
-              onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-              className="w-full p-3 rounded-lg border border-gray-300"
-              rows={3}
-              placeholder="Add your comment"
-              required
-            ></textarea>
-            <button
-              type="submit"
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
-            >
-              💬 Submit Note
-            </button>
-          </form>
-        </div>
-      </Draggable>
+        </Draggable>
+      )}
 
       {showUpdateBox && (
         <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
