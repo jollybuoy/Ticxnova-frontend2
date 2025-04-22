@@ -12,6 +12,7 @@ import {
   HiOutlineInformationCircle,
   HiOutlineLightBulb,
 } from "react-icons/hi2";
+import { FiInfo } from "react-icons/fi";
 
 const typeOptions = [
   { label: "Incident", icon: <FaBug />, color: "from-red-500 to-pink-500" },
@@ -153,7 +154,14 @@ const CreateTicket = () => {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
           <div key={field} className={`col-span-${field === "description" ? "2" : "1"}`}>
-            <label className="block mb-1 text-sm font-medium text-gray-700">{labels[field]}</label>
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              {labels[field]}
+              {field === "priority" && selectedType === "Incident" && (
+                <span title="ITIL SLA: P1 - 30m/6h, P2 - 1h/12h, P3 - 4h/3d, P4 - 1d/7d" className="inline-block ml-2 text-blue-500">
+                  <FiInfo className="inline" />
+                </span>
+              )}
+            </label>
             {field === "description" ? (
               <textarea
                 name={field}
