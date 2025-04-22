@@ -12,13 +12,15 @@ import {
   FiEdit3,
   FiMessageSquare,
   FiTrash2,
+  FiX,
 } from "react-icons/fi";
 
 const TicketDetails = () => {
   const { id } = useParams();
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState({ comment: "", status: "" });
+  const [newNote, setNewNote] = useState({ comment: "" });
+  const [status, setStatus] = useState("");
   const [showUpdateBox, setShowUpdateBox] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -55,8 +57,8 @@ const TicketDetails = () => {
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`/tickets/${id}/notes`, newNote);
-      setNewNote({ comment: "", status: "" });
+      await axios.post(`/tickets/${id}/notes`, { comment: newNote.comment });
+      setNewNote({ comment: "" });
       setShowUpdateBox(true);
       fetchTicket();
     } catch (err) {
@@ -69,7 +71,7 @@ const TicketDetails = () => {
       await axios.patch(`/tickets/${id}`, {
         department,
         assignedTo,
-        status: newNote.status,
+        status,
         priority,
       });
       setShowUpdateBox(false);
@@ -160,18 +162,6 @@ const TicketDetails = () => {
               placeholder="Add your comment"
               required
             ></textarea>
-            <select
-              value={newNote.status}
-              onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-              className="w-full p-2 rounded-lg border border-gray-300"
-              required
-            >
-              <option value="">Select status</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Closed">Closed</option>
-            </select>
             <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
               💬 Submit Note
             </button>
@@ -181,8 +171,24 @@ const TicketDetails = () => {
 
       {showUpdateBox && (
         <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
-          <h3 className="text-lg font-bold text-indigo-700 mb-4">🔄 Update Ticket Info</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-indigo-700">🔄 Update Ticket Info</h3>
+            <button onClick={() => setShowUpdateBox(false)} className="text-gray-500 hover:text-red-500">
+              <FiX size={20} />
+            </button>
+          </div>
           <div className="flex flex-col gap-4">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="p-2 rounded-lg border border-gray-300 bg-white"
+            >
+              <option value="">Select Status</option>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
