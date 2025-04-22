@@ -71,8 +71,8 @@ const TicketDetails = () => {
     const updateData = {
       status,
       priority,
-      assignedTo,
-      department,
+      assignedTo: assignedEmail,
+      department
     };
 
     if (status === "Closed") {
