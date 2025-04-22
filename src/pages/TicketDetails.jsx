@@ -65,19 +65,23 @@ const TicketDetails = () => {
   };
 
   const handleTicketUpdate = async () => {
-    const assignedEmail = (assignedTo.match(/\(([^)]+)\)/) || [])[1]?.toLowerCase();
-    if (status === "Closed" && loggedInUser !== assignedEmail) {
-      toast.warning("Please assign the ticket to yourself before closing it.");
-      return;
+    const assignedEmail = (assignedTo.match(/\(([^)]+)\)/) || [])[1] || assignedTo;
+    const selectedUser = users.find(u => u.email === loggedInUser);
+
+    const updateData = {
+      status,
+      priority,
+      assignedTo,
+      department,
+    };
+
+    if (status === "Closed") {
+      updateData.assignedTo = loggedInUser;
+      updateData.department = selectedUser?.department || "";
     }
 
     try {
-      await axios.patch(`/tickets/${id}`, {
-        department,
-        assignedTo,
-        status,
-        priority,
-      });
+      await axios.patch(`/tickets/${id}`, updateData);
 
       const formData = new FormData();
       formData.append("comment", newNote.comment);
@@ -149,34 +153,36 @@ const TicketDetails = () => {
         </div>
       </div>
 
-      <Draggable handle=".drag-handle">
-        <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
-          <div className="drag-handle cursor-move mb-3">
-            <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
+      {ticket.status !== "Closed" && (
+        <Draggable handle=".drag-handle">
+          <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
+            <div className="drag-handle cursor-move mb-3">
+              <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
+            </div>
+            <form onSubmit={handleNoteSubmit} className="space-y-4">
+              <textarea
+                value={newNote.comment}
+                onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
+                className="w-full p-3 rounded-lg border border-gray-300"
+                rows={3}
+                placeholder="Add your comment"
+                required
+              ></textarea>
+              <input
+                type="file"
+                onChange={(e) => setNewNote({ ...newNote, file: e.target.files[0] })}
+                className="w-full text-sm"
+              />
+              <button
+                type="submit"
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
+              >
+                💬 Submit Note
+              </button>
+            </form>
           </div>
-          <form onSubmit={handleNoteSubmit} className="space-y-4">
-            <textarea
-              value={newNote.comment}
-              onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-              className="w-full p-3 rounded-lg border border-gray-300"
-              rows={3}
-              placeholder="Add your comment"
-              required
-            ></textarea>
-            <input
-              type="file"
-              onChange={(e) => setNewNote({ ...newNote, file: e.target.files[0] })}
-              className="w-full text-sm"
-            />
-            <button
-              type="submit"
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
-            >
-              💬 Submit Note
-            </button>
-          </form>
-        </div>
-      </Draggable>
+        </Draggable>
+      )}
 
       {showUpdateBox && (
         <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
