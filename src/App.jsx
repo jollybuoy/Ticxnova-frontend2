@@ -125,6 +125,7 @@ function App() {
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/ticket/:id" element={<TicketDetails />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
