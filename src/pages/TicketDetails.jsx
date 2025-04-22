@@ -19,7 +19,7 @@ const TicketDetails = () => {
   const { id } = useParams();
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState({ comment: "" });
+  const [newNote, setNewNote] = useState({ comment: "", status: "" });
   const [status, setStatus] = useState("");
   const [showUpdateBox, setShowUpdateBox] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -59,10 +59,9 @@ const TicketDetails = () => {
     try {
       await axios.post(`/tickets/${id}/notes`, {
         comment: newNote.comment,
-        status: status,
+        status: newNote.status,
       });
-      setNewNote({ comment: "" });
-      setShowUpdateBox(true);
+      setNewNote({ comment: "", status: "" });
       fetchTicket();
     } catch (err) {
       console.error("Error adding note", err);
@@ -71,7 +70,6 @@ const TicketDetails = () => {
 
   const handleTicketUpdate = async () => {
     console.log("Updating ticket with:", { status, department, assignedTo, priority });
-
     try {
       await axios.patch(`/tickets/${id}`, {
         status,
@@ -79,7 +77,6 @@ const TicketDetails = () => {
         assignedTo,
         priority,
       });
-
       alert("✅ Ticket update successful!");
       setShowUpdateBox(false);
       fetchTicket();
@@ -170,13 +167,23 @@ const TicketDetails = () => {
               placeholder="Add your comment"
               required
             ></textarea>
+            <select
+              value={newNote.status}
+              onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+              className="w-full p-2 rounded-lg border border-gray-300"
+              required
+            >
+              <option value="">Select Status</option>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
             <button
               type="submit"
-              disabled={!status || !newNote.comment}
-              className={`w-full py-2 rounded-lg text-white font-semibold ${
-                !status || !newNote.comment
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-700'
+              disabled={!newNote.comment || !newNote.status}
+              className={`w-full py-2 text-white font-semibold rounded-lg ${
+                newNote.comment && newNote.status ? "bg-indigo-600 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"
               }`}
             >
               💬 Submit Note
