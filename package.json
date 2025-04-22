@@ -24,6 +24,7 @@
     "@azure/msal-browser": "3.0.0",
     "@headlessui/react": "^1.7.18",
     "@azure/msal-react": "2.0.0",
+        "react-draggable": "^4.4.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
