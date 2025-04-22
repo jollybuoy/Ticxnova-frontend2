@@ -57,7 +57,10 @@ const TicketDetails = () => {
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`/tickets/${id}/notes`, { comment: newNote.comment });
+      await axios.post(`/tickets/${id}/notes`, {
+        comment: newNote.comment,
+        status: status,
+      });
       setNewNote({ comment: "" });
       setShowUpdateBox(true);
       fetchTicket();
@@ -66,26 +69,25 @@ const TicketDetails = () => {
     }
   };
 
- const handleTicketUpdate = async () => {
-  console.log("Updating ticket with:", { status, department, assignedTo, priority });
+  const handleTicketUpdate = async () => {
+    console.log("Updating ticket with:", { status, department, assignedTo, priority });
 
-  try {
-    await axios.patch(`/tickets/${id}`, {
-      status,
-      department,
-      assignedTo,
-      priority,
-    });
+    try {
+      await axios.patch(`/tickets/${id}`, {
+        status,
+        department,
+        assignedTo,
+        priority,
+      });
 
-    alert("✅ Ticket update successful!");
-    setShowUpdateBox(false);
-    fetchTicket();
-  } catch (err) {
-    console.error("❌ Error updating ticket", err);
-    alert("❌ Ticket update failed!");
-  }
-};
-
+      alert("✅ Ticket update successful!");
+      setShowUpdateBox(false);
+      fetchTicket();
+    } catch (err) {
+      console.error("❌ Error updating ticket", err);
+      alert("❌ Ticket update failed!");
+    }
+  };
 
   const handleDeleteNote = async (noteId) => {
     try {
@@ -168,7 +170,15 @@ const TicketDetails = () => {
               placeholder="Add your comment"
               required
             ></textarea>
-            <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
+            <button
+              type="submit"
+              disabled={!status || !newNote.comment}
+              className={`w-full py-2 rounded-lg text-white font-semibold ${
+                !status || !newNote.comment
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
               💬 Submit Note
             </button>
           </form>
