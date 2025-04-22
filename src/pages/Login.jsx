@@ -26,12 +26,14 @@ const Login = ({ setAuth }) => {
         password: password,
       });
 
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("loginMethod", "custom"); // ✅ Set login type
-        setAuth(true);
-        navigate("/dashboard");
-      } else {
+     if (res.data && res.data.token) {
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("loginMethod", "custom");
+  localStorage.setItem("email", username); // ✅ Add this line to store logged-in email
+  setAuth(true);
+  navigate("/dashboard");
+}
+ else {
         alert("Invalid credentials");
       }
     } catch (err) {
