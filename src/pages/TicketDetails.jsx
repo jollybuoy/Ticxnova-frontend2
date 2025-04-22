@@ -66,20 +66,26 @@ const TicketDetails = () => {
     }
   };
 
-  const handleTicketUpdate = async () => {
-    try {
-      await axios.patch(`/tickets/${id}`, {
-        department,
-        assignedTo,
-        status,
-        priority,
-      });
-      setShowUpdateBox(false);
-      fetchTicket();
-    } catch (err) {
-      console.error("Error updating ticket", err);
-    }
-  };
+ const handleTicketUpdate = async () => {
+  console.log("Updating ticket with:", { status, department, assignedTo, priority });
+
+  try {
+    await axios.patch(`/tickets/${id}`, {
+      status,
+      department,
+      assignedTo,
+      priority,
+    });
+
+    alert("✅ Ticket update successful!");
+    setShowUpdateBox(false);
+    fetchTicket();
+  } catch (err) {
+    console.error("❌ Error updating ticket", err);
+    alert("❌ Ticket update failed!");
+  }
+};
+
 
   const handleDeleteNote = async (noteId) => {
     try {
