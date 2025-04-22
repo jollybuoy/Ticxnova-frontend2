@@ -124,81 +124,32 @@ const TicketDetails = () => {
         🎫 Ticket #{ticket.ticketId}
       </h1>
 
-      {/* ✅ Add Note Form */}
-      <Draggable handle=".drag-handle">
-        <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
-          <div className="drag-handle cursor-move mb-3">
-            <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
-          </div>
-          <form onSubmit={handleNoteSubmit} className="space-y-4">
-            <textarea
-              value={newNote.comment}
-              onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-              className="w-full p-3 rounded-lg border border-gray-300"
-              rows={3}
-              placeholder="Add your comment"
-              required
-            ></textarea>
-            <input
-              type="file"
-              onChange={(e) => setNewNote({ ...newNote, file: e.target.files[0] })}
-              className="w-full text-sm"
-            />
-            <button
-              type="submit"
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
-            >
-              💬 Submit Note
-            </button>
-          </form>
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiTag /> <strong>Title:</strong> {ticket.title}</p>
         </div>
-      </Draggable>
-
-      {/* ✅ Update Ticket Popup */}
-      {showUpdateBox && (
-        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-indigo-700">🔄 Update Ticket Info</h3>
-            <button onClick={() => setShowUpdateBox(false)} className="text-gray-500 hover:text-red-500">
-              <FiX size={20} />
-            </button>
-          </div>
-          <div className="flex flex-col gap-4">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Status</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Closed">Closed</option>
-            </select>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Priority</option>
-              <option value="P1">P1 - Critical</option>
-              <option value="P2">P2 - High</option>
-              <option value="P3">P3 - Medium</option>
-              <option value="P4">P4 - Low</option>
-            </select>
-            <select value={department} onChange={(e) => setDepartment(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
-              <option value="">Select Assigned User</option>
-              {users.filter((u) => u.department === department).map((u) => (
-                <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
-              ))}
-            </select>
-            <button
-              onClick={handleTicketUpdate}
-              className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
-            >
-              ✅ Submit Ticket Update
-            </button>
-          </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiEdit3 /> <strong>Status:</strong> {ticket.status}</p>
         </div>
-      )}
+        <div className="bg-gray-50 p-4 rounded-xl border md:col-span-2">
+          <p className="flex items-center gap-2 text-gray-800"><FiMessageSquare /> <strong>Description:</strong> {ticket.description}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Created By:</strong> {ticket.createdBy}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiLayers /> <strong>Department:</strong> {ticket.department}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo}</p>
+        </div>
+      </div>
 
       <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
