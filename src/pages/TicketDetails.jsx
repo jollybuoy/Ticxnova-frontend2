@@ -19,14 +19,14 @@ const TicketDetails = () => {
   const { id } = useParams();
   const [ticket, setTicket] = useState(null);
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState({ comment: "", status: "" });
+  const [newNote, setNewNote] = useState({ comment: "" });
   const [status, setStatus] = useState("");
-  const [showUpdateBox, setShowUpdateBox] = useState(false);
+  const [priority, setPriority] = useState("");
+  const [department, setDepartment] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
-  const [assignedTo, setAssignedTo] = useState("");
-  const [department, setDepartment] = useState("");
-  const [priority, setPriority] = useState("");
+  const [showUpdateBox, setShowUpdateBox] = useState(false);
 
   const fetchTicket = async () => {
     try {
@@ -36,6 +36,7 @@ const TicketDetails = () => {
       setDepartment(res.data.department || "");
       setAssignedTo(res.data.assignedTo || "");
       setPriority(res.data.priority || "");
+      setStatus(res.data.status || "");
     } catch (err) {
       console.error("Failed to fetch ticket", err);
     }
@@ -56,20 +57,10 @@ const TicketDetails = () => {
 
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post(`/tickets/${id}/notes`, {
-        comment: newNote.comment,
-        status: newNote.status,
-      });
-      setNewNote({ comment: "", status: "" });
-      fetchTicket();
-    } catch (err) {
-      console.error("Error adding note", err);
-    }
+    setShowUpdateBox(true); // Show popup after note comment entered
   };
 
   const handleTicketUpdate = async () => {
-    console.log("Updating ticket with:", { status, department, assignedTo, priority });
     try {
       await axios.patch(`/tickets/${id}`, {
         status,
@@ -77,12 +68,15 @@ const TicketDetails = () => {
         assignedTo,
         priority,
       });
-      alert("✅ Ticket update successful!");
+      await axios.post(`/tickets/${id}/notes`, {
+        comment: newNote.comment,
+        status,
+      });
+      setNewNote({ comment: "" });
       setShowUpdateBox(false);
       fetchTicket();
     } catch (err) {
-      console.error("❌ Error updating ticket", err);
-      alert("❌ Ticket update failed!");
+      console.error("Error updating ticket", err);
     }
   };
 
@@ -104,32 +98,50 @@ const TicketDetails = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-      <h1 className="text-3xl font-bold mb-2 text-indigo-700 border-b pb-2">🎫 Ticket #{ticket.ticketId}</h1>
+      <h1 className="text-3xl font-bold mb-2 text-indigo-700 border-b pb-2">
+        🎫 Ticket #{ticket.ticketId}
+      </h1>
 
       <div className="grid md:grid-cols-2 gap-6 mb-10">
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiTag /> <strong>Title:</strong> {ticket.title}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiTag /> <strong>Title:</strong> {ticket.title}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiEdit3 /> <strong>Status:</strong> {ticket.status}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiEdit3 /> <strong>Status:</strong> {ticket.status}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border md:col-span-2">
-          <p className="flex items-center gap-2 text-gray-800"><FiMessageSquare /> <strong>Description:</strong> {ticket.description}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiMessageSquare /> <strong>Description:</strong> {ticket.description}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Created By:</strong> {ticket.createdBy || "Unknown"}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiLayers /> <strong>Department:</strong> {ticket.department}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiLayers /> <strong>Department:</strong> {ticket.department}
+          </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}</p>
+          <p className="flex items-center gap-2 text-gray-800">
+            <FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo || "Unassigned"}
+          </p>
         </div>
       </div>
 
@@ -140,11 +152,22 @@ const TicketDetails = () => {
             <div key={note.id} className="bg-gray-50 p-4 rounded-xl border">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-gray-800"><strong>Comment:</strong> {note.comment}</p>
-                  <p className="text-gray-800"><strong>Status:</strong> {note.status}</p>
-                  <p className="text-sm text-gray-500">By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}</p>
+                  <p className="text-gray-800">
+                    <strong>Comment:</strong> {note.comment}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong>Status:</strong> {note.status || "-"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    By {note.createdBy} on {new Date(note.createdAt).toLocaleString()}
+                  </p>
                 </div>
-                <button onClick={() => handleDeleteNote(note.id)} className="text-red-500 hover:text-red-700"><FiTrash2 /></button>
+                <button
+                  onClick={() => handleDeleteNote(note.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <FiTrash2 />
+                </button>
               </div>
             </div>
           ))
@@ -167,24 +190,9 @@ const TicketDetails = () => {
               placeholder="Add your comment"
               required
             ></textarea>
-            <select
-              value={newNote.status}
-              onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-              className="w-full p-2 rounded-lg border border-gray-300"
-              required
-            >
-              <option value="">Select Status</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Closed">Closed</option>
-            </select>
             <button
               type="submit"
-              disabled={!newNote.comment || !newNote.status}
-              className={`w-full py-2 text-white font-semibold rounded-lg ${
-                newNote.comment && newNote.status ? "bg-indigo-600 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"
-              }`}
+              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg"
             >
               💬 Submit Note
             </button>
@@ -205,6 +213,7 @@ const TicketDetails = () => {
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="p-2 rounded-lg border border-gray-300 bg-white"
+              required
             >
               <option value="">Select Status</option>
               <option value="Open">Open</option>
