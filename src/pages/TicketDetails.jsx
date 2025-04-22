@@ -116,12 +116,38 @@ const TicketDetails = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-      <h1 className="text-3xl font-bold mb-2 text-indigo-700 border-b pb-2">
+      <h1 className="text-3xl font-bold mb-6 text-indigo-700 border-b pb-2">
         🎫 Ticket #{ticket.ticketId}
       </h1>
 
-      {/* ...ticket detail layout... */}
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiTag /> <strong>Title:</strong> {ticket.title}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiEdit3 /> <strong>Status:</strong> {ticket.status}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border md:col-span-2">
+          <p className="flex items-center gap-2 text-gray-800"><FiMessageSquare /> <strong>Description:</strong> {ticket.description}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiAlertCircle /> <strong>Priority:</strong> {ticket.priority}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Created By:</strong> {ticket.createdBy}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiClock /> <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiLayers /> <strong>Department:</strong> {ticket.department}</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-xl border">
+          <p className="flex items-center gap-2 text-gray-800"><FiUser /> <strong>Assigned To:</strong> {ticket.assignedTo}</p>
+        </div>
+      </div>
 
+      {/* draggable note form + update box + toast */}
       <Draggable handle=".drag-handle">
         <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
           <div className="drag-handle cursor-move mb-3">
@@ -160,49 +186,31 @@ const TicketDetails = () => {
             </button>
           </div>
           <div className="flex flex-col gap-4">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="p-2 rounded-lg border border-gray-300 bg-white"
-            >
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
               <option value="">Select Status</option>
               <option value="Open">Open</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
               <option value="Closed">Closed</option>
             </select>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="p-2 rounded-lg border border-gray-300 bg-white"
-            >
+            <select value={priority} onChange={(e) => setPriority(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
               <option value="">Select Priority</option>
               <option value="P1">P1 - Critical</option>
               <option value="P2">P2 - High</option>
               <option value="P3">P3 - Medium</option>
               <option value="P4">P4 - Low</option>
             </select>
-            <select
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              className="p-2 rounded-lg border border-gray-300 bg-white"
-            >
+            <select value={department} onChange={(e) => setDepartment(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
               <option value="">Select Department</option>
               {departments.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
-            <select
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="p-2 rounded-lg border border-gray-300 bg-white"
-            >
+            <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="p-2 rounded-lg border border-gray-300 bg-white">
               <option value="">Select Assigned User</option>
-              {users
-                .filter((u) => u.department === department)
-                .map((u) => (
-                  <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
-                ))}
+              {users.filter((u) => u.department === department).map((u) => (
+                <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
+              ))}
             </select>
             <button
               onClick={handleTicketUpdate}
