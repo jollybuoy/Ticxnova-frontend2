@@ -57,14 +57,14 @@ const formatToLocal = (date) => {
 
 const CreateTicket = () => {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState(localStorage.getItem("selectedType") || "");
+  const [selectedType, setSelectedType] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "P3",
     assignedTo: "",
     department: "",
-    ticketType: selectedType,
+    ticketType: "",
     plannedStart: "",
     plannedEnd: "",
     requestedItem: "",
@@ -93,13 +93,6 @@ const CreateTicket = () => {
   };
 
   useEffect(() => {
-    if (selectedType) {
-      setFormData((prev) => ({ ...prev, ticketType: selectedType }));
-      localStorage.setItem("selectedType", selectedType);
-    }
-  }, [selectedType]);
-
-  useEffect(() => {
     fetchMetadata();
   }, []);
 
@@ -124,28 +117,55 @@ const CreateTicket = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/tickets", formData);
+      const res = await axios.post("/tickets", { ...formData, ticketType: selectedType });
       const newTicketId = res.data.ticketId;
       const newId = res.data.id;
       setCreatedTicketId(newTicketId);
       setCreatedTicketDbId(newId);
       setShowSuccessModal(true);
-      localStorage.removeItem("selectedType");
     } catch (err) {
       console.error("Ticket creation failed", err);
-      toast.error("\u274C Failed to create ticket. Please check the required fields.");
+      toast.error("❌ Failed to create ticket. Please check the required fields.");
     }
   };
 
   const fields = fieldConfig[selectedType] || [];
   const typeIcon = typeOptions.find((t) => t.label === selectedType)?.icon;
 
+  if (!selectedType) {
+    return (
+      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow animate-fade-in">
+        <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
+          What type of ticket do you want to create?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {typeOptions.map((type) => (
+            <div
+              key={type.label}
+              onClick={() => {
+                setSelectedType(type.label);
+                setFormData((prev) => ({ ...prev, ticketType: type.label }));
+              }}
+              className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out`}
+              title={type.label}
+            >
+              <div className="text-4xl mb-3 animate-pulse">{type.icon}</div>
+              <h3 className="text-xl font-semibold">{type.label}</h3>
+              <p className="text-sm opacity-80 mt-1">
+                Click to create a {type.label.toLowerCase()} ticket
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto p-8 bg-white rounded-2xl shadow-xl animate-fade-in">
       <button
         onClick={() => {
           setSelectedType("");
-          localStorage.removeItem("selectedType");
         }}
         className="mb-4 text-sm text-gray-600 hover:underline"
       >
