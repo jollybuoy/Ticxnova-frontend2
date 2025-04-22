@@ -26,7 +26,7 @@ const fieldConfig = {
   "Service Request": ["title", "description", "requestedItem", "justification"],
   "Change Request": ["title", "description", "plannedStart", "plannedEnd", "riskLevel"],
   Problem: ["title", "description", "symptoms", "rootCause"],
-  Task: ["title", "description", "dueDate", "checklist"],
+  Task: ["title", "description", "dueDate"]
 };
 
 const labels = {
@@ -42,8 +42,7 @@ const labels = {
   riskLevel: "Risk Level",
   symptoms: "Symptoms",
   rootCause: "Root Cause",
-  dueDate: "Due Date",
-  checklist: "Checklist Items",
+  dueDate: "Due Date"
 };
 
 const CreateTicket = () => {
@@ -173,7 +172,7 @@ const CreateTicket = () => {
               ></textarea>
             ) : (
               <input
-                type={field.includes("Date") || field === "plannedStart" || field === "plannedEnd" ? "date" : "text"}
+                type={field.includes("Date") ? "date" : "text"}
                 name={field}
                 value={formData[field] || ""}
                 onChange={handleChange}
