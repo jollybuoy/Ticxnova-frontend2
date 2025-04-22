@@ -22,7 +22,7 @@ const typeOptions = [
 ];
 
 const fieldConfig = {
-  Incident: ["title", "description", "priority"],
+  Incident: ["title", "description", "priority", "responseETA", "resolutionETA"],
   "Service Request": ["title", "description", "requestedItem", "justification"],
   "Change Request": ["title", "description", "plannedStart", "plannedEnd"],
   Problem: ["title", "description"],
@@ -37,7 +37,16 @@ const labels = {
   justification: "Justification",
   plannedStart: "Planned Start Date",
   plannedEnd: "Planned End Date",
-  dueDate: "Due Date"
+  dueDate: "Due Date",
+  responseETA: "Response ETA",
+  resolutionETA: "Resolution ETA"
+};
+
+const slaTimes = {
+  P1: { response: 30, resolution: 6 * 60 },
+  P2: { response: 60, resolution: 12 * 60 },
+  P3: { response: 4 * 60, resolution: 3 * 24 * 60 },
+  P4: { response: 24 * 60, resolution: 7 * 24 * 60 },
 };
 
 const CreateTicket = () => {
@@ -54,7 +63,9 @@ const CreateTicket = () => {
     plannedEnd: "",
     requestedItem: "",
     justification: "",
-    dueDate: ""
+    dueDate: "",
+    responseETA: "",
+    resolutionETA: ""
   });
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -86,6 +97,19 @@ const CreateTicket = () => {
     fetchMetadata();
   }, []);
 
+  useEffect(() => {
+    if (selectedType === "Incident" && formData.priority && slaTimes[formData.priority]) {
+      const now = new Date();
+      const response = new Date(now.getTime() + slaTimes[formData.priority].response * 60000);
+      const resolution = new Date(now.getTime() + slaTimes[formData.priority].resolution * 60000);
+      setFormData((prev) => ({
+        ...prev,
+        responseETA: response.toISOString().slice(0, 16),
+        resolutionETA: resolution.toISOString().slice(0, 16),
+      }));
+    }
+  }, [formData.priority, selectedType]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -110,32 +134,6 @@ const CreateTicket = () => {
   const fields = fieldConfig[selectedType] || [];
   const typeIcon = typeOptions.find((t) => t.label === selectedType)?.icon;
 
-  if (!selectedType) {
-    return (
-      <div className="max-w-5xl mx-auto p-10 bg-white rounded-xl shadow animate-fade-in">
-        <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">
-          What type of ticket do you want to create?
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {typeOptions.map((type) => (
-            <div
-              key={type.label}
-              onClick={() => setSelectedType(type.label)}
-              className={`cursor-pointer bg-gradient-to-br ${type.color} text-white p-6 rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out`}
-              title={type.label}
-            >
-              <div className="text-4xl mb-3 animate-pulse">{type.icon}</div>
-              <h3 className="text-xl font-semibold">{type.label}</h3>
-              <p className="text-sm opacity-80 mt-1">
-                Click to create a {type.label.toLowerCase()} ticket
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-5xl mx-auto p-8 bg-white rounded-2xl shadow-xl animate-fade-in">
       <button
@@ -154,13 +152,8 @@ const CreateTicket = () => {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
-          <div
-            key={field}
-            className={`col-span-${field === "description" ? "2" : "1"}`}
-          >
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              {labels[field]}
-            </label>
+          <div key={field} className={`col-span-${field === "description" ? "2" : "1"}`}>
+            <label className="block mb-1 text-sm font-medium text-gray-700">{labels[field]}</label>
             {field === "description" ? (
               <textarea
                 name={field}
@@ -184,6 +177,14 @@ const CreateTicket = () => {
                 <option value="P3">P3 - Medium</option>
                 <option value="P4">P4 - Low</option>
               </select>
+            ) : field === "responseETA" || field === "resolutionETA" ? (
+              <input
+                type="datetime-local"
+                name={field}
+                value={formData[field]}
+                className="w-full bg-gray-100 border border-gray-300 text-gray-500 p-3 rounded-xl shadow-sm"
+                readOnly
+              />
             ) : (
               <input
                 type={field.includes("Date") ? "date" : "text"}
@@ -224,13 +225,9 @@ const CreateTicket = () => {
             required
           >
             <option value="">Select Assignee</option>
-            {users
-              .filter((user) => user.department === formData.department)
-              .map((user) => (
-                <option key={user.email} value={user.email}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
+            {users.filter((user) => user.department === formData.department).map((user) => (
+              <option key={user.email} value={user.email}>{user.name} ({user.email})</option>
+            ))}
           </select>
         </div>
 
