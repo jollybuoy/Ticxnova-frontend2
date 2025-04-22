@@ -64,7 +64,7 @@ const TicketDetails = () => {
   };
 
   const handleTicketUpdate = async () => {
-    if (status === "Closed" && loggedInUser !== assignedTo) {
+if (status === "Closed" && loggedInUser?.trim().toLowerCase() !== assignedTo?.trim().toLowerCase()) {
       toast.warning("Please assign the ticket to yourself before closing it.");
       return;
     }
