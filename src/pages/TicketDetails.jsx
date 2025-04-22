@@ -53,25 +53,16 @@ const TicketDetails = () => {
     e.preventDefault();
     try {
       await axios.post(`/tickets/${id}/notes`, newNote);
-      setNewNote({ comment: "", status: "" });
-      setShowUpdateBox(true);
-      fetchTicket();
-    } catch (err) {
-      console.error("Error adding note", err);
-    }
-  };
-
-  const handleTicketUpdate = async () => {
-    try {
       await axios.patch(`/tickets/${id}`, {
         department,
         assignedTo,
         status: newNote.status,
       });
+      setNewNote({ comment: "", status: "" });
       setShowUpdateBox(false);
       fetchTicket();
     } catch (err) {
-      console.error("Error updating ticket", err);
+      console.error("Error adding note or updating ticket", err);
     }
   };
 
@@ -142,7 +133,7 @@ const TicketDetails = () => {
         )}
       </div>
 
-      <form onSubmit={handleNoteSubmit} className="space-y-4 bg-gray-50 p-6 rounded-xl border">
+      <form onSubmit={handleNoteSubmit} className="fixed bottom-5 right-5 w-full max-w-md bg-white border border-indigo-300 p-6 rounded-xl shadow-xl z-50 animate-fade-in">
         <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
         <textarea
           value={newNote.comment}
@@ -164,46 +155,10 @@ const TicketDetails = () => {
           <option value="Completed">Completed</option>
           <option value="Closed">Closed</option>
         </select>
-        <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
-          💬 Submit Note
+        <button type="submit" className="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
+          💬 Submit Note & Update
         </button>
       </form>
-
-      {showUpdateBox && (
-        <div className="mt-8 space-y-4 bg-white border border-indigo-200 p-6 rounded-xl">
-          <h3 className="text-lg font-bold text-indigo-700">🔄 Update Ticket Info</h3>
-          <div className="flex flex-col md:flex-row gap-4">
-            <select
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              className="flex-1 p-2 rounded-lg border border-gray-300 bg-white"
-            >
-              <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <select
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="flex-1 p-2 rounded-lg border border-gray-300 bg-white"
-            >
-              <option value="">Select Assigned User</option>
-              {users
-                .filter((u) => u.department === department)
-                .map((u) => (
-                  <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
-                ))}
-            </select>
-          </div>
-          <button
-            onClick={handleTicketUpdate}
-            className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
-          >
-            ✅ Submit Ticket Update
-          </button>
-        </div>
-      )}
     </div>
   );
 };
