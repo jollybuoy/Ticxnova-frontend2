@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../api/axios";
+import Draggable from "react-draggable";
 import {
   FiTag,
   FiUser,
@@ -23,6 +24,7 @@ const TicketDetails = () => {
   const [users, setUsers] = useState([]);
   const [assignedTo, setAssignedTo] = useState("");
   const [department, setDepartment] = useState("");
+  const [priority, setPriority] = useState("");
 
   const fetchTicket = async () => {
     try {
@@ -31,6 +33,7 @@ const TicketDetails = () => {
       setNotes(res.data.notes || []);
       setDepartment(res.data.department || "");
       setAssignedTo(res.data.assignedTo || "");
+      setPriority(res.data.priority || "");
     } catch (err) {
       console.error("Failed to fetch ticket", err);
     }
@@ -53,16 +56,26 @@ const TicketDetails = () => {
     e.preventDefault();
     try {
       await axios.post(`/tickets/${id}/notes`, newNote);
+      setNewNote({ comment: "", status: "" });
+      setShowUpdateBox(true);
+      fetchTicket();
+    } catch (err) {
+      console.error("Error adding note", err);
+    }
+  };
+
+  const handleTicketUpdate = async () => {
+    try {
       await axios.patch(`/tickets/${id}`, {
         department,
         assignedTo,
         status: newNote.status,
+        priority,
       });
-      setNewNote({ comment: "", status: "" });
       setShowUpdateBox(false);
       fetchTicket();
     } catch (err) {
-      console.error("Error adding note or updating ticket", err);
+      console.error("Error updating ticket", err);
     }
   };
 
@@ -133,32 +146,85 @@ const TicketDetails = () => {
         )}
       </div>
 
-      <form onSubmit={handleNoteSubmit} className="fixed bottom-5 right-5 w-full max-w-md bg-white border border-indigo-300 p-6 rounded-xl shadow-xl z-50 animate-fade-in">
-        <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
-        <textarea
-          value={newNote.comment}
-          onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
-          className="w-full p-3 rounded-lg border border-gray-300"
-          rows={3}
-          placeholder="Add your comment"
-          required
-        ></textarea>
-        <select
-          value={newNote.status}
-          onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
-          className="w-full p-2 rounded-lg border border-gray-300"
-          required
-        >
-          <option value="">Select status</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Closed">Closed</option>
-        </select>
-        <button type="submit" className="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
-          💬 Submit Note & Update
-        </button>
-      </form>
+      <Draggable handle=".drag-handle">
+        <div className="fixed bottom-5 right-5 bg-white border border-indigo-200 p-6 rounded-xl shadow-xl w-[350px] z-50 cursor-move">
+          <div className="drag-handle cursor-move mb-3">
+            <h3 className="text-xl font-bold text-indigo-700">➕ Add Note</h3>
+          </div>
+          <form onSubmit={handleNoteSubmit} className="space-y-4">
+            <textarea
+              value={newNote.comment}
+              onChange={(e) => setNewNote({ ...newNote, comment: e.target.value })}
+              className="w-full p-3 rounded-lg border border-gray-300"
+              rows={3}
+              placeholder="Add your comment"
+              required
+            ></textarea>
+            <select
+              value={newNote.status}
+              onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+              className="w-full p-2 rounded-lg border border-gray-300"
+              required
+            >
+              <option value="">Select status</option>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Closed">Closed</option>
+            </select>
+            <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
+              💬 Submit Note
+            </button>
+          </form>
+        </div>
+      </Draggable>
+
+      {showUpdateBox && (
+        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 bg-white z-40 border border-indigo-300 p-6 rounded-xl shadow-2xl max-w-lg w-full">
+          <h3 className="text-lg font-bold text-indigo-700 mb-4">🔄 Update Ticket Info</h3>
+          <div className="flex flex-col gap-4">
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="p-2 rounded-lg border border-gray-300 bg-white"
+            >
+              <option value="">Select Priority</option>
+              <option value="P1">P1 - Critical</option>
+              <option value="P2">P2 - High</option>
+              <option value="P3">P3 - Medium</option>
+              <option value="P4">P4 - Low</option>
+            </select>
+            <select
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              className="p-2 rounded-lg border border-gray-300 bg-white"
+            >
+              <option value="">Select Department</option>
+              {departments.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <select
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              className="p-2 rounded-lg border border-gray-300 bg-white"
+            >
+              <option value="">Select Assigned User</option>
+              {users
+                .filter((u) => u.department === department)
+                .map((u) => (
+                  <option key={u.email} value={u.email}>{u.name} ({u.email})</option>
+                ))}
+            </select>
+            <button
+              onClick={handleTicketUpdate}
+              className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
+            >
+              ✅ Submit Ticket Update
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
