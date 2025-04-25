@@ -26,6 +26,7 @@
     "@headlessui/react": "^1.7.18",
     "@azure/msal-react": "2.0.0",
         "react-draggable": "^4.4.5",
+    "@microsoft/microsoft-graph-client": "^3.0.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
