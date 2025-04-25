@@ -43,7 +43,7 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-slate-900 flex items-center justify-center p-6 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-600 to-slate-400 flex items-center justify-center p-6 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none"></div>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
@@ -63,7 +63,7 @@ const Login = ({ setAuth }) => {
           </div>
 
           <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
-            Welcome to <span className="text-blue-500">Ticxnova</span>
+            Welcome to <span className="text-sky-900">TICXNOVA</span>
           </h2>
           <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
