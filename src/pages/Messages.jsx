@@ -5,6 +5,8 @@ import { useMsal } from "@azure/msal-react";
 const Messages = () => {
   const { instance, accounts } = useMsal();
   const [emails, setEmails] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const emailsPerPage = 10;
   const [folders, setFolders] = useState([]);
   const [selectedFolderId, setSelectedFolderId] = useState("inbox");
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,11 @@ const Messages = () => {
     email.from?.emailAddress?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const indexOfLastEmail = currentPage * emailsPerPage;
+  const indexOfFirstEmail = indexOfLastEmail - emailsPerPage;
+  const currentEmails = filteredEmails.slice(indexOfFirstEmail, indexOfLastEmail);
+  const totalPages = Math.ceil(filteredEmails.length / emailsPerPage);
+
   useEffect(() => {
     const fetchFolders = async () => {
       try {
@@ -43,7 +50,8 @@ const Messages = () => {
         });
 
         const folderData = await folderResponse.json();
-        setFolders(folderData.value || []);
+        const inboxFirst = folderData.value?.sort((a, b) => a.displayName.toLowerCase() === "inbox" ? -1 : 1);
+        setFolders(inboxFirst || []);
       } catch (error) {
         console.error("Error fetching folders", error);
       }
@@ -65,7 +73,7 @@ const Messages = () => {
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
         const mailResponse = await fetch(
-          `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=10&$filter=receivedDateTime ge ${lastWeek}`,
+          `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=20&$filter=receivedDateTime ge ${lastWeek}&$orderby=receivedDateTime desc`,
           {
             headers: {
               Authorization: `Bearer ${response.accessToken}`,
@@ -90,7 +98,7 @@ const Messages = () => {
   const openEmail = async (email) => {
     try {
       const response = await fetch(
-        `https://graph.microsoft.com/v1.0/me/messages/${email.id}?$select=subject,body,from`,
+        `https://graph.microsoft.com/v1.0/me/messages/${email.id}?$select=subject,body,from,receivedDateTime`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -169,57 +177,29 @@ const Messages = () => {
 
   return (
     <div className="flex h-screen text-white">
-      <aside className="w-64 bg-[#121826] border-r border-white/10 p-4 overflow-y-auto">
+      {/* Folder List */}
+      <aside className="w-60 bg-[#1c1e2f] border-r border-white/10 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
         <ul className="space-y-2">
-          {['Inbox', ...folders.map(f => f.displayName).filter(name => name !== 'Inbox')].map((name, index) => (
+          {folders.map((folder) => (
             <li
-              key={index}
-              className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId.toLowerCase() === name.toLowerCase() ? 'bg-white/20' : ''}`}
-              onClick={() => setSelectedFolderId(name.toLowerCase())}
+              key={folder.id}
+              className={`cursor-pointer px-3 py-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
+              onClick={() => setSelectedFolderId(folder.id)}
             >
-              {name}
+              {selectedFolderId === folder.id ? '📩 ' : '✉️ '}{folder.displayName}
             </li>
           ))}
         </ul>
       </aside>
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">📥 Outlook Messages</h2>
+
+      {/* Email List */}
+      <main className="flex-1 p-6 overflow-y-auto border-r border-white/10">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
           <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
         </div>
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <button
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold"
-            onClick={() => setCompose(true)}
-          >
-            ✉️ Compose
-          </button>
-          <div className="flex gap-2">
-            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm" onClick={() => {
-              setCompose(true);
-              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
-              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>↩️ Reply</button>
-            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
-              setCompose(true);
-              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
-              setComposeCc(accounts[0]?.userName);
-              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>🔁 Reply All</button>
-            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm" onClick={() => {
-              setCompose(true);
-              setComposeSubject(`Fwd: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>➡️ Forward</button>
-          </div>
-        </div>
-      
 
-      <div className="mb-6">
-        <label className="block mb-2 text-sm font-semibold">Search by Subject or Sender:</label>
         <input
           type="text"
           className="text-black p-2 w-full rounded-md mb-4"
@@ -227,80 +207,67 @@ const Messages = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        
-      </div>
 
-      {loading ? (
-        <p>Loading messages...</p>
-      ) : filteredEmails.length > 0 ? (
-        <div className="flex h-full">
-        <div className="w-1/2 overflow-y-auto pr-4">
-          <ul className="space-y-4">
-            {filteredEmails.map((email) => (
+        {loading ? (
+          <p>Loading messages...</p>
+        ) : filteredEmails.length > 0 ? (
+          <ul className="space-y-3">
+            {currentEmails.map((email) => (
               <li
                 key={email.id}
-                className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+                className={`p-4 rounded-md border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
                 onClick={() => openEmail(email)}
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
-                  <span className="text-xs text-gray-300">{new Date(email.receivedDateTime).toLocaleString()}</span>
+                <h3 className="font-semibold text-lg">{email.subject || "(No Subject)"}</h3>
+                <div className="text-sm text-gray-300 flex justify-between">
+                  <span>From: {email.from?.emailAddress?.name}</span>
+                  <span>{new Date(email.receivedDateTime).toLocaleString()}</span>
                 </div>
-                <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
+                <p className="text-sm text-gray-400 mt-1 line-clamp-1">{email.bodyPreview}</p>
               </li>
             ))}
           </ul>
-        </div>
-        {selectedEmail && (
-          <div className="w-1/2 bg-white text-black p-6 rounded-xl shadow-xl">
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <button
+              className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              ◀ Previous
+            </button>
+            <span className="text-sm">Page {currentPage} of {totalPages}</span>
+            <button
+              className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next ▶
+            </button>
+          </div>
+        ) : (
+          <p>No emails found in this folder.</p>
+        )}
+      </main>
+
+      {/* Email Preview */}
+      <section className="w-[40%] p-6 bg-white text-black overflow-y-auto">
+        {selectedEmail ? (
+          <>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
-              <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
+              <button onClick={closeEmail} className="text-red-500">✖</button>
             </div>
-            <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
-            <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
-          </div>
+            <p className="text-sm mb-2 text-gray-600">From: {selectedEmail.from?.emailAddress?.name}</p>
+            <p className="text-xs mb-4 text-gray-500">{new Date(selectedEmail.receivedDateTime).toLocaleString()}</p>
+            <div
+              className="text-sm"
+              dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
+            />
+          </>
+        ) : (
+          <p className="text-sm text-gray-500">No email selected</p>
         )}
-      </div>
-      ) : (
-        <p>No emails found in this folder.</p>
-      )}
-
-      {selectedEmail && (
-  <div className="flex gap-6 mt-6">
-    <div className="w-1/2">
-      <ul className="space-y-4">
-        {filteredEmails.map((email) => (
-          <li
-            key={email.id}
-            className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
-            onClick={() => openEmail(email)}
-          >
-            <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
-            <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
-            <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div className="flex-1 bg-white text-black p-6 rounded-xl shadow-xl">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
-        <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
-      </div>
-      <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
-      <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
-
-      {sendSuccess !== null && (
-        <div className={`mt-4 px-4 py-2 rounded font-semibold text-sm ${sendSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {sendSuccess ? '✅ Email sent successfully!' : '❌ Failed to send email.'}
-        </div>
-      )}
-    </div>
-  </div>
-)}
-          </main>
+      </section>
     </div>
   );
 };
