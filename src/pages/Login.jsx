@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
 import API from "../api/axios";
+import { Link } from "react-router-dom";
 
 import loginIllustration from "../assets/login-illustration.svg";
 import logo from "../assets/ticxnova-logo.png";
@@ -136,9 +137,10 @@ const Login = ({ setAuth }) => {
 
 <p className="text-sm text-gray-600 mt-4 text-center">
   By logging in, you agree to our{" "}
-  <a href="/privacy" className="text-blue-600 hover:underline">
-    Privacy Policy
-  </a>.
+  <Link to="/privacy" className="text-blue-600 hover:underline">
+  Privacy Policy
+</Link>
+
 </p>
 
           <p className="mt-6 text-center text-sm text-gray-400">
