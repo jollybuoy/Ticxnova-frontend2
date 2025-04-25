@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
 import axios from "./api/axios";
 
 // Pages & Components
@@ -46,15 +45,20 @@ function App() {
     const fetchMicrosoftUserDetails = async () => {
       try {
         const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.Readwrite.All"],
+          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.ReadWrite.All"],
           account: accounts[0],
         });
 
-        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
-          headers: {
-            Authorization: `Bearer ${response.accessToken}`,
-          },
-        });
+        const userPrincipalName = accounts[0].username; // email
+
+        const graphResponse = await fetch(
+          `https://graph.microsoft.com/v1.0/users/${userPrincipalName}?$select=displayName,department,userPrincipalName`,
+          {
+            headers: {
+              Authorization: `Bearer ${response.accessToken}`,
+            },
+          }
+        );
 
         const userData = await graphResponse.json();
 
