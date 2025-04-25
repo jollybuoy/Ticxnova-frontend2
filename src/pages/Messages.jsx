@@ -43,7 +43,7 @@ const Messages = () => {
         });
         setAccessToken(response.accessToken);
 
-        const folderResponse = await fetch("https://graph.microsoft.com/v1.0/me/mailFolders", {
+        const folderResponse = await fetch("https://graph.microsoft.com/v1.0/me/mailFolders?$expand=childFolders", {
           headers: {
             Authorization: `Bearer ${response.accessToken}`,
           },
@@ -263,22 +263,12 @@ const Messages = () => {
         {loading ? (
           <p>Loading messages...</p>
         ) : filteredEmails.length > 0 ? (
-          <ul className="space-y-3">
-            {currentEmails.map((email) => (
-              <li
-                key={email.id}
-                className={`p-4 rounded-md border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
-                onClick={() => openEmail(email)}
-              >
-                <h3 className="font-semibold text-lg">{email.subject || "(No Subject)"}</h3>
-                <div className="text-sm text-gray-300 flex justify-between">
-                  <span>From: {email.from?.emailAddress?.name}</span>
-                  <span>{new Date(email.receivedDateTime).toLocaleString()}</span>
-                </div>
-                <p className="text-sm text-gray-400 mt-1 line-clamp-1">{email.bodyPreview}</p>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="space-y-3">
+              {currentEmails.map((email) => (
+                <li
+                  key={email.id}
+                  className={`p-4 rounded-md border cursor-point
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
