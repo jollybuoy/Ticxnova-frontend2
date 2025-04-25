@@ -147,7 +147,6 @@ const Messages = () => {
 
       if (response.ok) {
         setSendSuccess(true);
-        setTimeout(() => setSendSuccess(null), 3000);
         setCompose(false);
         setComposeTo("");
         setComposeSubject("");
@@ -157,7 +156,6 @@ const Messages = () => {
         setAttachments([]);
       } else {
         setSendSuccess(false);
-        setTimeout(() => setSendSuccess(null), 3000);
       }
     } catch (err) {
       console.error("Error sending mail", err);
@@ -168,54 +166,7 @@ const Messages = () => {
   };
 
   return (
-    <div className="flex h-screen text-white">
-      <aside className="w-64 bg-[#121826] border-r border-white/10 p-4 overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
-        <ul className="space-y-2">
-          {folders.map((folder) => (
-            <li
-              key={folder.id}
-              className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
-              onClick={() => setSelectedFolderId(folder.id)}
-            >
-              {folder.displayName}
-            </li>
-          ))}
-        </ul>
-      </aside>
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">📥 Outlook Messages</h2>
-          <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
-        </div>
-        <div className="flex justify-between items-center mb-4 gap-4">
-          <button
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold"
-            onClick={() => setCompose(true)}
-          >
-            ✉️ Compose
-          </button>
-          <div className="flex gap-2">
-            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
-              setCompose(true);
-              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
-              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>↩️ Reply</button>
-            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
-              setCompose(true);
-              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
-              setComposeCc(accounts[0]?.userName);
-              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>🔁 Reply All</button>
-            <button className=\"bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
-              setCompose(true);
-              setComposeSubject(`Fwd: ${selectedEmail?.subject || ""}`);
-              setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${selectedEmail?.body?.content || ""}`);
-            }}>➡️ Forward</button>
-          </div>
-        </div>
+    <div className="p-6 text-white">
       <h2 className="text-2xl font-bold mb-4">📥 Outlook Messages</h2>
 
       <div className="mb-4 flex justify-between items-center">
@@ -236,7 +187,18 @@ const Messages = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        
+        <label className="block mb-2 text-sm font-semibold">Select Folder:</label>
+        <select
+          className="text-black p-2 rounded-md"
+          value={selectedFolderId}
+          onChange={(e) => setSelectedFolderId(e.target.value)}
+        >
+          {folders.map((folder) => (
+            <option key={folder.id} value={folder.id}>
+              {folder.displayName}
+            </option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -264,39 +226,25 @@ const Messages = () => {
       )}
 
       {selectedEmail && (
-  <div className="flex gap-6 mt-6">
-    <div className="w-1/2">
-      <ul className="space-y-4">
-        {filteredEmails.map((email) => (
-          <li
-            key={email.id}
-            className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
-            onClick={() => openEmail(email)}
-          >
-            <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
-            <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
-            <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div className="flex-1 bg-white text-black p-6 rounded-xl shadow-xl">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
-        <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
-      </div>
-      <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
-      <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
-
-      {sendSuccess !== null && (
-        <div className={`mt-4 px-4 py-2 rounded font-semibold text-sm ${sendSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {sendSuccess ? '✅ Email sent successfully!' : '❌ Failed to send email.'}
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-6 rounded-xl shadow-2xl max-w-2xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-sm text-red-500 hover:text-red-700"
+              onClick={closeEmail}
+            >
+              ✖ Close
+            </button>
+            <h3 className="text-xl font-bold mb-2">{selectedEmail.subject}</h3>
+            <p className="text-sm text-gray-700 mb-2">
+              From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}
+            </p>
+            <div
+              className="max-h-[400px] overflow-y-auto border-t pt-4 text-sm text-gray-800"
+              dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
+            />
+          </div>
         </div>
       )}
-    </div>
-  </div>
-)}
-          </main>
     </div>
   );
 };
