@@ -62,7 +62,7 @@ const Login = ({ setAuth }) => {
           </div>
 
           <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
-            Welcome to <span className="text-pink-400">Ticxnova</span>
+            Welcome to <span className="text-cyan-900">TICXNOVA</span>
           </h2>
           <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
