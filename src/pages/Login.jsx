@@ -63,7 +63,7 @@ const Login = ({ setAuth }) => {
           </div>
 
           <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
-            Welcome to <span className="text-fuchsia-500">Ticxnova</span>
+            Welcome to <span className="text-blue-500">Ticxnova</span>
           </h2>
           <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
@@ -95,7 +95,7 @@ const Login = ({ setAuth }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
+              className="w-full bg-gradient-to-r from-purple-500 to-green-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
             >
               {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
             </button>
