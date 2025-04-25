@@ -340,8 +340,7 @@ const Messages = () => {
         {loading ? (
           <p className="text-sm text-gray-400">Loading messages...</p>
         ) : filteredEmails.length > 0 ? (
-          <>
-            <ul className="space-y-3">
+          <ul className="space-y-3">
               {currentEmails.map((email) => (
                 <li
                   key={email.id}
@@ -357,7 +356,7 @@ const Messages = () => {
                 </li>
               ))}
             </ul>
-            <div className="flex justify-center items-center gap-2 mt-4">
+<div className="flex justify-center items-center gap-2 mt-4">
               <button
                 className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -374,8 +373,7 @@ const Messages = () => {
                 Next ▶
               </button>
             </div>
-          </>
-          <div className="flex justify-center items-center gap-2 mt-4">
+<div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
