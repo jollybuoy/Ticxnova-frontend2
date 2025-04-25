@@ -167,7 +167,85 @@ const Messages = () => {
 
   return (
     <div className="p-6 text-white">
-      {/* ...UI code unchanged... */}
+      <h2 className="text-2xl font-bold mb-4">📥 Outlook Messages</h2>
+
+      <div className="mb-4 flex justify-between items-center">
+        <button
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold"
+          onClick={() => setCompose(true)}
+        >
+          ✉️ Compose New Message
+        </button>
+      </div>
+
+      <div className="mb-6">
+        <label className="block mb-2 text-sm font-semibold">Search by Subject or Sender:</label>
+        <input
+          type="text"
+          className="text-black p-2 w-full rounded-md mb-4"
+          placeholder="Search emails..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <label className="block mb-2 text-sm font-semibold">Select Folder:</label>
+        <select
+          className="text-black p-2 rounded-md"
+          value={selectedFolderId}
+          onChange={(e) => setSelectedFolderId(e.target.value)}
+        >
+          {folders.map((folder) => (
+            <option key={folder.id} value={folder.id}>
+              {folder.displayName}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {loading ? (
+        <p>Loading messages...</p>
+      ) : filteredEmails.length > 0 ? (
+        <ul className="space-y-4">
+          {filteredEmails.map((email) => (
+            <li
+              key={email.id}
+              className="bg-white/10 p-4 rounded-lg border border-white/20 cursor-pointer hover:bg-white/20"
+              onClick={() => openEmail(email)}
+            >
+              <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
+              <p className="text-sm text-gray-300">
+                From: {email.from?.emailAddress?.name || "Unknown Sender"}
+              </p>
+              <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+                {email.bodyPreview}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No emails found in this folder.</p>
+      )}
+
+      {selectedEmail && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-6 rounded-xl shadow-2xl max-w-2xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-sm text-red-500 hover:text-red-700"
+              onClick={closeEmail}
+            >
+              ✖ Close
+            </button>
+            <h3 className="text-xl font-bold mb-2">{selectedEmail.subject}</h3>
+            <p className="text-sm text-gray-700 mb-2">
+              From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}
+            </p>
+            <div
+              className="max-h-[400px] overflow-y-auto border-t pt-4 text-sm text-gray-800"
+              dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
     </div>
   );
 };
