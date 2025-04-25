@@ -20,6 +20,7 @@ const Messages = () => {
   const [composeBcc, setComposeBcc] = useState("");
   const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(null);
+  const [attachment, setAttachment] = useState(null);
 
   const filteredEmails = emails.filter(email =>
     email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,12 +109,33 @@ const Messages = () => {
   const sendMail = async () => {
     setSending(true);
     try {
-      const response = await fetch("https://graph.microsoft.com/v1.0/me/sendMail", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+      const mail = {
+        message: {
+          subject: composeSubject,
+          body: {
+            contentType: "HTML",
+            content: composeBody,
+          },
+          toRecipients: [
+            { emailAddress: { address: composeTo } },
+          ],
+          ccRecipients: composeCc ? [{ emailAddress: { address: composeCc } }] : [],
+          bccRecipients: composeBcc ? [{ emailAddress: { address: composeBcc } }] : []
         },
+        saveToSentItems: true
+      };
+
+      if (attachment) {
+        const base64 = await toBase64(attachment);
+        mail.message.attachments = [
+          {
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            name: attachment.name,
+            contentBytes: base64,
+            contentType: attachment.type
+          }
+        ];
+      }
         body: JSON.stringify({
           message: {
             subject: composeSubject,
@@ -142,22 +164,19 @@ const Messages = () => {
                 },
               },
             ] : [],
-                },
-              },
-            ],
           },
         }),
       });
 
       if (response.ok) {
-        alert("Email sent successfully.");
+        setSendSuccess(true);
         setCompose(false);
         setComposeTo("");
         setComposeSubject("");
         setComposeCc("");
         setComposeBcc("");
-        setSendSuccess(true);
         setComposeBody("");
+        setAttachment(null);
       } else {
         setSendSuccess(false);
       }
@@ -279,9 +298,6 @@ const Messages = () => {
               className="w-full mb-3 p-2 border rounded"
               value={composeBcc}
               onChange={(e) => setComposeBcc(e.target.value)}
-              className="w-full mb-3 p-2 border rounded"
-              value={composeTo}
-              onChange={(e) => setComposeTo(e.target.value)}
             />
             <input
               type="text"
@@ -297,6 +313,11 @@ const Messages = () => {
               value={composeBody}
               onChange={(e) => setComposeBody(e.target.value)}
             ></textarea>
+            <input
+              type="file"
+              onChange={(e) => setAttachment(e.target.files[0])}
+              className="mt-3 w-full p-1 border rounded"
+            />
             {sendSuccess !== null && (
               <p className={`mt-2 text-sm font-medium ${sendSuccess ? 'text-green-600' : 'text-red-600'}`}>
                 {sendSuccess ? '✅ Email sent successfully!' : '❌ Failed to send email.'}
@@ -315,5 +336,12 @@ const Messages = () => {
     </div>
   );
 };
+
+const toBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result.split(',')[1]);
+  reader.onerror = (error) => reject(error);
+});
 
 export default Messages;
