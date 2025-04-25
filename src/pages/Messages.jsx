@@ -6,12 +6,26 @@ const Messages = () => {
   const { instance, accounts } = useMsal();
   const [emails, setEmails] = useState([]);
   const [folders, setFolders] = useState([]);
-  const [selectedFolderId, setSelectedFolderId] = useState(null);
+  const [selectedFolderId, setSelectedFolderId] = useState("inbox");
   const [loading, setLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [accessToken, setAccessToken] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const allowedFolderNames = ["Inbox", "Sent Items", "Outbox", "Deleted Items"];
+  const [compose, setCompose] = useState(false);
+  const [composeTo, setComposeTo] = useState("");
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeBody, setComposeBody] = useState("");
+  const [composeCc, setComposeCc] = useState("");
+  const [composeBcc, setComposeBcc] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+
+  const filteredEmails = emails.filter(email =>
+    email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    email.from?.emailAddress?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchFolders = async () => {
@@ -22,31 +36,16 @@ const Messages = () => {
         });
         setAccessToken(response.accessToken);
 
-        const folderRes = await fetch("https://graph.microsoft.com/v1.0/me/mailFolders", {
+        const folderResponse = await fetch("https://graph.microsoft.com/v1.0/me/mailFolders", {
           headers: {
             Authorization: `Bearer ${response.accessToken}`,
           },
         });
 
-        const folderData = await folderRes.json();
-        const baseFolders = folderData.value.filter((f) => allowedFolderNames.includes(f.displayName));
-
-        const foldersWithSubs = await Promise.all(
-          baseFolders.map(async (folder) => {
-            const subRes = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${folder.id}/childFolders`, {
-              headers: {
-                Authorization: `Bearer ${response.accessToken}`,
-              },
-            });
-            const subData = await subRes.json();
-            return { ...folder, subFolders: subData.value || [] };
-          })
-        );
-
-        setFolders(foldersWithSubs);
-        setSelectedFolderId(foldersWithSubs[0]?.id || null);
-      } catch (err) {
-        console.error("Error fetching folders", err);
+        const folderData = await folderResponse.json();
+        setFolders(folderData.value || []);
+      } catch (error) {
+        console.error("Error fetching folders", error);
       }
     };
 
@@ -55,31 +54,38 @@ const Messages = () => {
 
   useEffect(() => {
     const fetchEmails = async () => {
-      if (!selectedFolderId) return;
       setLoading(true);
       try {
+        const response = await instance.acquireTokenSilent({
+          scopes: ["Mail.Read"],
+          account: accounts[0],
+        });
+        setAccessToken(response.accessToken);
+
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-        const mailRes = await fetch(
+        const mailResponse = await fetch(
           `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=10&$filter=receivedDateTime ge ${lastWeek}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${response.accessToken}`,
             },
           }
         );
 
-        const data = await mailRes.json();
+        const data = await mailResponse.json();
         setEmails(data.value || []);
-      } catch (err) {
-        console.error("Error fetching emails", err);
+      } catch (error) {
+        console.error("Error fetching emails", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmails();
-  }, [accessToken, selectedFolderId]);
+    if (selectedFolderId) {
+      fetchEmails();
+    }
+  }, [instance, accounts, selectedFolderId]);
 
   const openEmail = async (email) => {
     try {
@@ -93,77 +99,217 @@ const Messages = () => {
       );
       const fullEmail = await response.json();
       setSelectedEmail(fullEmail);
-    } catch (err) {
-      console.error("Error opening email", err);
+    } catch (error) {
+      console.error("Error loading full email", error);
     }
   };
 
-  const renderFolders = () => (
-    <ul className="space-y-2">
-      {folders.map((folder) => (
-        <React.Fragment key={folder.id}>
-          <li
-            className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
-            onClick={() => setSelectedFolderId(folder.id)}
-          >
-            📁 {folder.displayName}
-          </li>
-          {folder.subFolders?.map((sub) => (
-            <li
-              key={sub.id}
-              className={`ml-4 cursor-pointer p-2 rounded hover:bg-white/5 text-sm ${selectedFolderId === sub.id ? 'bg-white/20' : ''}`}
-              onClick={() => setSelectedFolderId(sub.id)}
-            >
-              📨 {sub.displayName}
-            </li>
-          ))}
-        </React.Fragment>
-      ))}
-    </ul>
-  );
+  const closeEmail = () => setSelectedEmail(null);
+
+  const sendMail = async () => {
+    const encodedAttachments = await Promise.all(
+      attachments.map(async (file) => ({
+        ...file,
+        base64: await toBase64(file.file),
+      }))
+    );
+
+    setSending(true);
+    try {
+      const mail = {
+        message: {
+          subject: composeSubject,
+          body: {
+            contentType: "HTML",
+            content: composeBody,
+          },
+          toRecipients: [{ emailAddress: { address: composeTo } }],
+          ccRecipients: composeCc ? [{ emailAddress: { address: composeCc } }] : [],
+          bccRecipients: composeBcc ? [{ emailAddress: { address: composeBcc } }] : [],
+          attachments: encodedAttachments.map(file => ({
+            '@odata.type': '#microsoft.graph.fileAttachment',
+            name: file.name,
+            contentBytes: file.base64,
+            contentType: file.type
+          }))
+        },
+        saveToSentItems: true
+      };
+
+      const response = await fetch("https://graph.microsoft.com/v1.0/me/sendMail", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mail),
+      });
+
+      if (response.ok) {
+        setSendSuccess(true);
+        setTimeout(() => setSendSuccess(null), 3000);
+        setCompose(false);
+        setComposeTo("");
+        setComposeSubject("");
+        setComposeCc("");
+        setComposeBcc("");
+        setComposeBody("");
+        setAttachments([]);
+      } else {
+        setSendSuccess(false);
+        setTimeout(() => setSendSuccess(null), 3000);
+      }
+    } catch (err) {
+      console.error("Error sending mail", err);
+      setSendSuccess(false);
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="flex h-screen text-white">
       <aside className="w-64 bg-[#121826] border-r border-white/10 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
-        {renderFolders()}
+        <ul className="space-y-2">
+          {['Inbox', ...folders.map(f => f.displayName).filter(name => name !== 'Inbox')].map((name, index) => (
+            <li
+              key={index}
+              className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId.toLowerCase() === name.toLowerCase() ? 'bg-white/20' : ''}`}
+              onClick={() => setSelectedFolderId(name.toLowerCase())}
+            >
+              {name}
+            </li>
+          ))}
+        </ul>
       </aside>
       <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">📧 Emails</h2>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="flex">
-            <div className="w-1/2 pr-4">
-              <ul className="space-y-2">
-                {emails.map((email) => (
-                  <li
-                    key={email.id}
-                    className="p-4 border rounded bg-white/5 cursor-pointer"
-                    onClick={() => openEmail(email)}
-                  >
-                    <h3 className="text-md font-semibold">{email.subject || '(No Subject)'}</h3>
-                    <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name}</p>
-                  </li>
-                ))}
-              </ul>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">📥 Outlook Messages</h2>
+          <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
+        </div>
+        <div className="flex justify-between items-center mb-4 gap-4">
+          <button
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold"
+            onClick={() => setCompose(true)}
+          >
+            ✉️ Compose
+          </button>
+          <div className="flex gap-2">
+            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm" onClick={() => {
+              setCompose(true);
+              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
+              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
+              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
+            }}>↩️ Reply</button>
+            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
+              setCompose(true);
+              setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
+              setComposeCc(accounts[0]?.userName);
+              setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
+              setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
+            }}>🔁 Reply All</button>
+            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm" onClick={() => {
+              setCompose(true);
+              setComposeSubject(`Fwd: ${selectedEmail?.subject || ""}`);
+              setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${selectedEmail?.body?.content || ""}`);
+            }}>➡️ Forward</button>
+          </div>
+        </div>
+      
+
+      <div className="mb-6">
+        <label className="block mb-2 text-sm font-semibold">Search by Subject or Sender:</label>
+        <input
+          type="text"
+          className="text-black p-2 w-full rounded-md mb-4"
+          placeholder="Search emails..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
+      </div>
+
+      {loading ? (
+        <p>Loading messages...</p>
+      ) : filteredEmails.length > 0 ? (
+        <div className="flex h-full">
+        <div className="w-1/2 overflow-y-auto pr-4">
+          <ul className="space-y-4">
+            {filteredEmails.map((email) => (
+              <li
+                key={email.id}
+                className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+                onClick={() => openEmail(email)}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
+                  <span className="text-xs text-gray-300">{new Date(email.receivedDateTime).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {selectedEmail && (
+          <div className="w-1/2 bg-white text-black p-6 rounded-xl shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
+              <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
             </div>
-            <div className="w-1/2 bg-white text-black p-4 rounded">
-              {selectedEmail ? (
-                <>
-                  <h3 className="text-lg font-bold mb-2">{selectedEmail.subject}</h3>
-                  <p className="text-sm mb-2">From: {selectedEmail.from?.emailAddress?.name}</p>
-                  <div dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
-                </>
-              ) : (
-                <p>Select an email to view</p>
-              )}
-            </div>
+            <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
+            <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
           </div>
         )}
-      </main>
+      </div>
+      ) : (
+        <p>No emails found in this folder.</p>
+      )}
+
+      {selectedEmail && (
+  <div className="flex gap-6 mt-6">
+    <div className="w-1/2">
+      <ul className="space-y-4">
+        {filteredEmails.map((email) => (
+          <li
+            key={email.id}
+            className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+            onClick={() => openEmail(email)}
+          >
+            <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
+            <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
+            <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div className="flex-1 bg-white text-black p-6 rounded-xl shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
+        <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
+      </div>
+      <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
+      <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
+
+      {sendSuccess !== null && (
+        <div className={`mt-4 px-4 py-2 rounded font-semibold text-sm ${sendSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {sendSuccess ? '✅ Email sent successfully!' : '❌ Failed to send email.'}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+          </main>
     </div>
   );
 };
+
+const toBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result.split(',')[1]);
+  reader.onerror = (error) => reject(error);
+});
 
 export default Messages;
