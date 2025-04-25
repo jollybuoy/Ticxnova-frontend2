@@ -107,6 +107,8 @@ function App() {
               )
             }
           />
+          {/* ✅ Make Privacy Policy Publicly Accessible */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
           {isAuthenticated && (
             <Route element={<MainLayout user={user} handleLogout={handleLogout} />}>
               <Route path="/dashboard" element={<Dashboard user={user} />} />
@@ -124,7 +126,6 @@ function App() {
               <Route path="/assetmanagement" element={<AssetManagement user={user} />} />
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
