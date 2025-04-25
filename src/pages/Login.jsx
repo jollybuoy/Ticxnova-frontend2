@@ -43,7 +43,7 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,7 +62,7 @@ const Login = ({ setAuth }) => {
           </div>
 
           <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
-            Welcome to <span className="text-pink-400">Ticxnova</span>
+            Welcome to <span className="text-fuchsia-500">Ticxnova</span>
           </h2>
           <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
