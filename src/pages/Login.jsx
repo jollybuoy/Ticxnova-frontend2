@@ -43,13 +43,12 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-sky-900 flex items-center justify-center p-6 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
+        className="w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
       >
         <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-white/5">
           <img src={loginIllustration} alt="Illustration" className="h-80 animate-float" />
@@ -63,7 +62,7 @@ const Login = ({ setAuth }) => {
           </div>
 
           <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
-            Welcome to <span className="text-sky-900">TICXNOVA</span>
+            Welcome to <span className="text-pink-400">Ticxnova</span>
           </h2>
           <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
@@ -95,7 +94,7 @@ const Login = ({ setAuth }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-Lime-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
             >
               {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
             </button>
@@ -127,10 +126,6 @@ const Login = ({ setAuth }) => {
           </div>
         </div>
       </motion.div>
-
-      <footer className="absolute bottom-4 text-xs text-gray-400 text-center w-full z-10">
-        © {new Date().getFullYear()} Ticxnova. All rights reserved.
-      </footer>
     </div>
   );
 };
