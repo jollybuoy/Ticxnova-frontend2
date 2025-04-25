@@ -25,7 +25,6 @@ import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactAdmin from "./pages/ContactAdmin";
-import ContactAdmin from "./pages/Messages";
 
 function App() {
   const { instance, accounts } = useMsal();
@@ -130,7 +129,6 @@ function App() {
               <Route path="/assetmanagement" element={<AssetManagement user={user} />} />
               <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
-               <Route path="/messages" element={<Messages user={user} />} />
             </Route>
           )}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
