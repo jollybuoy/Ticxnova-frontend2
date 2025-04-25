@@ -246,7 +246,6 @@ const Messages = () => {
         </div>
       )}
     </div>
-    </div>
   );
 };
 
