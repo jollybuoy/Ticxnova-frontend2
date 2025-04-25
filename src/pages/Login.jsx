@@ -43,7 +43,7 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-600 to-slate-400 flex items-center justify-center p-6 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-sky-900 flex items-center justify-center p-6 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none"></div>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
@@ -95,7 +95,7 @@ const Login = ({ setAuth }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-green-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
+              className="w-full bg-gradient-to-r from-purple-500 to-Lime-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
             >
               {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
             </button>
