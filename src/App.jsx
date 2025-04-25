@@ -50,7 +50,7 @@ function App() {
       account: accounts[0],
     });
 
-    const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=displayName,mail,userPrincipalName,department", {
+    const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
       headers: {
         Authorization: `Bearer ${response.accessToken}`,
       },
@@ -58,15 +58,18 @@ function App() {
 
     const userData = await graphResponse.json();
 
+    console.log("🧠 Microsoft Graph User Data:", userData);
+
     await axios.post("/auth/microsoft-login", {
-email: userData.userPrincipalName,
+      email: userData.userPrincipalName,
       name: userData.displayName,
-      department: userData.department || "General",  // now department should actually come!
+      department: userData.department || "General",
     });
   } catch (err) {
-    console.error("❌ Failed to fetch Microsoft user details", err);
+    console.error("❌ Microsoft login error:", err);
   }
 };
+
 
 
     if (msalAuthenticated) {
