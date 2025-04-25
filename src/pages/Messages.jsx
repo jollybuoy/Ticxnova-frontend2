@@ -202,7 +202,7 @@ const Messages = () => {
               setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
               setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail?.body?.content || ""}`);
             }}>↩️ Reply</button>
-            <button className=\"bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
+            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
               setCompose(true);
               setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
               setComposeCc(accounts[0]?.userName);
