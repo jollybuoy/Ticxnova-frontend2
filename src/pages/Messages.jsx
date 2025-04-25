@@ -196,7 +196,7 @@ const Messages = () => {
             ✉️ Compose
           </button>
           <div className="flex gap-2">
-            <button className=\"bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
+            <button className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-sm\" onClick={() => {
               setCompose(true);
               setComposeTo(selectedEmail?.from?.emailAddress?.address || "");
               setComposeSubject(`Re: ${selectedEmail?.subject || ""}`);
