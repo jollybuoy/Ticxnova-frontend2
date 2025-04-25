@@ -46,7 +46,7 @@ function App() {
    const fetchMicrosoftUserDetails = async () => {
   try {
     const response = await instance.acquireTokenSilent({
-      scopes: ["User.Read"],
+scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All"],
       account: accounts[0],
     });
 
