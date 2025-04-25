@@ -43,30 +43,31 @@ function App() {
   }, [userToken, msalAuthenticated]);
 
   useEffect(() => {
-    const fetchMicrosoftUserDetails = async () => {
-      try {
-        const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read", "User.ReadBasic.All"],
-          account: accounts[0],
-        });
+   const fetchMicrosoftUserDetails = async () => {
+  try {
+    const response = await instance.acquireTokenSilent({
+      scopes: ["User.Read"],
+      account: accounts[0],
+    });
 
-        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName,displayName,department", {
-          headers: {
-            Authorization: `Bearer ${response.accessToken}`,
-          },
-        });
+    const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=displayName,mail,userPrincipalName,department", {
+      headers: {
+        Authorization: `Bearer ${response.accessToken}`,
+      },
+    });
 
-        const userData = await graphResponse.json();
+    const userData = await graphResponse.json();
 
-        await axios.post("/auth/microsoft-login", {
-          email: userData.mail || userData.userPrincipalName,
-          name: userData.displayName,
-          department: userData.department || "General",
-        });
-      } catch (err) {
-        console.error("❌ Failed to fetch Microsoft user details", err);
-      }
-    };
+    await axios.post("/auth/microsoft-login", {
+      email: userData.mail || userData.userPrincipalName,
+      name: userData.displayName,
+      department: userData.department || "General",  // now department should actually come!
+    });
+  } catch (err) {
+    console.error("❌ Failed to fetch Microsoft user details", err);
+  }
+};
+
 
     if (msalAuthenticated) {
       fetchMicrosoftUserDetails();
