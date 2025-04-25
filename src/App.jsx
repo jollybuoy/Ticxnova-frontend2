@@ -24,6 +24,7 @@ import SlaTracker from "./pages/SlaTracker";
 import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ContactAdmin from "./pages/ContactAdmin";
 
 function App() {
   const { instance, accounts } = useMsal();
@@ -109,6 +110,8 @@ function App() {
           />
           {/* ✅ Make Privacy Policy Publicly Accessible */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/contact-admin" element={<ContactAdmin />} />
+
           {isAuthenticated && (
             <Route element={<MainLayout user={user} handleLogout={handleLogout} />}>
               <Route path="/dashboard" element={<Dashboard user={user} />} />
