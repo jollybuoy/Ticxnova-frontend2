@@ -51,7 +51,8 @@ const Messages = () => {
 
         const folderData = await folderResponse.json();
         const inboxFirst = folderData.value?.sort((a, b) => a.displayName.toLowerCase() === "inbox" ? -1 : 1);
-        setFolders(inboxFirst || []);
+        const updated = inboxFirst.map(folder => ({ ...folder, unreadCount: folder.unreadItemCount || 0 }));
+        setFolders(updated);
       } catch (error) {
         console.error("Error fetching folders", error);
       }
@@ -180,22 +181,33 @@ const Messages = () => {
       {/* Folder List */}
       <aside className="w-60 bg-[#1c1e2f] border-r border-white/10 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
-        <ul className="space-y-2">
-          {folders.map((folder) => (
-            <li
-              key={folder.id}
-              className={`cursor-pointer px-3 py-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
-              onClick={() => setSelectedFolderId(folder.id)}
-            >
-              {selectedFolderId === folder.id ? '📩 ' : '✉️ '}{folder.displayName}
-            </li>
-          ))}
-        </ul>
+        <ul className="space-y-2">$1
+            {folders.flatMap((folder) => [
+              <li
+                key={folder.id}
+                className={`cursor-pointer px-3 py-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
+                onClick={() => setSelectedFolderId(folder.id)}
+              >
+                {selectedFolderId === folder.id ? '📩 ' : '✉️ '}{folder.displayName} {folder.unreadCount > 0 && <span className='ml-1 text-xs text-yellow-300'>({folder.unreadCount})</span>}
+              </li>,
+              ...(folder.childFolders?.map((sub) => (
+                <li
+                  key={sub.id}
+                  className={`ml-4 cursor-pointer px-2 py-1 rounded text-sm hover:bg-white/5 ${selectedFolderId === sub.id ? 'bg-white/10' : ''}`}
+                  onClick={() => setSelectedFolderId(sub.id)}
+                  onClick={() => setSelectedFolderId(sub.id)}
+                >
+                  📂 {sub.displayName}
+                </li>
+              )) || [])
+            ])}
+          </ul>
       </aside>
 
       {/* Email List */}
       <main className="flex-1 p-6 overflow-y-auto border-r border-white/10">
         <div className="flex justify-between items-center mb-4">
+          <div className="text-xs text-gray-400">📧 {filteredEmails.length} messages found</div>
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -250,6 +262,71 @@ const Messages = () => {
           </div>
           <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
           <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
+          <button
+            disabled={!selectedEmail}
+            className="ml-4 px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50"
+            onClick={async () => {
+              if (!selectedEmail) return;
+              try {
+                await fetch(`https://graph.microsoft.com/v1.0/me/messages/${selectedEmail.id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                  },
+                });
+                setEmails(prev => prev.filter(e => e.id !== selectedEmail.id));
+                setSelectedEmail(null);
+              } catch (err) {
+                console.error('Failed to delete email', err);
+              }
+            }}
+          >
+            🗑 Delete
+          </button>
+          <button
+            disabled={!selectedEmail}
+            className="ml-4 px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+            onClick={async () => {
+              if (!selectedEmail) return;
+              try {
+                await fetch(`https://graph.microsoft.com/v1.0/me/messages/${selectedEmail.id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ isRead: true }),
+                });
+                setEmails(prev => prev.map(e => e.id === selectedEmail.id ? { ...e, isRead: true } : e));
+              } catch (err) {
+                console.error('Failed to mark as read', err);
+              }
+            }}
+          >
+            Mark as Read
+          </button>
+          <button
+            disabled={!selectedEmail}
+            className="ml-2 px-3 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded disabled:opacity-50"
+            onClick={async () => {
+              if (!selectedEmail) return;
+              try {
+                await fetch(`https://graph.microsoft.com/v1.0/me/messages/${selectedEmail.id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ isRead: false }),
+                });
+                setEmails(prev => prev.map(e => e.id === selectedEmail.id ? { ...e, isRead: false } : e));
+              } catch (err) {
+                console.error('Failed to mark as unread', err);
+              }
+            }}
+          >
+            Mark as Unread
+          </button>
         </div>
 
         <input
@@ -261,14 +338,43 @@ const Messages = () => {
         />
 
         {loading ? (
-          <p>Loading messages...</p>
+          <p className="text-sm text-gray-400">Loading messages...</p>
         ) : filteredEmails.length > 0 ? (
           <>
             <ul className="space-y-3">
               {currentEmails.map((email) => (
                 <li
                   key={email.id}
-                  className={`p-4 rounded-md border cursor-point
+                  className={`p-4 rounded-md border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : email.isRead ? 'bg-white/10 border-white/20 hover:bg-white/20' : 'bg-yellow-100 text-black border-yellow-300'}`}
+                  onClick={() => openEmail(email)}
+                >
+                  <h3 className="font-semibold text-lg">{email.subject || "(No Subject)"}</h3>
+                  <div className="text-sm text-gray-300 flex justify-between">
+                    <span>From: {email.from?.emailAddress?.name}</span>
+                    <span>{new Date(email.receivedDateTime).toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm text-gray-400 mt-1 line-clamp-1">{email.bodyPreview}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ◀ Previous
+              </button>
+              <span className="text-sm">Page {currentPage} of {totalPages}</span>
+              <button
+                className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next ▶
+              </button>
+            </div>
+          </>
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
@@ -287,7 +393,7 @@ const Messages = () => {
             </button>
           </div>
         ) : (
-          <p>No emails found in this folder.</p>
+          <p className="text-sm text-yellow-400">📭 No emails found in this folder.</p>
         )}
       {compose && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
