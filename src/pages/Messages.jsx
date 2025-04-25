@@ -331,7 +331,6 @@ const Messages = () => {
             Mark as Unread
           </button>
   </div>
-</>
 
         <input
           type="text"
@@ -360,8 +359,7 @@ const Messages = () => {
                 </li>
               ))}
             </ul>
-<>
-  <div className="flex justify-center items-center gap-2 mt-4">
+<div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
