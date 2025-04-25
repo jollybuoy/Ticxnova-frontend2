@@ -21,6 +21,7 @@ export const loginRequest = {
     "Mail.ReadWrite",
     "Mail.Send",
     "User.ReadBasic.All",
-    "User.Read.All"
+    "User.Read.All",
+    "User.ReadWrite.All"
   ]
 };
