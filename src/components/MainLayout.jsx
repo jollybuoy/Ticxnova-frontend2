@@ -45,7 +45,7 @@ const MainLayout = ({ setAuth }) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-green-900 via-cyan-800 to-indigo-900 text-orange">
+    <div className="min-h-screen flex bg-gradient-to-br from-sky-900 via-cyan-800 to-indigo-900 text-orange">
      {/* Sidebar */}
 <div className="group relative hover:w-72 w-16 transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-lg overflow-hidden flex flex-col items-center">
   <div className="absolute left-0 top-0 h-full w-72 p-5 group-hover:opacity-100 opacity-0 transition-opacity duration-300">
@@ -56,7 +56,7 @@ const MainLayout = ({ setAuth }) => {
         alt="Ticxnova Logo"
         className="h-10 w-10 rounded-full shadow ring-2 ring-white/30"
       />
-      <h2 className="text-2xl font-bold">Ticxnova</h2>
+      <h2 className="text-2xl font-bold">TICXNOVA</h2>
     </div>
 
     <div className="flex items-center gap-3 mb-8 px-2">
