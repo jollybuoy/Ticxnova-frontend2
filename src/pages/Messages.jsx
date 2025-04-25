@@ -264,7 +264,7 @@ const Messages = () => {
             </button>
 </div>
           <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
-          <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.username}</div>
+          <div className="text-sm text-gray-300 ml-auto">Signed in as: {accounts[0]?.username}</div>
           <button
             disabled={!selectedEmail}
             className="ml-4 px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50"
@@ -330,7 +330,8 @@ const Messages = () => {
           >
             Mark as Unread
           </button>
-        </div>
+  </div>
+</>
 
         <input
           type="text"
@@ -359,7 +360,8 @@ const Messages = () => {
                 </li>
               ))}
             </ul>
-<div className="flex justify-center items-center gap-2 mt-4">
+<>
+  <div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
