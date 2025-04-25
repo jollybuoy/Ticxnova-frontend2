@@ -46,11 +46,11 @@ function App() {
     const fetchMicrosoftUserDetails = async () => {
       try {
         const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read"],
+          scopes: ["User.Read", "User.ReadBasic.All"],
           account: accounts[0],
         });
 
-const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName,displayName,department", {
+        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName,displayName,department", {
           headers: {
             Authorization: `Bearer ${response.accessToken}`,
           },
@@ -71,7 +71,7 @@ const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=m
     if (msalAuthenticated) {
       fetchMicrosoftUserDetails();
     }
-  }, [msalAuthenticated]);
+  }, [msalAuthenticated, instance, accounts]);
 
   const handleLogin = () => {
     instance.loginRedirect().catch((err) => {
@@ -108,8 +108,7 @@ const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=m
               )
             }
           />
-          {/* ✅ Make Privacy Policy Publicly Accessible */}
-      <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/contact-admin" element={<ContactAdmin />} />
 
           {isAuthenticated && (
