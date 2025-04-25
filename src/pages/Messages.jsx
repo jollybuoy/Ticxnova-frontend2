@@ -51,7 +51,10 @@ const Messages = () => {
 
         const folderData = await folderResponse.json();
         const inboxFirst = folderData.value?.sort((a, b) => a.displayName.toLowerCase() === "inbox" ? -1 : 1);
-        const updated = inboxFirst.map(folder => ({ ...folder, unreadCount: folder.unreadItemCount || 0 }));
+        const updated = inboxFirst.map(folder => ({
+          ...folder,
+          unreadCount: typeof folder.unreadItemCount === 'number' ? folder.unreadItemCount : 0
+        }));
         setFolders(updated);
       } catch (error) {
         console.error("Error fetching folders", error);
@@ -181,7 +184,7 @@ const Messages = () => {
       {/* Folder List */}
       <aside className="w-60 bg-[#1c1e2f] border-r border-white/10 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
-        <ul className="space-y-2">$1
+        <ul className="space-y-2">
             {folders.flatMap((folder) => [
               <li
                 key={folder.id}
@@ -194,7 +197,6 @@ const Messages = () => {
                 <li
                   key={sub.id}
                   className={`ml-4 cursor-pointer px-2 py-1 rounded text-sm hover:bg-white/5 ${selectedFolderId === sub.id ? 'bg-white/10' : ''}`}
-                  onClick={() => setSelectedFolderId(sub.id)}
                   onClick={() => setSelectedFolderId(sub.id)}
                 >
                   📂 {sub.displayName}
@@ -238,7 +240,7 @@ const Messages = () => {
                 if (selectedEmail) {
                   setCompose(true);
                   setComposeTo(selectedEmail.from?.emailAddress?.address || "");
-                  setComposeCc(accounts[0]?.userName);
+                  setComposeCc(accounts[0]?.username);
                   setComposeSubject(`Re: ${selectedEmail.subject}`);
                   setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail.body?.content}`);
                 }
@@ -261,7 +263,7 @@ const Messages = () => {
             </button>
           </div>
           <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
-          <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
+          <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.username}</div>
           <button
             disabled={!selectedEmail}
             className="ml-4 px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50"
