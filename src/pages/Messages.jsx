@@ -74,10 +74,11 @@ const Messages = () => {
         });
         setAccessToken(response.accessToken);
 
+        const skipAmount = (currentPage - 1) * emailsPerPage;
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
         const mailResponse = await fetch(
-          `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=20&$filter=receivedDateTime ge ${lastWeek}&$orderby=receivedDateTime desc`,
+          `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=${emailsPerPage}&$skip=${skipAmount}&$filter=receivedDateTime ge ${lastWeek}&$orderby=receivedDateTime desc`,
           {
             headers: {
               Authorization: `Bearer ${response.accessToken}`,
@@ -465,7 +466,7 @@ const Messages = () => {
             <p className="text-xs mb-4 text-gray-500">{new Date(selectedEmail.receivedDateTime).toLocaleString()}</p>
             <div
               className="text-sm"
-              dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedEmail.body?.content || "") }}
             />
           </>
         ) : (
@@ -482,5 +483,11 @@ const toBase64 = (file) => new Promise((resolve, reject) => {
   reader.onload = () => resolve(reader.result.split(',')[1]);
   reader.onerror = (error) => reject(error);
 });
+
+function sanitizeHtml(html) {
+  const tempDiv = document.createElement("div");
+  tempDiv.textContent = html;
+  return tempDiv.innerHTML;
+}
 
 export default Messages;
