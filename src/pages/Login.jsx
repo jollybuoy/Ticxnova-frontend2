@@ -143,9 +143,6 @@ const Login = ({ setAuth }) => {
 
 </p>
 
-         import { Link } from "react-router-dom"; // Make sure it's imported
-
-...
 
 <p className="mt-6 text-center text-sm text-gray-400">
   Trouble accessing?{" "}
