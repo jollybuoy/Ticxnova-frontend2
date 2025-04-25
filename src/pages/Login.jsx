@@ -43,20 +43,20 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center p-6">
+    <div className="bg-gradient-to-br from-gray-100 via-white to-gray-200 min-h-screen flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-5xl bg-white border border-gray-200 shadow-xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
+        className="w-full max-w-5xl bg-white border border-gray-100 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
       >
-        <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-gray-50">
+        <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-gradient-to-tr from-indigo-50 to-white">
           <img src={loginIllustration} alt="Illustration" className="h-80" />
         </div>
 
         <div className="w-full md:w-1/2 p-10 text-gray-800">
           <div className="flex justify-center mb-6">
-            <div className="bg-gray-100 p-2 rounded-full shadow-md border border-gray-200">
+            <div className="bg-white p-2 rounded-full shadow-md border border-gray-200">
               <img src={logo} alt="Ticxnova Logo" className="h-20 w-20 object-contain rounded-full border-2 border-indigo-500" />
             </div>
           </div>
