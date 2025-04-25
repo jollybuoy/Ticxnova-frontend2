@@ -132,7 +132,6 @@ const Login = ({ setAuth }) => {
             🔐 Sign in with Microsoft
           </button>
 <button onClick={handleLogin}>
-  Sign in with Microsoft
 </button>
 
 <p className="text-sm text-gray-600 mt-4 text-center">
