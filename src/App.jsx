@@ -50,7 +50,7 @@ function App() {
           account: accounts[0],
         });
 
-        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName,displayName,department", {
           headers: {
             Authorization: `Bearer ${response.accessToken}`,
           },
