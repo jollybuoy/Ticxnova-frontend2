@@ -229,7 +229,7 @@ const Messages = () => {
                   setCompose(true);
                   setComposeTo(selectedEmail.from?.emailAddress?.address || "");
                   setComposeSubject(`Re: ${selectedEmail.subject}`);
-                  setComposeBody(`$1${sanitizeHtml(selectedEmail.body?.content || "")}`);
+                  setComposeBody(`<br/><br/>---- Original Message ----<br/>${sanitizeHtml(selectedEmail.body?.content || "")}`);
                 }
               }}
               className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
@@ -255,7 +255,7 @@ const Messages = () => {
                 if (selectedEmail) {
                   setCompose(true);
                   setComposeSubject(`Fwd: ${selectedEmail.subject}`);
-                  setComposeBody(`$1${sanitizeHtml(selectedEmail.body?.content || "")}`);
+                  setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${sanitizeHtml(selectedEmail.body?.content || "")}`);
                 }
               }}
               className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
