@@ -51,7 +51,7 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-500 to-fuchsia-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-violet-500 to-fuchsia-600 flex items-center justify-center p-4">
       <motion.div
         className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col md:flex-row items-center w-full max-w-6xl overflow-hidden border border-white/10"
         initial={{ opacity: 0, y: 30 }}
