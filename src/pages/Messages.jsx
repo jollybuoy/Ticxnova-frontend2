@@ -133,7 +133,6 @@ const Messages = () => {
 
       if (attachments.length > 0) {
         mail.message.attachments = attachments.map(file => ({
-          {
             '@odata.type': '#microsoft.graph.fileAttachment',
             name: file.name,
             contentBytes: file.base64,
