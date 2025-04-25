@@ -229,7 +229,7 @@ const Messages = () => {
                   setCompose(true);
                   setComposeTo(selectedEmail.from?.emailAddress?.address || "");
                   setComposeSubject(`Re: ${selectedEmail.subject}`);
-                  setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail.body?.content}`);
+                  setComposeBody(`$1${sanitizeHtml(selectedEmail.body?.content || "")}`);
                 }
               }}
               className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
@@ -255,14 +255,14 @@ const Messages = () => {
                 if (selectedEmail) {
                   setCompose(true);
                   setComposeSubject(`Fwd: ${selectedEmail.subject}`);
-                  setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${selectedEmail.body?.content}`);
+                  setComposeBody(`$1${sanitizeHtml(selectedEmail.body?.content || "")}`);
                 }
               }}
               className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
             >
               ➡️ Forward
             </button>
-</div></>
+</div>
           <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
           <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.username}</div>
           <button
@@ -359,7 +359,7 @@ const Messages = () => {
                 </li>
               ))}
             </ul>
-<> <div className="flex justify-center items-center gap-2 mt-4">
+<div className="flex justify-center items-center gap-2 mt-4">
             <button
               className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-50"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
