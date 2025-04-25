@@ -196,6 +196,58 @@ const Messages = () => {
       {/* Email List */}
       <main className="flex-1 p-6 overflow-y-auto border-r border-white/10">
         <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setCompose(true);
+                setComposeTo("");
+                setComposeSubject("");
+                setComposeBody("");
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+            >
+              ✉️ Compose
+            </button>
+            <button
+              onClick={() => {
+                if (selectedEmail) {
+                  setCompose(true);
+                  setComposeTo(selectedEmail.from?.emailAddress?.address || "");
+                  setComposeSubject(`Re: ${selectedEmail.subject}`);
+                  setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail.body?.content}`);
+                }
+              }}
+              className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
+            >
+              ↩️ Reply
+            </button>
+            <button
+              onClick={() => {
+                if (selectedEmail) {
+                  setCompose(true);
+                  setComposeTo(selectedEmail.from?.emailAddress?.address || "");
+                  setComposeCc(accounts[0]?.userName);
+                  setComposeSubject(`Re: ${selectedEmail.subject}`);
+                  setComposeBody(`<br/><br/>---- Original Message ----<br/>${selectedEmail.body?.content}`);
+                }
+              }}
+              className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
+            >
+              🔁 Reply All
+            </button>
+            <button
+              onClick={() => {
+                if (selectedEmail) {
+                  setCompose(true);
+                  setComposeSubject(`Fwd: ${selectedEmail.subject}`);
+                  setComposeBody(`<br/><br/>---- Forwarded Message ----<br/>${selectedEmail.body?.content}`);
+                }
+              }}
+              className="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded"
+            >
+              ➡️ Forward
+            </button>
+          </div>
           <h2 className="text-xl font-bold">📥 Outlook Messages</h2>
           <div className="text-sm text-gray-300">Signed in as: {accounts[0]?.userName}</div>
         </div>
@@ -246,6 +298,79 @@ const Messages = () => {
           </div>
         ) : (
           <p>No emails found in this folder.</p>
+        )}
+      {compose && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="bg-white text-black p-6 rounded-lg shadow-xl w-full max-w-2xl relative">
+              <button
+                className="absolute top-3 right-3 text-gray-700 hover:text-red-600"
+                onClick={() => setCompose(false)}
+              >✖</button>
+              <h3 className="text-xl font-bold mb-4">✉️ New Message</h3>
+              <div className="space-y-4">
+                <input
+                  type="email"
+                  placeholder="To"
+                  value={composeTo}
+                  onChange={(e) => setComposeTo(e.target.value)}
+                  className="w-full border rounded p-2"
+                />
+                <input
+                  type="email"
+                  placeholder="CC"
+                  value={composeCc}
+                  onChange={(e) => setComposeCc(e.target.value)}
+                  className="w-full border rounded p-2"
+                />
+                <input
+                  type="email"
+                  placeholder="BCC"
+                  value={composeBcc}
+                  onChange={(e) => setComposeBcc(e.target.value)}
+                  className="w-full border rounded p-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Subject"
+                  value={composeSubject}
+                  onChange={(e) => setComposeSubject(e.target.value)}
+                  className="w-full border rounded p-2"
+                />
+                <textarea
+                  rows="8"
+                  placeholder="Message..."
+                  value={composeBody}
+                  onChange={(e) => setComposeBody(e.target.value)}
+                  className="w-full border rounded p-2"
+                />
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) =>
+                    setAttachments(
+                      Array.from(e.target.files).map((file) => ({
+                        name: file.name,
+                        type: file.type,
+                        file,
+                      }))
+                    )
+                  }
+                />
+                <button
+                  onClick={sendMail}
+                  disabled={sending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+                >
+                  {sending ? "Sending..." : "Send Message"}
+                </button>
+                {sendSuccess !== null && (
+                  <div className={`mt-4 px-4 py-2 rounded font-semibold text-sm ${sendSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {sendSuccess ? '✅ Email sent successfully!' : '❌ Failed to send email.'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </main>
 
