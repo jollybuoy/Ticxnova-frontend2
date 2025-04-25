@@ -43,37 +43,37 @@ const Login = ({ setAuth }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-100 via-white to-gray-200 min-h-screen flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-5xl bg-white border border-gray-100 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
+        className="w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
       >
-        <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-gradient-to-tr from-indigo-50 to-white">
-          <img src={loginIllustration} alt="Illustration" className="h-80" />
+        <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-white/5">
+          <img src={loginIllustration} alt="Illustration" className="h-80 animate-float" />
         </div>
 
-        <div className="w-full md:w-1/2 p-10 text-gray-800">
+        <div className="w-full md:w-1/2 p-10 text-white">
           <div className="flex justify-center mb-6">
-            <div className="bg-white p-2 rounded-full shadow-md border border-gray-200">
-              <img src={logo} alt="Ticxnova Logo" className="h-20 w-20 object-contain rounded-full border-2 border-indigo-500" />
+            <div className="bg-white/10 p-2 rounded-full shadow-md border border-fuchsia-300 animate-spin-slow">
+              <img src={logo} alt="Ticxnova Logo" className="h-20 w-20 object-contain rounded-full border-2 border-fuchsia-500" />
             </div>
           </div>
 
-          <h2 className="text-3xl font-bold text-center mb-2 tracking-wide text-indigo-700">
-            Welcome to <span className="text-fuchsia-600">Ticxnova</span>
+          <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
+            Welcome to <span className="text-pink-400">Ticxnova</span>
           </h2>
-          <p className="text-center text-sm text-gray-500 mb-6">
+          <p className="text-center text-sm text-gray-200 mb-6">
             AI-powered ticketing platform for seamless support.
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block mb-1 text-sm font-medium">Email</label>
+              <label className="block mb-1 text-sm">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 border border-gray-300 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 border border-white/20"
                 placeholder="Enter your email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -81,10 +81,10 @@ const Login = ({ setAuth }) => {
               />
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium">Password</label>
+              <label className="block mb-1 text-sm">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-pink-500 border border-gray-300 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-pink-500 border border-white/20"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -94,7 +94,7 @@ const Login = ({ setAuth }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-indigo-500 to-fuchsia-600 text-white py-3 rounded-lg text-lg font-semibold hover:from-indigo-600 hover:to-fuchsia-700 transition duration-300"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
             >
               {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
             </button>
@@ -107,21 +107,21 @@ const Login = ({ setAuth }) => {
             🔐 Sign in with Microsoft
           </button>
 
-          <p className="text-sm text-gray-500 mt-5 text-center">
+          <p className="text-sm text-gray-300 mt-5 text-center">
             By logging in, you agree to our{" "}
-            <Link to="/privacy" className="text-blue-600 underline hover:text-blue-800">
+            <Link to="/privacy" className="text-sky-300 underline hover:text-sky-400">
               Privacy Policy
             </Link>
           </p>
 
-          <p className="mt-4 text-center text-sm text-gray-500">
+          <p className="mt-4 text-center text-sm text-indigo-300">
             Trouble logging in?{" "}
-            <Link to="/contact-admin" className="text-indigo-600 underline hover:text-indigo-800">
+            <Link to="/contact-admin" className="underline hover:text-indigo-400">
               Contact admin
             </Link>
           </p>
 
-          <div className="mt-6 text-center text-xs text-gray-400">
+          <div className="mt-6 text-center text-xs text-gray-300 animate-pulse">
             🚀 Manage incidents, tasks, SLAs, and more — powered by AI.
           </div>
         </div>
