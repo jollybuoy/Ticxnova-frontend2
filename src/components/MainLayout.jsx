@@ -45,7 +45,7 @@ const MainLayout = ({ setAuth }) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-sky-900 via-cyan-800 to-indigo-900 text-orange">
+    <div className="min-h-screen flex bg-gradient-to-br from-sky-900 via-white-800 to-indigo-900 text-orange">
      {/* Sidebar */}
 <div className="group relative hover:w-72 w-16 transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-lg overflow-hidden flex flex-col items-center">
   <div className="absolute left-0 top-0 h-full w-72 p-5 group-hover:opacity-100 opacity-0 transition-opacity duration-300">
