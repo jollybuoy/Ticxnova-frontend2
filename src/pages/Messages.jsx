@@ -172,13 +172,13 @@ const Messages = () => {
       <aside className="w-64 bg-[#121826] border-r border-white/10 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">📂 Folders</h3>
         <ul className="space-y-2">
-          {folders.map((folder) => (
+          {['Inbox', ...folders.map(f => f.displayName).filter(name => name !== 'Inbox')].map((name, index) => (
             <li
-              key={folder.id}
-              className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
-              onClick={() => setSelectedFolderId(folder.id)}
+              key={index}
+              className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId.toLowerCase() === name.toLowerCase() ? 'bg-white/20' : ''}`}
+              onClick={() => setSelectedFolderId(name.toLowerCase())}
             >
-              {folder.displayName}
+              {name}
             </li>
           ))}
         </ul>
@@ -216,16 +216,7 @@ const Messages = () => {
             }}>➡️ Forward</button>
           </div>
         </div>
-      <h2 className="text-2xl font-bold mb-4">📥 Outlook Messages</h2>
-
-      <div className="mb-4 flex justify-between items-center">
-        <button
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold"
-          onClick={() => setCompose(true)}
-        >
-          ✉️ Compose New Message
-        </button>
-      </div>
+      
 
       <div className="mb-6">
         <label className="block mb-2 text-sm font-semibold">Search by Subject or Sender:</label>
@@ -242,23 +233,36 @@ const Messages = () => {
       {loading ? (
         <p>Loading messages...</p>
       ) : filteredEmails.length > 0 ? (
-        <ul className="space-y-4">
-          {filteredEmails.map((email) => (
-            <li
-              key={email.id}
-              className="bg-white/10 p-4 rounded-lg border border-white/20 cursor-pointer hover:bg-white/20"
-              onClick={() => openEmail(email)}
-            >
-              <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
-              <p className="text-sm text-gray-300">
-                From: {email.from?.emailAddress?.name || "Unknown Sender"}
-              </p>
-              <p className="text-sm text-gray-400 mt-2 line-clamp-2">
-                {email.bodyPreview}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <div className="flex h-full">
+        <div className="w-1/2 overflow-y-auto pr-4">
+          <ul className="space-y-4">
+            {filteredEmails.map((email) => (
+              <li
+                key={email.id}
+                className={`p-4 rounded-lg border cursor-pointer transition ${selectedEmail?.id === email.id ? 'bg-white/20 border-white/40' : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+                onClick={() => openEmail(email)}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{email.subject || "(No Subject)"}</h3>
+                  <span className="text-xs text-gray-300">{new Date(email.receivedDateTime).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name || "Unknown Sender"}</p>
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{email.bodyPreview}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {selectedEmail && (
+          <div className="w-1/2 bg-white text-black p-6 rounded-xl shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">{selectedEmail.subject}</h3>
+              <button className="text-sm text-red-500 hover:text-red-700" onClick={closeEmail}>✖ Close</button>
+            </div>
+            <p className="text-sm text-gray-700 mb-2">From: {selectedEmail.from?.emailAddress?.name || "Unknown Sender"}</p>
+            <div className="max-h-[500px] overflow-y-auto border-t pt-4 text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
+          </div>
+        )}
+      </div>
       ) : (
         <p>No emails found in this folder.</p>
       )}
