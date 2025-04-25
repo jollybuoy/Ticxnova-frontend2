@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
@@ -9,10 +9,27 @@ import { motion } from "framer-motion";
 import loginIllustration from "../assets/login-illustration.svg";
 import logo from "../assets/ticxnova-logo.png";
 
+const testimonials = [
+  {
+    quote: "This platform changed how we handle support tickets. Instant, intelligent, and intuitive!",
+    author: "– IT Manager, NovaTech",
+  },
+  {
+    quote: "Ticxnova boosted our efficiency. Our team loves the AI-driven interface!",
+    author: "– Support Lead, CyberWorks",
+  },
+  {
+    quote: "Secure, scalable, and beautiful. It's everything we needed in a helpdesk platform.",
+    author: "– CTO, CloudWave",
+  },
+];
+
 const Login = ({ setAuth }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
   const navigate = useNavigate();
   const { instance } = useMsal();
 
@@ -42,13 +59,31 @@ const Login = ({ setAuth }) => {
     instance.loginRedirect(loginRequest);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900 flex items-center justify-center p-6">
+    <div className={`${theme === "dark" ? "bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900" : "bg-gradient-to-br from-white via-blue-100 to-pink-100"} relative min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-500`}>
+      <button
+        onClick={toggleTheme}
+        className="absolute top-5 right-5 bg-white/20 backdrop-blur hover:bg-white/30 px-4 py-1 rounded-full text-xs text-white border border-white/30 shadow-lg z-20"
+      >
+        Toggle {theme === "dark" ? "Light" : "Dark"} Mode
+      </button>
+
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
+        className="relative z-10 w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
       >
         <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-white/5">
           <img src={loginIllustration} alt="Illustration" className="h-80 animate-float" />
@@ -73,7 +108,7 @@ const Login = ({ setAuth }) => {
               <label className="block mb-1 text-sm">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 border border-white/20"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 border border-white/20 focus:outline-none transition duration-200"
                 placeholder="Enter your email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -84,7 +119,7 @@ const Login = ({ setAuth }) => {
               <label className="block mb-1 text-sm">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-pink-500 border border-white/20"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-pink-500 border border-white/20 focus:outline-none transition duration-200"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -125,6 +160,18 @@ const Login = ({ setAuth }) => {
             🚀 Manage incidents, tasks, SLAs, and more — powered by AI.
           </div>
         </div>
+      </motion.div>
+
+      {/* Rotating Testimonials */}
+      <motion.div
+        key={testimonialIndex}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="mt-10 max-w-3xl text-center z-10"
+      >
+        <p className="text-sm text-gray-300 italic">“{testimonials[testimonialIndex].quote}”</p>
+        <p className="mt-1 text-xs text-fuchsia-300">{testimonials[testimonialIndex].author}</p>
       </motion.div>
     </div>
   );
