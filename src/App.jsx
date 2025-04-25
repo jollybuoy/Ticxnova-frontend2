@@ -59,7 +59,7 @@ function App() {
     const userData = await graphResponse.json();
 
     await axios.post("/auth/microsoft-login", {
-      email: userData.mail || userData.userPrincipalName,
+email: userData.userPrincipalName,
       name: userData.displayName,
       department: userData.department || "General",  // now department should actually come!
     });
