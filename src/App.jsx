@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
@@ -33,6 +32,7 @@ function App() {
   const [customAuth, setCustomAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAI, setShowAI] = useState(false);
+  const [msUserDetails, setMsUserDetails] = useState(null);
 
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
@@ -43,34 +43,40 @@ function App() {
   }, [userToken, msalAuthenticated]);
 
   useEffect(() => {
-   const fetchMicrosoftUserDetails = async () => {
-  try {
-    const response = await instance.acquireTokenSilent({
-scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.Readwrite.All"],
-      account: accounts[0],
-    });
+    const fetchMicrosoftUserDetails = async () => {
+      try {
+        const response = await instance.acquireTokenSilent({
+          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.Readwrite.All"],
+          account: accounts[0],
+        });
 
-    const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
-      headers: {
-        Authorization: `Bearer ${response.accessToken}`,
-      },
-    });
+        const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+          headers: {
+            Authorization: `Bearer ${response.accessToken}`,
+          },
+        });
 
-    const userData = await graphResponse.json();
+        const userData = await graphResponse.json();
 
-    console.log("🧠 Microsoft Graph User Data:", userData);
+        console.log("🧠 Microsoft Graph User Data:", userData);
 
-    await axios.post("/auth/microsoft-login", {
-      email: userData.userPrincipalName,
-      name: userData.displayName,
-      department: userData.department || "General",
-    });
-  } catch (err) {
-    console.error("❌ Microsoft login error:", err);
-  }
-};
+        // Save to backend
+        await axios.post("/auth/microsoft-login", {
+          email: userData.userPrincipalName,
+          name: userData.displayName,
+          department: userData.department || "General",
+        });
 
-
+        // Save to frontend state
+        setMsUserDetails({
+          email: userData.userPrincipalName,
+          name: userData.displayName,
+          department: userData.department || "General",
+        });
+      } catch (err) {
+        console.error("❌ Microsoft login error:", err);
+      }
+    };
 
     if (msalAuthenticated) {
       fetchMicrosoftUserDetails();
@@ -93,6 +99,7 @@ scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.Readwrite.All
   };
 
   const isAuthenticated = msalAuthenticated || customAuth;
+  const activeUser = msUserDetails || user;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -116,24 +123,25 @@ scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.Readwrite.All
           <Route path="/contact-admin" element={<ContactAdmin />} />
 
           {isAuthenticated && (
-            <Route element={<MainLayout user={user} handleLogout={handleLogout} />}>
-              <Route path="/dashboard" element={<Dashboard user={user} />} />
-              <Route path="/create-ticket" element={<CreateTicket user={user} />} />
-              <Route path="/all-tickets" element={<AllTickets user={user} />} />
-              <Route path="/ticket/:id" element={<TicketDetails user={user} />} />
-              <Route path="/reports" element={<Reports user={user} />} />
-              <Route path="/knowledgebase" element={<KnowledgeBase user={user} />} />
-              <Route path="/notifications" element={<Notifications user={user} />} />
-              <Route path="/users" element={<Users user={user} />} />
-              <Route path="/messages" element={<Messages user={user} />} />
-              <Route path="/settings" element={<Settings user={user} />} />
-              <Route path="/adminpanel" element={<AdminPanel user={user} />} />
-              <Route path="/slatracker" element={<SlaTracker user={user} />} />
-              <Route path="/assetmanagement" element={<AssetManagement user={user} />} />
-              <Route path="/emailtemplates" element={<EmailTemplates user={user} />} />
+            <Route element={<MainLayout user={activeUser} handleLogout={handleLogout} />}>
+              <Route path="/dashboard" element={<Dashboard user={activeUser} />} />
+              <Route path="/create-ticket" element={<CreateTicket user={activeUser} />} />
+              <Route path="/all-tickets" element={<AllTickets user={activeUser} />} />
+              <Route path="/ticket/:id" element={<TicketDetails user={activeUser} />} />
+              <Route path="/reports" element={<Reports user={activeUser} />} />
+              <Route path="/knowledgebase" element={<KnowledgeBase user={activeUser} />} />
+              <Route path="/notifications" element={<Notifications user={activeUser} />} />
+              <Route path="/users" element={<Users user={activeUser} />} />
+              <Route path="/messages" element={<Messages user={activeUser} />} />
+              <Route path="/settings" element={<Settings user={activeUser} />} />
+              <Route path="/adminpanel" element={<AdminPanel user={activeUser} />} />
+              <Route path="/slatracker" element={<SlaTracker user={activeUser} />} />
+              <Route path="/assetmanagement" element={<AssetManagement user={activeUser} />} />
+              <Route path="/emailtemplates" element={<EmailTemplates user={activeUser} />} />
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
             </Route>
           )}
+
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
         </Routes>
 
