@@ -1,11 +1,10 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate, Link } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
 import API from "../api/axios";
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 import loginIllustration from "../assets/login-illustration.svg";
 import logo from "../assets/ticxnova-logo.png";
@@ -20,149 +19,112 @@ const Login = ({ setAuth }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      const res = await API.post("/auth/login", {
-        email: username,
-        password: password,
-      });
-
-     if (res.data && res.data.token) {
-  localStorage.setItem("token", res.data.token);
-  localStorage.setItem("loginMethod", "custom");
-  localStorage.setItem("email", username); // ✅ Add this line to store logged-in email
-  setAuth(true);
-  navigate("/dashboard");
-}
- else {
+      const res = await API.post("/auth/login", { email: username, password });
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("loginMethod", "custom");
+        localStorage.setItem("email", username);
+        setAuth(true);
+        navigate("/dashboard");
+      } else {
         alert("Invalid credentials");
       }
     } catch (err) {
-      console.error("Login failed:", err);
-      alert("Login failed. Please check your credentials.");
+      alert("Login failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleMicrosoftLogin = () => {
-    localStorage.setItem("loginMethod", "microsoft"); // ✅ Set login type
+    localStorage.setItem("loginMethod", "microsoft");
     instance.loginRedirect(loginRequest);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-400 via-violet-500 to-fuchsia-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-fuchsia-900 flex items-center justify-center p-6">
       <motion.div
-        className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col md:flex-row items-center w-full max-w-6xl overflow-hidden border border-white/10"
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-5xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl flex flex-col md:flex-row overflow-hidden"
       >
-        <motion.div
-          className="hidden md:flex w-1/2 items-center justify-center bg-white/5 backdrop-blur-xl p-6"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <img src={loginIllustration} alt="Login Illustration" className="h-80 object-contain" />
-        </motion.div>
+        <div className="md:w-1/2 p-8 hidden md:flex items-center justify-center bg-white/5">
+          <img src={loginIllustration} alt="Illustration" className="h-80 animate-float" />
+        </div>
 
-        <motion.div
-          className="w-full md:w-1/2 p-10 text-white"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <div className="w-full md:w-1/2 p-10 text-white">
           <div className="flex justify-center mb-6">
-            <motion.div
-              className="p-1 rounded-full shadow-xl bg-black/30"
-              initial={{ y: -100, scale: 0.5, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1, rotate: [0, 0, 15, -15, 5, -5, 0] }}
-              transition={{ duration: 1.4, ease: "easeOut" }}
-            >
-              <img src={logo} alt="Ticxnova Logo" className="h-20 w-20 object-contain rounded-full border-2 border-fuchsia-400" />
-            </motion.div>
+            <div className="bg-white/10 p-2 rounded-full shadow-md border border-fuchsia-300 animate-spin-slow">
+              <img src={logo} alt="Ticxnova Logo" className="h-20 w-20 object-contain rounded-full border-2 border-fuchsia-500" />
+            </div>
           </div>
 
-          <h2 className="text-3xl font-extrabold mb-4 text-center animate-pulse">
-            🧠 AI-Powered Ticketing with <span className="text-amber-400">Ticxnova</span>
+          <h2 className="text-4xl font-bold text-center mb-2 tracking-wide text-amber-300 drop-shadow-lg">
+            Welcome to <span className="text-pink-400">Ticxnova</span>
           </h2>
-          <p className="mb-6 text-center text-sm text-gray-300">
-            The smarter, faster way to manage your service requests and support workflows.
+          <p className="text-center text-sm text-gray-200 mb-6">
+            AI-powered ticketing platform for seamless support.
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
-            <div className="relative">
-              <label className="block mb-1">👤 Email</label>
+            <div>
+              <label className="block mb-1 text-sm">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-blue-500 border border-white/20"
+                placeholder="Enter your email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter email"
                 required
               />
             </div>
-
-            <div className="relative">
-              <label className="block mb-1">🔐 Password</label>
+            <div>
+              <label className="block mb-1 text-sm">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className="w-full px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:ring-2 focus:ring-pink-500 border border-white/20"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
                 required
               />
             </div>
-
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-2 rounded-lg text-lg font-semibold hover:from-purple-600 hover:to-pink-700 transition duration-300 disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-3 rounded-lg text-lg font-bold tracking-wide hover:from-purple-600 hover:to-pink-700 transition duration-300"
             >
               {isLoading ? "⏳ Logging in..." : "🔐 Sign In"}
             </button>
           </form>
 
           <button
-            type="button"
             onClick={handleMicrosoftLogin}
-            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-lg font-semibold transition duration-300"
+            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold transition"
           >
             🔐 Sign in with Microsoft
           </button>
-<button onClick={handleLogin}>
-</button>
 
-<p className="text-sm text-gray-600 mt-4 text-center">
-  By logging in, you agree to our{" "}
-  <Link to="/privacy" className="text-blue-600 hover:underline">
-  Privacy Policy
-</Link>
+          <p className="text-sm text-gray-300 mt-5 text-center">
+            By logging in, you agree to our{" "}
+            <Link to="/privacy" className="text-sky-300 underline hover:text-sky-400">
+              Privacy Policy
+            </Link>
+          </p>
 
-</p>
+          <p className="mt-4 text-center text-sm text-indigo-300">
+            Trouble logging in?{" "}
+            <Link to="/contact-admin" className="underline hover:text-indigo-400">
+              Contact admin
+            </Link>
+          </p>
 
-
-<p className="mt-6 text-center text-sm text-gray-400">
-  Trouble accessing?{" "}
-  <Link to="/contact-admin" className="text-blue-300 hover:underline">
-    Contact admin
-  </Link>
-</p>
-
-
-
-          <motion.div
-            className="mt-6 text-center text-xs text-white/60"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-          >
-            <p>🚀 Manage incidents, changes, tasks, and SLAs with ease.</p>
-            <p className="mt-1 animate-pulse">⚡ Designed for efficiency. Built for speed.</p>
-          </motion.div>
-        </motion.div>
+          <div className="mt-6 text-center text-xs text-gray-300 animate-pulse">
+            🚀 Manage incidents, tasks, SLAs, and more — powered by AI.
+          </div>
+        </div>
       </motion.div>
     </div>
   );
