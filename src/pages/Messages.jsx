@@ -6,12 +6,12 @@ const Messages = () => {
   const { instance, accounts } = useMsal();
   const [emails, setEmails] = useState([]);
   const [folders, setFolders] = useState([]);
-  const [subFolders, setSubFolders] = useState({});
-  const [selectedFolderId, setSelectedFolderId] = useState("inbox");
+  const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [accessToken, setAccessToken] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+
+  const allowedFolderNames = ["Inbox", "Sent Items", "Outbox", "Deleted Items"];
 
   useEffect(() => {
     const fetchFolders = async () => {
@@ -29,23 +29,22 @@ const Messages = () => {
         });
 
         const folderData = await folderRes.json();
-        const mainFolders = folderData.value || [];
+        const baseFolders = folderData.value.filter((f) => allowedFolderNames.includes(f.displayName));
 
-        const subFolderMap = {};
-        await Promise.all(
-          mainFolders.map(async (folder) => {
+        const foldersWithSubs = await Promise.all(
+          baseFolders.map(async (folder) => {
             const subRes = await fetch(`https://graph.microsoft.com/v1.0/me/mailFolders/${folder.id}/childFolders`, {
               headers: {
                 Authorization: `Bearer ${response.accessToken}`,
               },
             });
             const subData = await subRes.json();
-            subFolderMap[folder.id] = subData.value || [];
+            return { ...folder, subFolders: subData.value || [] };
           })
         );
 
-        setFolders(mainFolders);
-        setSubFolders(subFolderMap);
+        setFolders(foldersWithSubs);
+        setSelectedFolderId(foldersWithSubs[0]?.id || null);
       } catch (err) {
         console.error("Error fetching folders", err);
       }
@@ -56,21 +55,16 @@ const Messages = () => {
 
   useEffect(() => {
     const fetchEmails = async () => {
+      if (!selectedFolderId) return;
       setLoading(true);
       try {
-        const response = await instance.acquireTokenSilent({
-          scopes: ["Mail.Read"],
-          account: accounts[0],
-        });
-        setAccessToken(response.accessToken);
-
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
         const mailRes = await fetch(
           `https://graph.microsoft.com/v1.0/me/mailFolders/${selectedFolderId}/messages?$top=10&$filter=receivedDateTime ge ${lastWeek}`,
           {
             headers: {
-              Authorization: `Bearer ${response.accessToken}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
@@ -84,10 +78,8 @@ const Messages = () => {
       }
     };
 
-    if (selectedFolderId) {
-      fetchEmails();
-    }
-  }, [instance, accounts, selectedFolderId]);
+    fetchEmails();
+  }, [accessToken, selectedFolderId]);
 
   const openEmail = async (email) => {
     try {
@@ -114,15 +106,15 @@ const Messages = () => {
             className={`cursor-pointer p-2 rounded hover:bg-white/10 ${selectedFolderId === folder.id ? 'bg-white/20' : ''}`}
             onClick={() => setSelectedFolderId(folder.id)}
           >
-            {folder.displayName}
+            📁 {folder.displayName}
           </li>
-          {subFolders[folder.id]?.map((sub) => (
+          {folder.subFolders?.map((sub) => (
             <li
               key={sub.id}
               className={`ml-4 cursor-pointer p-2 rounded hover:bg-white/5 text-sm ${selectedFolderId === sub.id ? 'bg-white/20' : ''}`}
               onClick={() => setSelectedFolderId(sub.id)}
             >
-              📁 {sub.displayName}
+              📨 {sub.displayName}
             </li>
           ))}
         </React.Fragment>
@@ -141,36 +133,37 @@ const Messages = () => {
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <ul className="space-y-2">
-            {emails.map((email) => (
-              <li
-                key={email.id}
-                className="p-4 border rounded bg-white/5 cursor-pointer"
-                onClick={() => openEmail(email)}
-              >
-                <h3 className="text-md font-semibold">{email.subject || '(No Subject)'}</h3>
-                <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-        {selectedEmail && (
-          <div className="mt-6 bg-white text-black p-4 rounded">
-            <h3 className="text-lg font-bold mb-2">{selectedEmail.subject}</h3>
-            <p className="text-sm mb-2">From: {selectedEmail.from?.emailAddress?.name}</p>
-            <div dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
+          <div className="flex">
+            <div className="w-1/2 pr-4">
+              <ul className="space-y-2">
+                {emails.map((email) => (
+                  <li
+                    key={email.id}
+                    className="p-4 border rounded bg-white/5 cursor-pointer"
+                    onClick={() => openEmail(email)}
+                  >
+                    <h3 className="text-md font-semibold">{email.subject || '(No Subject)'}</h3>
+                    <p className="text-sm text-gray-300">From: {email.from?.emailAddress?.name}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="w-1/2 bg-white text-black p-4 rounded">
+              {selectedEmail ? (
+                <>
+                  <h3 className="text-lg font-bold mb-2">{selectedEmail.subject}</h3>
+                  <p className="text-sm mb-2">From: {selectedEmail.from?.emailAddress?.name}</p>
+                  <div dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }} />
+                </>
+              ) : (
+                <p>Select an email to view</p>
+              )}
+            </div>
           </div>
         )}
       </main>
     </div>
   );
 };
-
-const toBase64 = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result.split(',')[1]);
-  reader.onerror = (error) => reject(error);
-});
 
 export default Messages;
