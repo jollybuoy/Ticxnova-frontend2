@@ -20,7 +20,7 @@ const Messages = () => {
   const [composeBcc, setComposeBcc] = useState("");
   const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(null);
-  const [attachment, setAttachment] = useState(null);
+  const [attachments, setAttachments] = useState([]);
 
   const filteredEmails = emails.filter(email =>
     email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,6 +107,12 @@ const Messages = () => {
   const closeEmail = () => setSelectedEmail(null);
 
   const sendMail = async () => {
+    const encodedAttachments = await Promise.all(
+      attachments.map(async (file) => ({
+        ...file,
+        base64: await toBase64(file.file)
+      }))
+    );
     setSending(true);
     try {
       const mail = {
@@ -125,47 +131,17 @@ const Messages = () => {
         saveToSentItems: true
       };
 
-      if (attachment) {
-        const base64 = await toBase64(attachment);
-        mail.message.attachments = [
+      if (attachments.length > 0) {
+        mail.message.attachments = attachments.map(file => ({
           {
             '@odata.type': '#microsoft.graph.fileAttachment',
-            name: attachment.name,
-            contentBytes: base64,
-            contentType: attachment.type
+            name: file.name,
+            contentBytes: file.base64,
+            contentType: file.type
           }
         ];
       }
-        body: JSON.stringify({
-          message: {
-            subject: composeSubject,
-            body: {
-              contentType: "HTML",
-              content: composeBody,
-            },
-            toRecipients: [
-              {
-                emailAddress: {
-                  address: composeTo,
-                },
-              },
-            ],
-            ccRecipients: composeCc ? [
-              {
-                emailAddress: {
-                  address: composeCc,
-                },
-              },
-            ] : [],
-            bccRecipients: composeBcc ? [
-              {
-                emailAddress: {
-                  address: composeBcc,
-                },
-              },
-            ] : [],
-          },
-        }),
+        body: JSON.stringify(mail),
       });
 
       if (response.ok) {
@@ -176,7 +152,7 @@ const Messages = () => {
         setComposeCc("");
         setComposeBcc("");
         setComposeBody("");
-        setAttachment(null);
+        setAttachments([]);
       } else {
         setSendSuccess(false);
       }
@@ -315,7 +291,17 @@ const Messages = () => {
             ></textarea>
             <input
               type="file"
-              onChange={(e) => setAttachment(e.target.files[0])}
+              multiple
+              onChange={(e) => setAttachments(Array.from(e.target.files).map(f => ({ file: f, name: f.name, type: f.type })))}
+              className="mt-3 w-full p-1 border rounded"
+            />
+            {attachments.length > 0 && (
+              <ul className="mt-2 text-xs text-gray-800">
+                {attachments.map((att, index) => (
+                  <li key={index}>📎 {att.name}</li>
+                ))}
+              </ul>
+            ) setAttachment(e.target.files[0])}
               className="mt-3 w-full p-1 border rounded"
             />
             {sendSuccess !== null && (
