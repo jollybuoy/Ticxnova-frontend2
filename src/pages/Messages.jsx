@@ -300,7 +300,6 @@ const Messages = () => {
                   <li key={index}>📎 {att.name}</li>
                 ))}
               </ul>
-            ) setAttachment(e.target.files[0])}
               className="mt-3 w-full p-1 border rounded"
             />
             {sendSuccess !== null && (
