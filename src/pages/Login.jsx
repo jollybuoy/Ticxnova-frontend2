@@ -143,9 +143,17 @@ const Login = ({ setAuth }) => {
 
 </p>
 
-          <p className="mt-6 text-center text-sm text-gray-400">
-            Trouble accessing? <span className="text-blue-300 cursor-pointer hover:underline">Contact admin</span>
-          </p>
+         import { Link } from "react-router-dom"; // Make sure it's imported
+
+...
+
+<p className="mt-6 text-center text-sm text-gray-400">
+  Trouble accessing?{" "}
+  <Link to="/contact-admin" className="text-blue-300 hover:underline">
+    Contact admin
+  </Link>
+</p>
+
 
 
           <motion.div
