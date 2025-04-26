@@ -1,8 +1,9 @@
-// src/pages/KnowledgeBase.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
+import { useMsal } from "@azure/msal-react"; // ✅ make sure this is imported
+import { loginRequest } from "../auth/msalConfig"; // ✅ your loginRequest scopes
+import axios from "../api/axios"; // ✅ your configured axios
 import UploadDocument from "../components/UploadDocument";
-import axios from "../api/axios";
 
 const initialUserDocs = [
   {
@@ -17,37 +18,51 @@ const initialUserDocs = [
 ];
 
 const KnowledgeBase = () => {
+  const { instance, accounts } = useMsal();
   const [activeTab, setActiveTab] = useState("public");
   const [search, setSearch] = useState("");
-  const [userDocs, setUserDocs] = useState(initialUserDocs);
   const [publicDocs, setPublicDocs] = useState([]);
-  const [loadingPublicDocs, setLoadingPublicDocs] = useState(false);
+  const [userDocs, setUserDocs] = useState(initialUserDocs);
+  const [loading, setLoading] = useState(false);
 
+  // 📥 Handle User Upload
   const handleUserUpload = (newDoc) => {
     setUserDocs((prev) => [newDoc, ...prev]);
   };
 
-  useEffect(() => {
-    const fetchPublicDocs = async () => {
-      setLoadingPublicDocs(true);
-      try {
-        const res = await axios.get("/onedrive/documents");
-        setPublicDocs(res.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch OneDrive documents:", err);
-      } finally {
-        setLoadingPublicDocs(false);
-      }
-    };
+  // 📤 Fetch OneDrive documents
+  const fetchOneDriveDocuments = async () => {
+    setLoading(true);
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0]
+      });
 
-    if (activeTab === "public") {
-      fetchPublicDocs();
+      const token = response.accessToken;
+
+      const res = await axios.get("/onedrive/documents", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setPublicDocs(res.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch OneDrive documents:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab]);
+  };
 
+  useEffect(() => {
+    fetchOneDriveDocuments();
+  }, []);
+
+  // 🔍 Filtered Docs
   const filteredDocs = (activeTab === "public" ? publicDocs : userDocs).filter(doc =>
     doc.title.toLowerCase().includes(search.toLowerCase()) ||
-    (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
+    (doc.tags || []).some(tag => tag.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -88,10 +103,8 @@ const KnowledgeBase = () => {
 
       {activeTab === "user" && <UploadDocument onUpload={handleUserUpload} />}
 
-      {loadingPublicDocs && activeTab === "public" ? (
-        <div className="text-center text-gray-500 mt-20 animate-pulse">
-          ⏳ Loading documents from OneDrive...
-        </div>
+      {loading ? (
+        <div className="text-center text-gray-500 mt-20">Loading documents from OneDrive...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
           {filteredDocs.map((doc) => (
@@ -104,7 +117,7 @@ const KnowledgeBase = () => {
               </div>
               <p className="text-sm text-gray-700 mb-2 line-clamp-3">{doc.description}</p>
               <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-                {doc.tags && doc.tags.map((tag, idx) => (
+                {(doc.tags || []).map((tag, idx) => (
                   <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
                 ))}
               </div>
@@ -116,7 +129,7 @@ const KnowledgeBase = () => {
               </div>
               <div className="mt-4 flex justify-end gap-2">
                 <a
-                  href={doc.downloadUrl || "#"}
+                  href={`https://graph.microsoft.com/v1.0/me/drive/items/${doc.id}/content`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600"
@@ -129,7 +142,7 @@ const KnowledgeBase = () => {
         </div>
       )}
 
-      {filteredDocs.length === 0 && !loadingPublicDocs && (
+      {filteredDocs.length === 0 && !loading && (
         <div className="text-center text-gray-500 mt-20">
           No documents found.
         </div>
