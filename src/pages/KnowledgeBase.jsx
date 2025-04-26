@@ -1,92 +1,90 @@
-import React, { useState, useEffect } from "react";
+// src/pages/KnowledgeBase.jsx
+import React, { useState } from "react";
 import { FiFileText, FiSearch, FiBookOpen, FiDownload } from "react-icons/fi";
-import { getAllSopDocuments } from "../services/sopService"; // We'll fetch from backend
+
+const sampleDocuments = [
+  {
+    id: 1,
+    title: "Reset Active Directory Password",
+    description: "Step-by-step guide to reset your AD password.",
+    tags: ["Active Directory", "Password", "Security"],
+    updatedAt: "2025-04-25",
+    type: "PDF",
+  },
+  {
+    id: 2,
+    title: "Multi-Factor Authentication Setup",
+    description: "How to configure MFA for your account securely.",
+    tags: ["Security", "MFA"],
+    updatedAt: "2025-04-20",
+    type: "PDF",
+  },
+  {
+    id: 3,
+    title: "VPN Access Guide",
+    description: "Connect to VPN on Windows and Mac devices.",
+    tags: ["VPN", "Remote Work"],
+    updatedAt: "2025-04-18",
+    type: "DOCX",
+  },
+];
 
 const KnowledgeBase = () => {
-  const [sopDocuments, setSopDocuments] = useState([]);
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    const fetchDocs = async () => {
-      try {
-        const docs = await getAllSopDocuments();
-        setSopDocuments(docs);
-      } catch (err) {
-        console.error("Failed to load SOP documents:", err);
-      }
-    };
-    fetchDocs();
-  }, []);
-
-  const filteredDocs = sopDocuments.filter(doc =>
-    doc.title.toLowerCase().includes(search.toLowerCase()) ||
-    doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+  const filteredDocuments = sampleDocuments.filter(doc =>
+    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
-    <div className="p-8 min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
-      <div className="mb-10">
+    <div className="p-6 min-h-screen bg-white text-gray-800">
+      <div className="mb-8">
         <h1 className="text-4xl font-bold flex items-center gap-3">
-          <FiBookOpen className="text-blue-700" /> Knowledge Base
+          <FiBookOpen className="text-blue-600" /> Knowledge Base
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Access important SOPs and Guides uploaded by Admins.</p>
+        <p className="text-gray-500 mt-2">Explore our official SOP (Standard Operating Procedure) documents.</p>
       </div>
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between mb-6">
         <div className="relative w-80">
-          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+          <FiSearch className="absolute top-3 left-3 text-gray-400" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title or tag..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 outline-none"
+            placeholder="Search SOPs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredDocs.map((doc) => (
-          <div
-            key={doc.id}
-            className="border border-gray-200 rounded-2xl shadow-xl bg-gradient-to-br from-white to-blue-50 p-6 transform transition-transform hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-blue-200 duration-300"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 font-bold text-lg text-blue-700">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {filteredDocuments.map((doc) => (
+          <div key={doc.id} className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-md border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-lg font-semibold">
                 <FiFileText className="text-blue-500" /> {doc.title}
               </div>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full capitalize">
-                {doc.fileType}
-              </span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{doc.type}</span>
             </div>
-
-            <p className="text-sm text-gray-700 mb-3 line-clamp-3">{doc.description}</p>
-
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+            <p className="text-gray-700 text-sm mb-4">{doc.description}</p>
+            <div className="flex flex-wrap gap-2 mb-4">
               {doc.tags.map((tag, idx) => (
-                <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
+                <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full text-xs text-gray-600">#{tag}</span>
               ))}
             </div>
-
-            <div className="flex justify-between text-xs text-gray-400">
+            <div className="flex justify-between text-gray-400 text-xs">
               <div>📅 {doc.updatedAt}</div>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <a
-                href={doc.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold flex items-center gap-2 text-sm"
-              >
-                <FiDownload /> View Document
-              </a>
+              <button className="flex items-center gap-1 text-blue-600 hover:underline text-sm">
+                <FiDownload /> View
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {filteredDocs.length === 0 && (
+      {filteredDocuments.length === 0 && (
         <div className="text-center text-gray-500 mt-20">
           No documents found.
         </div>
