@@ -42,21 +42,30 @@ const KnowledgeBase = () => {
 
   // ✅ Securely View document from OneDrive
   const handleViewDocument = async (docId) => {
-    try {
-      const response = await msalInstance.acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0]
-      });
+  try {
+    const response = await msalInstance.acquireTokenSilent({
+      ...loginRequest,
+      account: accounts[0],
+    });
 
-      const accessToken = response.accessToken;
-      const url = `https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`;
+    const accessToken = response.accessToken;
 
-      window.open(url + `?access_token=${accessToken}`, "_blank");
-    } catch (err) {
-      console.error("❌ Failed to view document securely:", err);
-      alert("Failed to open document. Please try again.");
-    }
-  };
+    // Download the file first
+    const fileResponse = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      responseType: 'blob', // Important!
+    });
+
+    const fileURL = URL.createObjectURL(new Blob([fileResponse.data]));
+    window.open(fileURL, "_blank");
+  } catch (err) {
+    console.error("❌ Failed to open document:", err);
+    alert("Failed to open document. Please try again.");
+  }
+};
+
 
   return (
     <div className="p-6 text-gray-800 bg-white min-h-screen">
