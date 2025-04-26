@@ -131,7 +131,42 @@ const KnowledgeBase = () => {
       {/* 🔵 SOP Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSops.map((doc) => (
-          <div key={doc.id} className="border border-gray-200 rounded-2xl shadow-lg bg-gradient-to-br from-white to-blue-50 p-5">
+<div
+  key={doc.id}
+  className="border border-gray-200 rounded-2xl shadow-xl bg-gradient-to-br from-white to-blue-50 p-6 transform transition-transform hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-blue-200 duration-300"
+>
+  <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center gap-2 font-bold text-lg text-blue-700">
+      <FiFileText className="text-blue-500" /> {doc.title}
+    </div>
+    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full capitalize">
+      {doc.fileType}
+    </span>
+  </div>
+
+  <p className="text-sm text-gray-700 mb-3 line-clamp-3">{doc.description}</p>
+
+  <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+    {doc.tags.map((tag, idx) => (
+      <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
+    ))}
+  </div>
+
+  <div className="flex justify-between text-xs text-gray-400">
+    <div>📅 {doc.updatedAt}</div>
+  </div>
+
+  <div className="mt-4 flex justify-end">
+    <a
+      href={doc.fileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold flex items-center gap-2 text-sm"
+    >
+      <FiDownload /> View Document
+    </a>
+  </div>
+</div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 font-bold text-lg">
                 <FiFileText className="text-blue-500" /> {doc.title}
