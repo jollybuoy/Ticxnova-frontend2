@@ -3,8 +3,7 @@ import React, { useState } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
 import UploadDocument from "../components/UploadDocument";
 import { useMsal } from "@azure/msal-react"; // ✅ MSAL Hook
-import { loginRequest } from "../auth/msalConfig"; // ✅ MSAL login scopes
-import { instance } from "../auth/msalConfig"; // ✅ Import MSAL instance (corrected!)
+import { msalInstance, loginRequest } from "../auth/msalConfig"; // ✅ Corrected import msalInstance
 
 const KnowledgeBase = () => {
   const { accounts } = useMsal();
@@ -44,16 +43,14 @@ const KnowledgeBase = () => {
   // ✅ Securely View document from OneDrive
   const handleViewDocument = async (docId) => {
     try {
-      const response = await instance.acquireTokenSilent({
+      const response = await msalInstance.acquireTokenSilent({
         ...loginRequest,
         account: accounts[0]
       });
 
       const accessToken = response.accessToken;
-
       const url = `https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`;
 
-      // Open securely by attaching access_token
       window.open(url + `?access_token=${accessToken}`, "_blank");
     } catch (err) {
       console.error("❌ Failed to view document securely:", err);
