@@ -1,74 +1,87 @@
 // src/pages/KnowledgeBase.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
-import UploadDocument from "../components/UploadDocument";
-import { useMsal } from "@azure/msal-react"; // ✅ MSAL Hook
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../auth/msalConfig";
 import axios from "axios";
-import { msalInstance, loginRequest } from "../auth/msalConfig"; // ✅ Corrected import msalInstance
+import UploadDocument from "../components/UploadDocument";
 
 const KnowledgeBase = () => {
-  const { accounts } = useMsal();
+  const { instance, accounts } = useMsal();
   const [activeTab, setActiveTab] = useState("public");
   const [search, setSearch] = useState("");
+  const [publicDocs, setPublicDocs] = useState([]);
   const [userDocs, setUserDocs] = useState([]);
-  const [publicDocs, setPublicDocs] = useState([
-    {
-      id: "sample1",
-      title: "Reset AD Password",
-      tags: ["AD", "Password", "Security"],
-      description: "Steps to reset your Active Directory password securely.",
-      type: "pdf",
-      updatedAt: "2025-04-15",
-      owner: "Admin"
-    },
-    {
-      id: "sample2",
-      title: "MFA Setup Guide",
-      tags: ["Security", "MFA"],
-      description: "How to enable Multi-Factor Authentication in your account.",
-      type: "pdf",
-      updatedAt: "2025-04-10",
-      owner: "Admin"
+
+  const fetchOneDriveDocuments = async () => {
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0],
+      });
+
+      const accessToken = response.accessToken;
+
+      const res = await axios.get("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const docs = res.data.value
+        .filter(file => file.file)
+        .map(file => ({
+          id: file.id,
+          title: file.name,
+          tags: [],
+          description: file.name,
+          updatedAt: file.lastModifiedDateTime.split("T")[0],
+          owner: "Admin",
+          type: file.name.split(".").pop()
+        }));
+
+      setPublicDocs(docs);
+    } catch (err) {
+      console.error("❌ Failed to fetch documents:", err);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchOneDriveDocuments();
+  }, []);
 
   const handleUserUpload = (newDoc) => {
     setUserDocs((prev) => [newDoc, ...prev]);
+  };
+
+  const handleViewDocument = async (docId) => {
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0],
+      });
+
+      const accessToken = response.accessToken;
+
+      const fileResponse = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        responseType: 'blob',
+      });
+
+      const fileURL = URL.createObjectURL(new Blob([fileResponse.data]));
+      window.open(fileURL, "_blank");
+    } catch (err) {
+      console.error("❌ Failed to open document:", err);
+      alert("Failed to open document. Please try again.");
+    }
   };
 
   const filteredDocs = (activeTab === "public" ? publicDocs : userDocs).filter(doc =>
     doc.title.toLowerCase().includes(search.toLowerCase()) ||
     doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
   );
-
-  // ✅ Securely View document from OneDrive
-  const handleViewDocument = async (docId) => {
-  try {
-    // Step 1: Acquire fresh access token
-    const response = await msalInstance.acquireTokenSilent({
-      ...loginRequest,
-      account: accounts[0],
-    });
-
-    const accessToken = response.accessToken;
-
-    // Step 2: Call Microsoft Graph API with Authorization header
-    const fileResponse = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      responseType: 'blob', // Very important
-    });
-
-    // Step 3: Open file in new tab
-    const fileURL = URL.createObjectURL(new Blob([fileResponse.data]));
-    window.open(fileURL, "_blank");
-  } catch (err) {
-    console.error("❌ Failed to open document:", err);
-    alert("Failed to open document. Please try again.");
-  }
-};
-
 
   return (
     <div className="p-6 text-gray-800 bg-white min-h-screen">
@@ -84,16 +97,14 @@ const KnowledgeBase = () => {
           <button
             onClick={() => setActiveTab("public")}
             className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "public" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
-          >
-            📘 Public Repository
-          </button>
+          >📘 Public Repository</button>
+
           <button
             onClick={() => setActiveTab("user")}
             className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
-          >
-            🗂 My Documents
-          </button>
+          >🗂 My Documents</button>
         </div>
+
         <div className="relative w-72">
           <FiSearch className="absolute left-3 top-3 text-gray-400" />
           <input
@@ -117,22 +128,26 @@ const KnowledgeBase = () => {
               </div>
               <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full capitalize">{doc.type}</span>
             </div>
+
             <p className="text-sm text-gray-700 mb-2 line-clamp-3">{doc.description}</p>
+
             <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
               {doc.tags.map((tag, idx) => (
                 <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
               ))}
             </div>
+
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <div className="flex items-center gap-1">
                 {doc.owner === "Admin" ? <FiCloud /> : <FiUser />} {doc.owner}
               </div>
               <div>📅 {doc.updatedAt}</div>
             </div>
+
             <div className="mt-4 flex justify-end gap-2">
               <button
-                className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600"
                 onClick={() => handleViewDocument(doc.id)}
+                className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600"
               >
                 <FiDownload className="inline mr-1" /> View
               </button>
