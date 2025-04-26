@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
 import UploadDocument from "../components/UploadDocument";
 import { useMsal } from "@azure/msal-react"; // ✅ MSAL Hook
+import axios from "axios";
 import { msalInstance, loginRequest } from "../auth/msalConfig"; // ✅ Corrected import msalInstance
 
 const KnowledgeBase = () => {
@@ -43,6 +44,7 @@ const KnowledgeBase = () => {
   // ✅ Securely View document from OneDrive
   const handleViewDocument = async (docId) => {
   try {
+    // Step 1: Acquire fresh access token
     const response = await msalInstance.acquireTokenSilent({
       ...loginRequest,
       account: accounts[0],
@@ -50,14 +52,15 @@ const KnowledgeBase = () => {
 
     const accessToken = response.accessToken;
 
-    // Download the file first
+    // Step 2: Call Microsoft Graph API with Authorization header
     const fileResponse = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-      responseType: 'blob', // Important!
+      responseType: 'blob', // Very important
     });
 
+    // Step 3: Open file in new tab
     const fileURL = URL.createObjectURL(new Blob([fileResponse.data]));
     window.open(fileURL, "_blank");
   } catch (err) {
