@@ -1,166 +1,87 @@
 // src/pages/KnowledgeBase.jsx
-import React, { useState, useEffect } from "react";
-import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
-import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../auth/msalConfig";
+import React, { useEffect, useState } from "react";
+import { FiFileText, FiSearch, FiDownloadCloud, FiFilter } from "react-icons/fi";
 import axios from "axios";
-import UploadDocument from "../components/UploadDocument";
 
 const KnowledgeBase = () => {
-  const { instance, accounts } = useMsal();
-  const [activeTab, setActiveTab] = useState("public");
+  const [sops, setSops] = useState([]);
   const [search, setSearch] = useState("");
-  const [publicDocs, setPublicDocs] = useState([]);
-  const [userDocs, setUserDocs] = useState([]);
 
-  const fetchOneDriveDocuments = async () => {
+  useEffect(() => {
+    fetchSOPs();
+  }, []);
+
+  const fetchSOPs = async () => {
     try {
-      const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0],
-      });
-
-      const accessToken = response.accessToken;
-
-      const res = await axios.get("https://graph.microsoft.com/v1.0/me/drive/root/children", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const docs = res.data.value
-        .filter(file => file.file)
-        .map(file => ({
-          id: file.id,
-          title: file.name,
-          tags: [],
-          description: file.name,
-          updatedAt: file.lastModifiedDateTime.split("T")[0],
-          owner: "Admin",
-          type: file.name.split(".").pop()
-        }));
-
-      setPublicDocs(docs);
+      const response = await axios.get("/api/sop");
+      setSops(response.data);
     } catch (err) {
-      console.error("❌ Failed to fetch documents:", err);
+      console.error("Failed to fetch SOPs", err);
     }
   };
 
-  useEffect(() => {
-    fetchOneDriveDocuments();
-  }, []);
-
-  const handleUserUpload = (newDoc) => {
-    setUserDocs((prev) => [newDoc, ...prev]);
-  };
-
- const handleViewDocument = async (doc) => {
-  if (!doc.id || doc.owner === "me") {
-    alert("This document is stored locally. Only OneDrive documents can be opened.");
-    return;
-  }
-
-  try {
-    const { accounts } = instance.getAllAccounts().length ? instance : msalInstance;
-    if (!accounts.length) throw new Error("No signed-in Microsoft account");
-
-    const response = await instance.acquireTokenSilent({
-      ...loginRequest,
-      account: accounts[0]
-    });
-
-    const accessToken = response.accessToken;
-
-    window.open(`https://graph.microsoft.com/v1.0/me/drive/items/${doc.id}/content?access_token=${accessToken}`, "_blank");
-  } catch (err) {
-    console.error("❌ Failed to open document:", err);
-    alert("Failed to open document. Please try again.");
-  }
-};
-
-
-  const filteredDocs = (activeTab === "public" ? publicDocs : userDocs).filter(doc =>
-    doc.title.toLowerCase().includes(search.toLowerCase()) ||
-    doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+  const filteredSOPs = sops.filter((sop) =>
+    sop.title.toLowerCase().includes(search.toLowerCase()) ||
+    sop.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
-    <div className="p-6 text-gray-800 bg-white min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold flex items-center gap-3">
-          <FiBookOpen className="text-blue-600" /> Knowledge Base
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Explore helpful guides and upload your own documents.</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-4">
-          <button
-            onClick={() => setActiveTab("public")}
-            className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "public" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
-          >📘 Public Repository</button>
-
-          <button
-            onClick={() => setActiveTab("user")}
-            className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
-          >🗂 My Documents</button>
+    <div className="p-8 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-blue-700 mb-2 flex items-center gap-3">
+            <FiFileText className="text-blue-600" /> Knowledge Base (SOPs)
+          </h1>
+          <p className="text-gray-600">Browse official SOP documents uploaded by Admin.</p>
         </div>
-
-        <div className="relative w-72">
-          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+        <div className="relative mt-4 md:mt-0">
+          <FiSearch className="absolute top-3 left-3 text-gray-400" />
           <input
             type="text"
+            placeholder="Search by title or tag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title or tag..."
-            className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 outline-none"
+            className="pl-10 pr-4 py-2 rounded-full bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-72"
           />
         </div>
       </div>
 
-      {activeTab === "user" && <UploadDocument onUpload={handleUserUpload} />}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {filteredDocs.map((doc) => (
-          <div key={doc.id} className="border border-gray-200 rounded-2xl shadow-lg bg-gradient-to-br from-white to-blue-50 p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 font-bold text-lg">
-                <FiFileText className="text-blue-500" /> {doc.title}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredSOPs.map((sop) => (
+          <div key={sop.id} className="bg-white rounded-2xl shadow-xl p-6 flex flex-col justify-between hover:shadow-2xl transition-all">
+            <div>
+              <h2 className="text-xl font-bold text-blue-800 mb-2 line-clamp-2">
+                {sop.title}
+              </h2>
+              <p className="text-gray-600 text-sm line-clamp-3 mb-4">{sop.description}</p>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-4">
+                {sop.tags.map((tag, idx) => (
+                  <span key={idx} className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                    #{tag}
+                  </span>
+                ))}
               </div>
-              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full capitalize">{doc.type}</span>
             </div>
-
-            <p className="text-sm text-gray-700 mb-2 line-clamp-3">{doc.description}</p>
-
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-              {doc.tags.map((tag, idx) => (
-                <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
-              ))}
-            </div>
-
-            <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <div className="flex items-center justify-between text-gray-400 text-xs">
               <div className="flex items-center gap-1">
-                {doc.owner === "Admin" ? <FiCloud /> : <FiUser />} {doc.owner}
+                <FiFilter /> {sop.type.toUpperCase()}
               </div>
-              <div>📅 {doc.updatedAt}</div>
+              <div>
+                📅 {new Date(sop.updatedAt).toLocaleDateString()}
+              </div>
             </div>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => handleViewDocument(doc.id)}
-                className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600"
-              >
-                <FiDownload className="inline mr-1" /> View
-              </button>
-            </div>
+            <button
+              onClick={() => window.open(`/uploads/${sop.fileName}`, "_blank")}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm flex items-center gap-2 w-full justify-center"
+            >
+              <FiDownloadCloud /> View / Download
+            </button>
           </div>
         ))}
       </div>
 
-      {filteredDocs.length === 0 && (
-        <div className="text-center text-gray-500 mt-20">
-          No documents found.
-        </div>
+      {filteredSOPs.length === 0 && (
+        <div className="text-center text-gray-400 mt-20">No SOPs found.</div>
       )}
     </div>
   );
