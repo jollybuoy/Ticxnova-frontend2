@@ -20,9 +20,6 @@ export const loginRequest = {
     "Mail.Read",
     "Mail.ReadWrite",
     "Mail.Send",
-    "User.ReadBasic.All",
-    "User.Read.All",
-    "User.ReadWrite.All",
     "Files.Read.All",
     "Sites.Read.All"
   ]
