@@ -54,29 +54,30 @@ const KnowledgeBase = () => {
     setUserDocs((prev) => [newDoc, ...prev]);
   };
 
-  const handleViewDocument = async (docId) => {
-    try {
-      const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0],
-      });
+ const handleViewDocument = async (doc) => {
+  if (!doc.id || doc.owner === "me") {
+    alert("This document is stored locally. Only OneDrive documents can be opened.");
+    return;
+  }
 
-      const accessToken = response.accessToken;
+  try {
+    const { accounts } = instance.getAllAccounts().length ? instance : msalInstance;
+    if (!accounts.length) throw new Error("No signed-in Microsoft account");
 
-      const fileResponse = await axios.get(`https://graph.microsoft.com/v1.0/me/drive/items/${docId}/content`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        responseType: 'blob',
-      });
+    const response = await instance.acquireTokenSilent({
+      ...loginRequest,
+      account: accounts[0]
+    });
 
-      const fileURL = URL.createObjectURL(new Blob([fileResponse.data]));
-      window.open(fileURL, "_blank");
-    } catch (err) {
-      console.error("❌ Failed to open document:", err);
-      alert("Failed to open document. Please try again.");
-    }
-  };
+    const accessToken = response.accessToken;
+
+    window.open(`https://graph.microsoft.com/v1.0/me/drive/items/${doc.id}/content?access_token=${accessToken}`, "_blank");
+  } catch (err) {
+    console.error("❌ Failed to open document:", err);
+    alert("Failed to open document. Please try again.");
+  }
+};
+
 
   const filteredDocs = (activeTab === "public" ? publicDocs : userDocs).filter(doc =>
     doc.title.toLowerCase().includes(search.toLowerCase()) ||
