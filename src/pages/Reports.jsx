@@ -47,7 +47,8 @@ const Reports = () => {
           <h2 className="text-lg font-semibold mb-2">📌 Tickets by Status</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={reportData.byStatus} dataKey="count" nameKey="status" outerRadius={80} label>
+             <Pie data={reportData.byStatus.filter(item => item.status)}
+ dataKey="count" nameKey="status" outerRadius={80} label>
                 {reportData.byStatus.map((entry, index) => (
                   <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
