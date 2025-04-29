@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import TicxnovaLogo from "../assets/ticxnova-logo.png";
 import axios from "axios";
 import {
   BarChart, Bar, PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -54,7 +55,7 @@ const Reports = () => {
     <div className="p-6 min-h-screen bg-gradient-to-br from-slate-100 to-white">
       {/* Header with Logo */}
       <div className="flex justify-start items-center mb-6 gap-3">
-        <img src="/src/assets/ticxnova-logo.png" alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
+<img src={TicxnovaLogo} alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
         <h1 className="text-3xl font-bold text-gray-800">Ticxnova Reports</h1>
       </div>
 
