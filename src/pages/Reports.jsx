@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import {
   BarChart, Bar, PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
 import {
-  FaDownload, FaUserCheck, FaBuilding,
   FaCheckCircle, FaBug, FaChartPie, FaCogs,
 } from "react-icons/fa";
 
@@ -51,27 +50,12 @@ const Reports = () => {
     }
   };
 
-  useEffect(() => {
-    fetchReportData();
-  }, [startDate, endDate, assignedTo, department]);
-
-  const handleExport = () => {
-    alert("📥 Exporting report as PDF/CSV...");
-  };
-
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-slate-100 to-white">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Ticxnova Logo" className="w-10 h-10" />
-          <h1 className="text-3xl font-bold text-gray-800">Ticxnova Reports</h1>
-        </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl shadow hover:scale-105 transition"
-        >
-          <FaDownload /> Export
-        </button>
+      {/* Header with Logo */}
+      <div className="flex justify-start items-center mb-6 gap-3">
+        <img src="/src/assets/ticxnova-logo.png" alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
+        <h1 className="text-3xl font-bold text-gray-800">Ticxnova Reports</h1>
       </div>
 
       {/* Filters */}
@@ -121,11 +105,11 @@ const Reports = () => {
       </div>
 
       {/* Field Selector */}
-      <div className="bg-white rounded-xl shadow p-4 mb-6">
+      <div className="bg-white rounded-xl shadow p-4 mb-4">
         <h3 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
           <FaCogs /> Select Report Fields
         </h3>
-        <div className="flex gap-6 text-sm">
+        <div className="flex gap-6 text-sm flex-wrap">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -147,6 +131,16 @@ const Reports = () => {
               onChange={() => setSelectedFields({ ...selectedFields, resolution: !selectedFields.resolution })}
             /> Avg. Resolution Time
           </label>
+        </div>
+
+        {/* Generate Button */}
+        <div className="mt-4">
+          <button
+            onClick={fetchReportData}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            🔍 Generate Report
+          </button>
         </div>
       </div>
 
