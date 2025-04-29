@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Papa from "papaparse";
-const exportCSV = async (data, filename) => {
-  const { saveAs } = await import("file-saver"); // ✅ Load at runtime only
-  const csv = Papa.unparse(data);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  saveAs(blob, `${filename}.csv`);
-};
+
+import { FaDownload, FaFilter, FaUserShield, FaBuilding, FaBug, FaClipboardList, FaClock } from "react-icons/fa";
+import logo from "../assets/ticxnova-logo.png";
 
 const Reports = () => {
   const [reportData, setReportData] = useState({
@@ -18,7 +15,7 @@ const Reports = () => {
   });
 
   useEffect(() => {
-    const fetchReport = async () => {
+    const fetchReports = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/reports/simple`, {
@@ -26,91 +23,124 @@ const Reports = () => {
         });
         setReportData(response.data);
       } catch (err) {
-        console.error("❌ Failed to fetch report:", err);
+        console.error("❌ Report fetch failed:", err);
       }
     };
 
-    fetchReport();
+    fetchReports();
   }, []);
 
-  const exportCSV = (data, filename) => {
+  const exportCSV = async (data, filename) => {
+    const { saveAs } = await import("file-saver");
     const csv = Papa.unparse(data);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, `${filename}.csv`);
   };
 
-  const ReportTable = ({ title, data, keys, exportName }) => (
-    <div className="bg-white p-4 rounded-xl shadow mb-6">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold">{title}</h2>
+  const SectionCard = ({ title, icon, data, keys, fileName }) => (
+    <div className="bg-white p-6 rounded-xl shadow-lg mb-6 hover:shadow-xl transition-all">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+          {icon}
+          <span>{title}</span>
+        </div>
         <button
-          onClick={() => exportCSV(data, exportName)}
-          className="text-sm text-blue-600 hover:underline"
+          onClick={() => exportCSV(data, fileName)}
+          className="text-sm flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full"
         >
-          Download CSV
+          <FaDownload /> Export CSV
         </button>
       </div>
-      <table className="w-full text-sm border">
-        <thead>
-          <tr className="bg-gray-100">
+      <table className="w-full border text-sm">
+        <thead className="bg-gray-100">
+          <tr>
             {keys.map((key) => (
               <th key={key} className="text-left p-2 border">{key}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.map((row, i) => (
-            <tr key={i} className="border-t">
-              {keys.map((key) => (
-                <td key={key} className="p-2 border">{row[key]}</td>
-              ))}
+          {data?.length > 0 ? (
+            data.map((row, i) => (
+              <tr key={i} className="border-t hover:bg-gray-50">
+                {keys.map((key) => (
+                  <td key={key} className="p-2 border">{row[key]}</td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={keys.length} className="p-4 text-center text-gray-400">No data available</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
   );
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-br from-slate-100 to-white">
-      <div className="flex items-center gap-3 mb-6">
-        <img src="/ticxnova-logo.png" alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
+    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-slate-100">
+      <header className="flex items-center gap-4 mb-6">
+        <img src={logo} alt="Ticxnova Logo" className="h-10 w-10 object-contain" />
         <h1 className="text-3xl font-bold text-gray-800">📄 Ticket Reports</h1>
+      </header>
+
+      {/* Filters (optional for future functionality) */}
+      <div className="bg-white rounded-xl shadow mb-6 p-4 flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2 text-gray-600">
+          <FaFilter className="text-blue-600" />
+          <span className="font-semibold">Filters:</span>
+        </div>
+        <input type="date" className="px-3 py-2 rounded bg-gray-100 text-sm" />
+        <input type="date" className="px-3 py-2 rounded bg-gray-100 text-sm" />
+        <input type="text" placeholder="Assigned To" className="px-3 py-2 rounded bg-gray-100 text-sm" />
+        <select className="px-3 py-2 rounded bg-gray-100 text-sm">
+          <option value="">All Departments</option>
+          <option value="IT">IT</option>
+          <option value="HR">HR</option>
+          <option value="Finance">Finance</option>
+        </select>
       </div>
 
-      <ReportTable
+      {/* Report Sections */}
+      <SectionCard
         title="Tickets by Status"
+        icon={<FaClipboardList className="text-blue-600" />}
         data={reportData.byStatus}
         keys={["status", "count"]}
-        exportName="tickets_by_status"
+        fileName="tickets_by_status"
       />
 
-      <ReportTable
+      <SectionCard
         title="Tickets by Priority"
+        icon={<FaBug className="text-red-500" />}
         data={reportData.byPriority}
         keys={["priority", "count"]}
-        exportName="tickets_by_priority"
+        fileName="tickets_by_priority"
       />
 
-      <ReportTable
+      <SectionCard
         title="Tickets by Type"
+        icon={<FaClock className="text-purple-500" />}
         data={reportData.byType}
         keys={["ticketType", "count"]}
-        exportName="tickets_by_type"
+        fileName="tickets_by_type"
       />
 
-      <ReportTable
+      <SectionCard
         title="Tickets by Department"
+        icon={<FaBuilding className="text-green-600" />}
         data={reportData.byDepartment}
         keys={["department", "count"]}
-        exportName="tickets_by_department"
+        fileName="tickets_by_department"
       />
 
-      <ReportTable
+      <SectionCard
         title="Tickets Created Monthly"
+        icon={<FaUserShield className="text-pink-600" />}
         data={reportData.monthly}
         keys={["month", "count"]}
-        exportName="monthly_ticket_trend"
+        fileName="monthly_ticket_trend"
       />
     </div>
   );
