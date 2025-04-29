@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Papa from "papaparse";
-import { saveAs } from "file-saver";
+const exportCSV = async (data, filename) => {
+  const { saveAs } = await import("file-saver"); // ✅ Load at runtime only
+  const csv = Papa.unparse(data);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  saveAs(blob, `${filename}.csv`);
+};
 
 const Reports = () => {
   const [reportData, setReportData] = useState({
