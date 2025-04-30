@@ -1,147 +1,190 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Papa from "papaparse";
+import Select from "react-select";
+import { saveAs } from "file-saver";
 
-import { FaDownload, FaFilter, FaUserShield, FaBuilding, FaBug, FaClipboardList, FaClock } from "react-icons/fa";
+import { FaDownload, FaSearch } from "react-icons/fa";
 import logo from "../assets/ticxnova-logo.png";
 
 const Reports = () => {
-  const [reportData, setReportData] = useState({
-    byStatus: [],
-    byPriority: [],
-    byType: [],
-    byDepartment: [],
-    monthly: []
+  const [filters, setFilters] = useState({
+    startDate: "",
+    endDate: "",
+    priority: [],
+    department: [],
+    type: [],
+    status: []
   });
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/reports/simple`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setReportData(response.data);
-      } catch (err) {
-        console.error("❌ Report fetch failed:", err);
-      }
-    };
+  const [tickets, setTickets] = useState([]);
+  const [allResults, setAllResults] = useState([]);
 
-    fetchReports();
-  }, []);
+  const limit = 50;
 
-  const exportCSV = async (data, filename) => {
-    const { saveAs } = await import("file-saver");
-    const csv = Papa.unparse(data);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, `${filename}.csv`);
+  const multiOptions = {
+    priority: ["P1", "P2", "P3", "P4"],
+    department: ["IT", "HR", "Finance", "Facilities"],
+    type: ["Incident", "Service Request", "Change Request", "Problem", "Task"],
+    status: ["Open", "Closed", "In Progress", "Resolved"]
   };
 
-  const SectionCard = ({ title, icon, data, keys, fileName }) => (
-    <div className="bg-white p-6 rounded-xl shadow-lg mb-6 hover:shadow-xl transition-all">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-          {icon}
-          <span>{title}</span>
-        </div>
-        <button
-          onClick={() => exportCSV(data, fileName)}
-          className="text-sm flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full"
-        >
-          <FaDownload /> Export CSV
-        </button>
-      </div>
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            {keys.map((key) => (
-              <th key={key} className="text-left p-2 border">{key}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data?.length > 0 ? (
-            data.map((row, i) => (
-              <tr key={i} className="border-t hover:bg-gray-50">
-                {keys.map((key) => (
-                  <td key={key} className="p-2 border">{row[key]}</td>
-                ))}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={keys.length} className="p-4 text-center text-gray-400">No data available</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.priority.length)
+      params.append("priority", filters.priority.map((x) => x.value).join(","));
+    if (filters.department.length)
+      params.append("department", filters.department.map((x) => x.value).join(","));
+    if (filters.type.length)
+      params.append("type", filters.type.map((x) => x.value).join(","));
+    if (filters.status.length)
+      params.append("status", filters.status.map((x) => x.value).join(","));
+
+    return params.toString();
+  };
+
+  const fetchFilteredTickets = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const query = buildQueryParams();
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/reports/tickets?${query}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setTickets(response.data.slice(0, limit));
+      setAllResults(response.data);
+    } catch (err) {
+      console.error("Failed to fetch filtered tickets:", err);
+    }
+  };
+
+  const exportAll = async () => {
+    const csv = Papa.unparse(allResults);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "Filtered_Tickets_Report.csv");
+  };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-slate-100">
-      <header className="flex items-center gap-4 mb-6">
-        <img src={logo} alt="Ticxnova Logo" className="h-10 w-10 object-contain" />
-        <h1 className="text-3xl font-bold text-gray-800">📄 Ticket Reports</h1>
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
+      <header className="flex items-center gap-3 mb-6">
+        <img src={logo} alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
+        <h1 className="text-3xl font-bold text-gray-800">📄 Advanced Ticket Reports</h1>
       </header>
 
-      {/* Filters (optional for future functionality) */}
-      <div className="bg-white rounded-xl shadow mb-6 p-4 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 text-gray-600">
-          <FaFilter className="text-blue-600" />
-          <span className="font-semibold">Filters:</span>
-        </div>
-        <input type="date" className="px-3 py-2 rounded bg-gray-100 text-sm" />
-        <input type="date" className="px-3 py-2 rounded bg-gray-100 text-sm" />
-        <input type="text" placeholder="Assigned To" className="px-3 py-2 rounded bg-gray-100 text-sm" />
-        <select className="px-3 py-2 rounded bg-gray-100 text-sm">
-          <option value="">All Departments</option>
-          <option value="IT">IT</option>
-          <option value="HR">HR</option>
-          <option value="Finance">Finance</option>
-        </select>
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <input
+          type="date"
+          className="px-3 py-2 rounded bg-gray-100 text-sm"
+          value={filters.startDate}
+          onChange={(e) => handleFilterChange("startDate", e.target.value)}
+        />
+        <input
+          type="date"
+          className="px-3 py-2 rounded bg-gray-100 text-sm"
+          value={filters.endDate}
+          onChange={(e) => handleFilterChange("endDate", e.target.value)}
+        />
+        <Select
+          options={multiOptions.priority.map((v) => ({ value: v, label: v }))}
+          isMulti
+          placeholder="Priority"
+          onChange={(value) => handleFilterChange("priority", value)}
+        />
+        <Select
+          options={multiOptions.department.map((v) => ({ value: v, label: v }))}
+          isMulti
+          placeholder="Department"
+          onChange={(value) => handleFilterChange("department", value)}
+        />
+        <Select
+          options={multiOptions.type.map((v) => ({ value: v, label: v }))}
+          isMulti
+          placeholder="Type"
+          onChange={(value) => handleFilterChange("type", value)}
+        />
+        <Select
+          options={multiOptions.status.map((v) => ({ value: v, label: v }))}
+          isMulti
+          placeholder="Status"
+          onChange={(value) => handleFilterChange("status", value)}
+        />
+        <button
+          onClick={fetchFilteredTickets}
+          className="col-span-1 md:col-span-2 lg:col-span-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+        >
+          <FaSearch /> Apply Filters
+        </button>
       </div>
 
-      {/* Report Sections */}
-      <SectionCard
-        title="Tickets by Status"
-        icon={<FaClipboardList className="text-blue-600" />}
-        data={reportData.byStatus}
-        keys={["status", "count"]}
-        fileName="tickets_by_status"
-      />
+      {/* Export */}
+      {allResults.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={exportAll}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          >
+            <FaDownload /> Download Full Report
+          </button>
+        </div>
+      )}
 
-      <SectionCard
-        title="Tickets by Priority"
-        icon={<FaBug className="text-red-500" />}
-        data={reportData.byPriority}
-        keys={["priority", "count"]}
-        fileName="tickets_by_priority"
-      />
-
-      <SectionCard
-        title="Tickets by Type"
-        icon={<FaClock className="text-purple-500" />}
-        data={reportData.byType}
-        keys={["ticketType", "count"]}
-        fileName="tickets_by_type"
-      />
-
-      <SectionCard
-        title="Tickets by Department"
-        icon={<FaBuilding className="text-green-600" />}
-        data={reportData.byDepartment}
-        keys={["department", "count"]}
-        fileName="tickets_by_department"
-      />
-
-      <SectionCard
-        title="Tickets Created Monthly"
-        icon={<FaUserShield className="text-pink-600" />}
-        data={reportData.monthly}
-        keys={["month", "count"]}
-        fileName="monthly_ticket_trend"
-      />
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow p-4 overflow-auto">
+        <table className="w-full text-sm border">
+          <thead className="bg-gray-100">
+            <tr>
+              {[
+                "ticketId",
+                "type",
+                "priority",
+                "status",
+                "assignedTo",
+                "department",
+                "createdAt",
+                "resolvedAt",
+                "createdBy",
+                "resolvedBy"
+              ].map((col) => (
+                <th key={col} className="text-left p-2 border">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.length > 0 ? (
+              tickets.map((ticket, i) => (
+                <tr key={i} className="border-t">
+                  <td className="p-2 border">{ticket.ticketId}</td>
+                  <td className="p-2 border">{ticket.type}</td>
+                  <td className="p-2 border">{ticket.priority}</td>
+                  <td className="p-2 border">{ticket.status}</td>
+                  <td className="p-2 border">{ticket.assignedTo}</td>
+                  <td className="p-2 border">{ticket.department}</td>
+                  <td className="p-2 border">{ticket.createdAt}</td>
+                  <td className="p-2 border">{ticket.resolvedAt || "-"}</td>
+                  <td className="p-2 border">{ticket.createdBy}</td>
+                  <td className="p-2 border">{ticket.resolvedBy || "-"}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={10} className="p-4 text-center text-gray-500">
+                  No tickets to display.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
