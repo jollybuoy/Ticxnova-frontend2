@@ -3,7 +3,9 @@ import axios from "axios";
 import Select, { components } from "react-select";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
-import { FaDownload, FaSearch, FaTrash, FaFilter } from "react-icons/fa";
+import {
+  FaDownload, FaFilter, FaSearch, FaTrash, FaTimes,
+} from "react-icons/fa";
 import logo from "../assets/ticxnova-logo.png";
 
 // Dropdown data
@@ -13,9 +15,11 @@ const OPTIONS = {
   type: ["Incident", "Service Request", "Change Request", "Problem", "Task"],
   status: ["Open", "Closed", "In Progress", "Resolved"]
 };
-const toOptions = (arr) => arr.map((v) => ({ value: v, label: v }));
 
-// Styling & checkbox
+const toOptions = (arr) => arr.map((v) => ({ value: v, label: v }));
+const ALL_OPTION = (label) => ({ value: "*", label: `All ${label}` });
+
+// Custom styles
 const customStyles = {
   option: (base, { isSelected }) => ({
     ...base,
@@ -25,7 +29,7 @@ const customStyles = {
     fontSize: "0.875rem",
     backgroundColor: isSelected ? "#e0f2fe" : "#fff",
     color: "#000",
-    padding: "8px 12px",
+    padding: "8px 12px"
   }),
   control: (base) => ({
     ...base,
@@ -34,12 +38,17 @@ const customStyles = {
     borderColor: "#cbd5e1",
     fontSize: "0.875rem"
   }),
-  multiValue: () => ({ display: "none" }),
-  menu: (base) => ({ ...base, zIndex: 999 })
+  menu: (base) => ({
+    ...base,
+    zIndex: 999
+  }),
+  multiValue: () => ({ display: "none" })
 };
+
 const ValueContainer = ({ children, ...props }) => (
   <components.ValueContainer {...props}>{children[1]}</components.ValueContainer>
 );
+
 const CheckboxOption = (props) => {
   const { isSelected, label, innerRef, innerProps } = props;
   return (
@@ -51,30 +60,42 @@ const CheckboxOption = (props) => {
 };
 
 const Reports = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
-    priority: toOptions(OPTIONS.priority),
-    department: toOptions(OPTIONS.department),
-    type: toOptions(OPTIONS.type),
-    status: toOptions(OPTIONS.status),
+    priority: [ALL_OPTION("Priorities"), ...toOptions(OPTIONS.priority)],
+    department: [ALL_OPTION("Departments"), ...toOptions(OPTIONS.department)],
+    type: [ALL_OPTION("Types"), ...toOptions(OPTIONS.type)],
+    status: [ALL_OPTION("Statuses"), ...toOptions(OPTIONS.status)]
   });
 
   const [tickets, setTickets] = useState([]);
   const [allTickets, setAllTickets] = useState([]);
 
-  const handleChange = (key, val) => setFilters((prev) => ({ ...prev, [key]: val }));
+  const handleChange = (key, value) => {
+    const isSelectAll = value?.some((v) => v.value === "*");
+    setFilters((prev) => ({
+      ...prev,
+      [key]: isSelectAll
+        ? [ALL_OPTION(key), ...toOptions(OPTIONS[key])]
+        : value.filter((v) => v.value !== "*")
+    }));
+  };
 
   const buildQuery = () => {
     const params = new URLSearchParams();
+    const addParam = (key) => {
+      if (filters[key]?.length && filters[key][0]?.value !== "*") {
+        params.append(key, filters[key].map((v) => v.value).join(","));
+      }
+    };
+
     if (filters.startDate) params.append("startDate", filters.startDate);
     if (filters.endDate) params.append("endDate", filters.endDate);
-    ["priority", "department", "type", "status"].forEach(key => {
-      if (filters[key]?.length) {
-        params.append(key, filters[key].map(o => o.value).join(","));
-      }
-    });
+    ["priority", "department", "type", "status"].forEach(addParam);
+
     return params.toString();
   };
 
@@ -86,50 +107,50 @@ const Reports = () => {
       });
       setAllTickets(res.data);
       setTickets(res.data.slice(0, 50));
-      setDrawerOpen(false); // close drawer
+      setShowModal(false);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Error fetching report:", err);
     }
+  };
+
+  const exportCSV = () => {
+    const csv = Papa.unparse(allTickets);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "Ticxnova_Report.csv");
   };
 
   const clearFilters = () => {
     setFilters({
       startDate: "",
       endDate: "",
-      priority: toOptions(OPTIONS.priority),
-      department: toOptions(OPTIONS.department),
-      type: toOptions(OPTIONS.type),
-      status: toOptions(OPTIONS.status),
+      priority: [ALL_OPTION("Priorities"), ...toOptions(OPTIONS.priority)],
+      department: [ALL_OPTION("Departments"), ...toOptions(OPTIONS.department)],
+      type: [ALL_OPTION("Types"), ...toOptions(OPTIONS.type)],
+      status: [ALL_OPTION("Statuses"), ...toOptions(OPTIONS.status)]
     });
     setTickets([]);
     setAllTickets([]);
-    setDrawerOpen(false);
-  };
-
-  const exportCSV = () => {
-    const csv = Papa.unparse(allTickets);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "Ticxnova_Tickets_Report.csv");
+    setShowModal(false);
   };
 
   return (
-    <div className="relative p-6 bg-gradient-to-br from-slate-100 to-white min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header */}
-      <header className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="Ticxnova Logo" className="h-10 w-10 object-contain" />
-          <h1 className="text-3xl font-bold text-gray-800">📄 Ticket Reports</h1>
+          <img src={logo} alt="Ticxnova Logo" className="w-10 h-10 object-contain" />
+          <h1 className="text-3xl font-bold text-gray-800">📄 Reports</h1>
         </div>
         <button
-          onClick={() => setDrawerOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          onClick={() => setShowModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
         >
-          <FaFilter /> Filters
+          <FaFilter /> Filter
         </button>
-      </header>
+      </div>
 
-      {/* Export Bar */}
-      {allTickets.length > 0 && (
+      {/* Export */}
+      {tickets.length > 0 && (
         <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
           <span>Showing {tickets.length} of {allTickets.length} tickets</span>
           <button
@@ -146,91 +167,89 @@ const Reports = () => {
         <table className="w-full text-sm border">
           <thead className="bg-gray-100">
             <tr>
-              {[
-                "ticketId", "type", "priority", "status", "assignedTo", "department",
-                "createdAt", "resolvedAt", "createdBy", "resolvedBy"
-              ].map((col) => (
-                <th key={col} className="text-left p-2 border">{col}</th>
+              {["ticketId", "type", "priority", "status", "assignedTo", "department", "createdAt", "resolvedAt", "createdBy", "resolvedBy"].map((key) => (
+                <th key={key} className="text-left p-2 border">{key}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {tickets.length > 0 ? (
-              tickets.map((ticket, i) => (
+              tickets.map((t, i) => (
                 <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="p-2 border">{ticket.ticketId}</td>
-                  <td className="p-2 border">{ticket.type}</td>
-                  <td className="p-2 border">{ticket.priority}</td>
-                  <td className="p-2 border">{ticket.status}</td>
-                  <td className="p-2 border">{ticket.assignedTo}</td>
-                  <td className="p-2 border">{ticket.department}</td>
-                  <td className="p-2 border">{ticket.createdAt}</td>
-                  <td className="p-2 border">{ticket.resolvedAt || "-"}</td>
-                  <td className="p-2 border">{ticket.createdBy}</td>
-                  <td className="p-2 border">{ticket.resolvedBy || "-"}</td>
+                  <td className="p-2 border">{t.ticketId}</td>
+                  <td className="p-2 border">{t.type}</td>
+                  <td className="p-2 border">{t.priority}</td>
+                  <td className="p-2 border">{t.status}</td>
+                  <td className="p-2 border">{t.assignedTo}</td>
+                  <td className="p-2 border">{t.department}</td>
+                  <td className="p-2 border">{t.createdAt}</td>
+                  <td className="p-2 border">{t.resolvedAt || "-"}</td>
+                  <td className="p-2 border">{t.createdBy}</td>
+                  <td className="p-2 border">{t.resolvedBy || "-"}</td>
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan={10} className="p-4 text-center text-gray-500">
-                  No tickets to display.
-                </td>
-              </tr>
+              <tr><td colSpan={10} className="p-4 text-center text-gray-400">No tickets to display</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* 🔽 Filter Drawer */}
-      {drawerOpen && (
-        <div className="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl z-50 p-6 overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">🔍 Filter Tickets</h2>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white w-full max-w-3xl rounded-xl p-6 shadow-lg relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-black"
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-xl font-bold mb-4">🔍 Filter Tickets</h2>
 
-          <label className="block mb-2 text-sm font-medium">Start Date</label>
-          <input
-            type="date"
-            className="mb-4 w-full px-3 py-2 rounded bg-gray-100 text-sm"
-            value={filters.startDate}
-            onChange={(e) => handleChange("startDate", e.target.value)}
-          />
-
-          <label className="block mb-2 text-sm font-medium">End Date</label>
-          <input
-            type="date"
-            className="mb-4 w-full px-3 py-2 rounded bg-gray-100 text-sm"
-            value={filters.endDate}
-            onChange={(e) => handleChange("endDate", e.target.value)}
-          />
-
-          {["priority", "department", "type", "status"].map((key) => (
-            <div key={key} className="mb-4">
-              <label className="block mb-2 text-sm font-medium capitalize">{key}</label>
-              <Select
-                isMulti
-                closeMenuOnSelect={false}
-                options={toOptions(OPTIONS[key])}
-                value={filters[key]}
-                onChange={(val) => handleChange(key, val)}
-                placeholder={`Select ${key}`}
-                styles={customStyles}
-                components={{ Option: CheckboxOption, ValueContainer }}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                type="date"
+                className="px-3 py-2 rounded bg-gray-100 text-sm"
+                value={filters.startDate}
+                onChange={(e) => handleChange("startDate", e.target.value)}
               />
-            </div>
-          ))}
+              <input
+                type="date"
+                className="px-3 py-2 rounded bg-gray-100 text-sm"
+                value={filters.endDate}
+                onChange={(e) => handleChange("endDate", e.target.value)}
+              />
 
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={fetchTickets}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-md flex items-center justify-center gap-2"
-            >
-              <FaSearch /> Apply
-            </button>
-            <button
-              onClick={clearFilters}
-              className="bg-gray-100 text-gray-600 py-2 px-4 rounded-md flex items-center gap-2"
-            >
-              <FaTrash /> Clear
-            </button>
+              {["priority", "department", "type", "status"].map((key) => (
+                <Select
+                  key={key}
+                  isMulti
+                  closeMenuOnSelect={false}
+                  options={[ALL_OPTION(key), ...toOptions(OPTIONS[key])]}
+                  value={filters[key]}
+                  onChange={(val) => handleChange(key, val)}
+                  placeholder={`Select ${key}`}
+                  styles={customStyles}
+                  components={{ Option: CheckboxOption, ValueContainer }}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={fetchTickets}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+              >
+                <FaSearch /> Generate Report
+              </button>
+              <button
+                onClick={clearFilters}
+                className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-md flex items-center gap-2"
+              >
+                <FaTrash /> Clear
+              </button>
+            </div>
           </div>
         </div>
       )}
