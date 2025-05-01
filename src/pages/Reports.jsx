@@ -1,19 +1,18 @@
 // src/pages/Reports.jsx
 import React, { useState } from "react";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaFilter, FaRedo, FaCheckCircle, FaExclamationTriangle, FaTicketAlt, FaUser } from "react-icons/fa";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import 'chart.js/auto';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("table");
   const [filters, setFilters] = useState({
-    priority: [],
-    department: [],
-    status: [],
-    type: [],
-    assignee: [],
-    dateRange: "",
-    search: ""
+    priority: "",
+    department: "",
+    status: "",
+    type: "",
+    assignee: "",
+    dateRange: ""
   });
 
   const ticketData = [
@@ -53,14 +52,14 @@ const Reports = () => {
   ];
 
   const summaryCards = [
-    { label: "Total Tickets", value: 100, note: "+5%", desc: "Total number of tickets in this report" },
-    { label: "Open Tickets", value: 26, note: "-2%", desc: "Tickets that need attention" },
-    { label: "Resolved Tickets", value: 66, note: "+12%", desc: "Successfully closed tickets" },
-    { label: "Critical Issues", value: 19, note: "+3", desc: "P1 priority tickets" },
-    { label: "Avg. Resolution Time", value: "1d 11h", desc: "Average time to resolve tickets" },
-    { label: "Created Today", value: 6, note: "+3", desc: "New tickets created today" },
-    { label: "Top Department", value: "Sales", desc: "Department with most tickets" },
-    { label: "Top Assignee", value: "John Doe", desc: "Person with most assigned tickets" },
+    { icon: <FaTicketAlt className="text-blue-500" />, label: "Total Tickets", value: 100, note: "+5%", desc: "Total number of tickets in this report" },
+    { icon: <FaExclamationTriangle className="text-yellow-500" />, label: "Open Tickets", value: 26, note: "-2%", desc: "Tickets that need attention" },
+    { icon: <FaCheckCircle className="text-green-500" />, label: "Resolved Tickets", value: 66, note: "+12%", desc: "Successfully closed tickets" },
+    { icon: <FaExclamationTriangle className="text-red-500" />, label: "Critical Issues", value: 19, note: "+3", desc: "P1 priority tickets" },
+    { icon: <FaClock className="text-purple-500" />, label: "Avg. Resolution Time", value: "1d 11h", desc: "Average time to resolve tickets" },
+    { icon: <FaTicketAlt className="text-blue-500" />, label: "Created Today", value: 6, note: "+3", desc: "New tickets created today" },
+    { icon: <FaUser className="text-indigo-500" />, label: "Top Department", value: "Sales", desc: "Department with most tickets" },
+    { icon: <FaUser className="text-teal-500" />, label: "Top Assignee", value: "John Doe", desc: "Person with most assigned tickets" },
   ];
 
   const statusDistribution = {
@@ -105,7 +104,7 @@ const Reports = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Reports & Analytics</h1>
         <div className="flex gap-2">
-          <button className="bg-gray-100 px-3 py-2 rounded">Filters</button>
+          <button className="bg-gray-100 px-3 py-2 rounded"><FaFilter className="inline mr-1" />Filters</button>
           <button onClick={handleDownloadCSV} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"><FaDownload /> Export</button>
         </div>
       </div>
@@ -122,15 +121,19 @@ const Reports = () => {
         ))}
       </div>
 
-      {/* Filters Row (mocked) */}
       <div className="bg-white p-4 shadow rounded mb-6">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <select className="border rounded p-2"><option>Date Range</option></select>
-          <select className="border rounded p-2"><option>Priority</option></select>
-          <select className="border rounded p-2"><option>Department</option></select>
-          <select className="border rounded p-2"><option>Type</option></select>
-          <select className="border rounded p-2"><option>Status</option></select>
-          <select className="border rounded p-2"><option>Assignee</option></select>
+          {Object.keys(filters).map((key) => (
+            <select key={key} className="border rounded p-2 capitalize">
+              <option value="">Select {key}</option>
+              <option value="option1">Option 1</option>
+              <option value="option2">Option 2</option>
+            </select>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <button className="bg-gray-200 px-4 py-2 rounded flex items-center gap-1"><FaRedo /> Reset</button>
+          <button className="bg-green-600 text-white px-4 py-2 rounded">Apply Filters</button>
         </div>
       </div>
 
@@ -139,6 +142,7 @@ const Reports = () => {
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
+                <th className="p-2 border">#</th>
                 {Object.keys(ticketData[0]).map((header) => (
                   <th key={header} className="p-2 border text-left">{header}</th>
                 ))}
@@ -147,8 +151,14 @@ const Reports = () => {
             <tbody>
               {ticketData.map((ticket, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
-                  {Object.values(ticket).map((value, i) => (
-                    <td key={i} className="p-2 border">{value}</td>
+                  <td className="p-2 border text-gray-400">{idx + 1}</td>
+                  {Object.entries(ticket).map(([key, value]) => (
+                    <td key={key} className="p-2 border">
+                      {key === 'priority' ? <span className={`px-2 py-1 rounded text-xs font-semibold ${value === 'P1' ? 'bg-red-100 text-red-600' : value === 'P2' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>{value}</span>
+                        : key === 'status' ? <span className={`px-2 py-1 rounded text-xs font-semibold ${value === 'Open' ? 'bg-blue-100 text-blue-600' : value === 'Pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>{value}</span>
+                        : value
+                      }
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -160,11 +170,14 @@ const Reports = () => {
       {activeTab === 'dashboard' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {summaryCards.map((card, i) => (
-            <div key={i} className="bg-gray-50 p-4 rounded shadow">
-              <div className="text-sm text-gray-600">{card.label}</div>
-              <div className="text-2xl font-bold">{card.value}</div>
+            <div key={i} className="bg-white p-4 rounded shadow border-l-4 border-blue-500">
+              <div className="flex items-center gap-2 text-gray-600">
+                {card.icon}
+                <div className="text-sm font-medium">{card.label}</div>
+              </div>
+              <div className="text-2xl font-bold mt-1">{card.value}</div>
               {card.note && <div className="text-green-500 text-xs">{card.note}</div>}
-              <div className="text-xs text-gray-500">{card.desc}</div>
+              <div className="text-xs text-gray-500 mt-1">{card.desc}</div>
             </div>
           ))}
         </div>
