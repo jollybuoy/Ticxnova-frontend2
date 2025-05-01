@@ -3,6 +3,16 @@ import React, { useState } from "react";
 import { FaDownload, FaFilter, FaRedo, FaCheckCircle, FaExclamationTriangle, FaTicketAlt, FaUser } from "react-icons/fa";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import 'chart.js/auto';
+import {
+  FaDownload,
+  FaFilter,
+  FaRedo,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaTicketAlt,
+  FaUser,
+  FaClock       // ✅ Add this
+} from "react-icons/fa";
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("table");
