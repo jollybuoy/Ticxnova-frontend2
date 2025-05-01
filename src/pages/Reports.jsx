@@ -136,10 +136,12 @@ const Reports = () => {
           {Object.keys(filters).map((key) => (
             <select key={key} className="border rounded p-2 capitalize">
               <option value="">Select {key}</option>
-              <option value="option1">Option 1</option>
-              <option value="option2">Option 2</option>
-            </select>
-          ))}
+              {key === 'priority' && ["P1", "P2", "P3", "P4"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'department' && ["IT", "HR", "Finance", "Sales", "Support"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'status' && ["Open", "Pending", "Resolved", "Closed"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'type' && ["Incident", "Task", "Change Request", "Problem"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'assignee' && ["Jane Smith", "John Doe", "Sarah Williams"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'dateRange' && ["Last 7 days", "Last 30 days", "This Month"].map(opt => <option key={opt} value={opt}>{opt}</option>)})}
         </div>
         <div className="flex justify-end gap-2 mt-4">
           <button className="bg-gray-200 px-4 py-2 rounded flex items-center gap-1"><FaRedo /> Reset</button>
