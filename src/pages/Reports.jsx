@@ -141,7 +141,7 @@ const Reports = () => {
               {key === 'status' && ["Open", "Pending", "Resolved", "Closed"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
               {key === 'type' && ["Incident", "Task", "Change Request", "Problem"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
               {key === 'assignee' && ["Jane Smith", "John Doe", "Sarah Williams"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'dateRange' && ["Last 7 days", "Last 30 days", "This Month"].map(opt => <option key={opt} value={opt}>{opt}</option>)})}
+              {key === 'dateRange' && ["Last 7 days", "Last 30 days", "This Month"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </div>
         <div className="flex justify-end gap-2 mt-4">
           <button className="bg-gray-200 px-4 py-2 rounded flex items-center gap-1"><FaRedo /> Reset</button>
