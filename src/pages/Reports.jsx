@@ -1,8 +1,5 @@
 // src/pages/Reports.jsx
 import React, { useState } from "react";
-import { FaDownload, FaFilter, FaRedo, FaCheckCircle, FaExclamationTriangle, FaTicketAlt, FaUser } from "react-icons/fa";
-import { Line, Doughnut, Bar } from "react-chartjs-2";
-import 'chart.js/auto';
 import {
   FaDownload,
   FaFilter,
@@ -10,9 +7,12 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaTicketAlt,
-  FaUser,
-  FaClock       // ✅ Add this
+  FaUser as FaUserIndigo,
+  FaClock,
+  FaUser as FaUserTeal
 } from "react-icons/fa";
+import { Line, Doughnut, Bar } from "react-chartjs-2";
+import 'chart.js/auto';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("table");
@@ -68,8 +68,8 @@ const Reports = () => {
     { icon: <FaExclamationTriangle className="text-red-500" />, label: "Critical Issues", value: 19, note: "+3", desc: "P1 priority tickets" },
     { icon: <FaClock className="text-purple-500" />, label: "Avg. Resolution Time", value: "1d 11h", desc: "Average time to resolve tickets" },
     { icon: <FaTicketAlt className="text-blue-500" />, label: "Created Today", value: 6, note: "+3", desc: "New tickets created today" },
-    { icon: <FaUser className="text-indigo-500" />, label: "Top Department", value: "Sales", desc: "Department with most tickets" },
-    { icon: <FaUser className="text-teal-500" />, label: "Top Assignee", value: "John Doe", desc: "Person with most assigned tickets" },
+    { icon: <FaUserIndigo className="text-indigo-500" />, label: "Top Department", value: "Sales", desc: "Department with most tickets" },
+    { icon: <FaUserTeal className="text-teal-500" />, label: "Top Assignee", value: "John Doe", desc: "Person with most assigned tickets" },
   ];
 
   const statusDistribution = {
