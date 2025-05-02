@@ -1,7 +1,5 @@
 
-// Final Full Reports.jsx – matches user's screenshot with full dashboard, filters, table, charts, and export
-// Built using React + Tailwind CSS + react-chartjs-2 + chart.js
-
+// Full Reports.jsx with working Table, Dashboard, Charts, Filters and Export
 import React, { useState } from "react";
 import {
   FaDownload,
@@ -70,18 +68,12 @@ const Reports = () => {
 
   const statusDistribution = {
     labels: ["Open", "Pending", "Resolved", "Closed", "Other"],
-    datasets: [{
-      data: [20, 10, 40, 20, 10],
-      backgroundColor: ["#facc15", "#a78bfa", "#4ade80", "#60a5fa", "#d1d5db"]
-    }]
+    datasets: [{ data: [20, 10, 40, 20, 10], backgroundColor: ["#facc15", "#a78bfa", "#4ade80", "#60a5fa", "#d1d5db"] }]
   };
 
   const ticketsByPriority = {
     labels: ["P1", "P2", "P3", "P4"],
-    datasets: [{
-      data: [26, 21, 23, 30],
-      backgroundColor: ["#f87171", "#fb923c", "#facc15", "#86efac"]
-    }]
+    datasets: [{ data: [26, 21, 23, 30], backgroundColor: ["#f87171", "#fb923c", "#facc15", "#86efac"] }]
   };
 
   const ticketTrends = {
@@ -122,6 +114,29 @@ const Reports = () => {
           </button>
         ))}
       </div>
+
+      {activeTab === "table" && (
+        <div className="overflow-x-auto shadow border rounded-lg">
+          <table className="w-full text-sm text-left text-gray-600">
+            <thead className="text-xs uppercase bg-gray-100 text-gray-600">
+              <tr>
+                {Object.keys(ticketData[0]).map((col) => (
+                  <th key={col} className="px-4 py-3">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ticketData.map((row, i) => (
+                <tr key={i} className="border-t hover:bg-gray-50">
+                  {Object.values(row).map((val, idx) => (
+                    <td key={idx} className="px-4 py-2">{val}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {activeTab === "dashboard" && (
         <>
