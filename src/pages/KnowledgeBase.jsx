@@ -1,212 +1,128 @@
-import React, { useState, useEffect } from "react";
-import { msalInstance, loginRequest } from "../auth/msalConfig";
-import { FaUpload, FaLock, FaUnlock, FaFileAlt } from "react-icons/fa";
+// src/pages/KnowledgeBase.jsx
+import React, { useState } from "react";
+import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
+import UploadDocument from "../components/UploadDocument";
+
+const mockPublicDocs = [
+  {
+    id: 1,
+    title: "Reset AD Password",
+    tags: ["AD", "Password", "Security"],
+    description: "Steps to reset your Active Directory password securely.",
+    type: "pdf",
+    updatedAt: "2025-04-15",
+    owner: "Admin"
+  },
+  {
+    id: 2,
+    title: "MFA Setup Guide",
+    tags: ["Security", "MFA"],
+    description: "How to enable Multi-Factor Authentication in your account.",
+    type: "pdf",
+    updatedAt: "2025-04-10",
+    owner: "Admin"
+  }
+];
+
+const initialUserDocs = [
+  {
+    id: 101,
+    title: "VPN Fix for Mac",
+    tags: ["VPN", "Mac"],
+    description: "How I fixed VPN connectivity issue on macOS Ventura.",
+    type: "docx",
+    updatedAt: "2025-04-14",
+    owner: "me"
+  }
+];
 
 const KnowledgeBase = () => {
-  const [accessToken, setAccessToken] = useState(null);
-  const [publicFiles, setPublicFiles] = useState([]);
-  const [privateFiles, setPrivateFiles] = useState([]);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [fileName, setFileName] = useState("");
-  const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState("private");
-  const [uploadStatus, setUploadStatus] = useState("");
+  const [activeTab, setActiveTab] = useState("public");
+  const [search, setSearch] = useState("");
+  const [userDocs, setUserDocs] = useState(initialUserDocs);
 
-  const PUBLIC_FOLDER = "SOPs/Public";
-  const PRIVATE_FOLDER = "SOPs/Private";
-
-  // Authenticate and get access token
-  const getAccessToken = async () => {
-    try {
-      const response = await msalInstance.acquireTokenSilent(loginRequest);
-      setAccessToken(response.accessToken);
-    } catch (error) {
-      console.error("Error acquiring token:", error);
-    }
+  const handleUserUpload = (newDoc) => {
+    setUserDocs((prev) => [newDoc, ...prev]);
   };
 
-  // Ensure folders exist in OneDrive
-  const ensureFoldersExist = async () => {
-    try {
-      // Check if the SOPs folder exists, and create it if not
-      const sopFolderResponse = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/root/children`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      const sopFolderData = await sopFolderResponse.json();
-      const sopFolder = sopFolderData.value.find((folder) => folder.name === "SOPs");
-
-      if (!sopFolder) {
-        console.log("Creating SOPs folder...");
-        await createFolder("SOPs");
-      }
-
-      // Check and create Public and Private subfolders
-      const subfoldersResponse = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/root:/${"SOPs"}:/children`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      const subfoldersData = await subfoldersResponse.json();
-      const publicFolder = subfoldersData.value.find((folder) => folder.name === "Public");
-      const privateFolder = subfoldersData.value.find((folder) => folder.name === "Private");
-
-      if (!publicFolder) {
-        console.log("Creating Public folder...");
-        await createFolder(PUBLIC_FOLDER);
-      }
-
-      if (!privateFolder) {
-        console.log("Creating Private folder...");
-        await createFolder(PRIVATE_FOLDER);
-      }
-    } catch (error) {
-      console.error("Error ensuring folders exist:", error);
-    }
-  };
-
-  // Function to create a folder
-  const createFolder = async (folderPath) => {
-    const folderName = folderPath.split("/").pop();
-    const parentPath = folderPath.includes("/") ? folderPath.split("/").slice(0, -1).join("/") : "";
-
-    try {
-      const createFolderUrl = parentPath
-        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${parentPath}:/children`
-        : `https://graph.microsoft.com/v1.0/me/drive/root/children`;
-
-      const response = await fetch(createFolderUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: folderName,
-          folder: {}, // This denotes that the item is a folder
-          "@microsoft.graph.conflictBehavior": "rename",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create folder: ${folderName}`);
-      }
-      console.log(`Folder created: ${folderName}`);
-    } catch (error) {
-      console.error("Error creating folder:", error);
-    }
-  };
-
-  // Upload file to OneDrive
-  const handleFileUpload = async () => {
-    if (!uploadFile || !fileName) {
-      alert("Please provide a file and a name.");
-      return;
-    }
-
-    try {
-      setUploadStatus("Uploading...");
-      const folderPath = visibility === "public" ? PUBLIC_FOLDER : PRIVATE_FOLDER;
-      const uploadUrl = `https://graph.microsoft.com/v1.0/me/drive/root:/${folderPath}/${fileName}:/content`;
-
-      // Upload file to OneDrive
-      const response = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": uploadFile.type,
-        },
-        body: uploadFile,
-      });
-
-      if (response.ok) {
-        const fileData = await response.json();
-
-        // If public, set sharing permissions
-        if (visibility === "public") {
-          await setPublicPermission(fileData.id);
-        }
-
-        setUploadStatus("File uploaded successfully!");
-        fetchFiles(); // Refresh file list
-      } else {
-        throw new Error("Failed to upload file.");
-      }
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setUploadStatus("File upload failed.");
-    }
-  };
-
-  // Set file permission to public
-  const setPublicPermission = async (fileId) => {
-    try {
-      const response = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/createLink`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ type: "view", scope: "organization" }), // Share within the domain
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to set public permission.");
-      }
-    } catch (error) {
-      console.error("Error setting public permission:", error);
-    }
-  };
-
-  // Fetch public and private files
-  const fetchFiles = async () => {
-    try {
-      // Fetch public files
-      const publicResponse = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/root:/${PUBLIC_FOLDER}:/children`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      if (publicResponse.ok) {
-        const publicData = await publicResponse.json();
-        setPublicFiles(publicData.value || []);
-      }
-
-      // Fetch private files
-      const privateResponse = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/root:/${PRIVATE_FOLDER}:/children`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      if (privateResponse.ok) {
-        const privateData = await privateResponse.json();
-        setPrivateFiles(privateData.value || []);
-      }
-    } catch (error) {
-      console.error("Error fetching files:", error);
-    }
-  };
-
-  useEffect(() => {
-    getAccessToken().then(() => {
-      ensureFoldersExist().then(() => {
-        fetchFiles();
-      });
-    });
-  }, []);
+  const filteredDocs = (activeTab === "public" ? mockPublicDocs : userDocs).filter(doc =>
+    doc.title.toLowerCase().includes(search.toLowerCase()) ||
+    doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Knowledge Base</h1>
-      {/* Additional UI elements for public & private repositories */}
+    <div className="p-6 text-gray-800 bg-white min-h-screen">
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold flex items-center gap-3">
+          <FiBookOpen className="text-blue-600" /> Knowledge Base
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">Explore helpful guides and upload your own documents.</p>
+      </div>
+
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveTab("public")}
+            className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "public" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
+          >
+            📘 Public Repository
+          </button>
+          <button
+            onClick={() => setActiveTab("user")}
+            className={`px-4 py-2 rounded-full font-semibold transition-all ${activeTab === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"}`}
+          >
+            🗂 My Documents
+          </button>
+        </div>
+        <div className="relative w-72">
+          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by title or tag..."
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 outline-none"
+          />
+        </div>
+      </div>
+
+      {activeTab === "user" && <UploadDocument onUpload={handleUserUpload} />}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {filteredDocs.map((doc) => (
+          <div key={doc.id} className="border border-gray-200 rounded-2xl shadow-lg bg-gradient-to-br from-white to-blue-50 p-5">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 font-bold text-lg">
+                <FiFileText className="text-blue-500" /> {doc.title}
+              </div>
+              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full capitalize">{doc.type}</span>
+            </div>
+            <p className="text-sm text-gray-700 mb-2 line-clamp-3">{doc.description}</p>
+            <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
+              {doc.tags.map((tag, idx) => (
+                <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full">#{tag}</span>
+              ))}
+            </div>
+            <div className="flex justify-between text-xs text-gray-400 mt-2">
+              <div className="flex items-center gap-1">
+                {doc.owner === "Admin" ? <FiCloud /> : <FiUser />} {doc.owner}
+              </div>
+              <div>📅 {doc.updatedAt}</div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                <FiDownload className="inline mr-1" /> View
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredDocs.length === 0 && (
+        <div className="text-center text-gray-500 mt-20">
+          No documents found.
+        </div>
+      )}
     </div>
   );
 };
