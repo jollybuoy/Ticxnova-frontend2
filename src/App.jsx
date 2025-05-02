@@ -113,6 +113,7 @@ function App() {
     <Router>
       <div className="relative">
         <Routes>
+          {/* Public Routes */}
           <Route
             path="/"
             element={
@@ -126,6 +127,7 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/contact-admin" element={<ContactAdmin />} />
 
+          {/* Authenticated Routes */}
           {isAuthenticated && (
             <Route element={<MainLayout user={activeUser} handleLogout={handleLogout} />}>
               <Route path="/dashboard" element={<Dashboard user={activeUser} />} />
@@ -146,9 +148,11 @@ function App() {
             </Route>
           )}
 
+          {/* Fallback Route */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
         </Routes>
 
+        {/* AI ChatBot */}
         {isAuthenticated && (
           <>
             <button
