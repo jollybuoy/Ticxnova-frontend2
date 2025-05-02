@@ -1,94 +1,215 @@
-// src/pages/KnowledgeBase.jsx
-import React, { useState } from "react";
-import { FiFileText, FiSearch, FiBookOpen, FiDownload } from "react-icons/fi";
-
-const sampleDocuments = [
-  {
-    id: 1,
-    title: "Reset Active Directory Password",
-    description: "Step-by-step guide to reset your AD password.",
-    tags: ["Active Directory", "Password", "Security"],
-    updatedAt: "2025-04-25",
-    type: "PDF",
-  },
-  {
-    id: 2,
-    title: "Multi-Factor Authentication Setup",
-    description: "How to configure MFA for your account securely.",
-    tags: ["Security", "MFA"],
-    updatedAt: "2025-04-20",
-    type: "PDF",
-  },
-  {
-    id: 3,
-    title: "VPN Access Guide",
-    description: "Connect to VPN on Windows and Mac devices.",
-    tags: ["VPN", "Remote Work"],
-    updatedAt: "2025-04-18",
-    type: "DOCX",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { msalInstance, loginRequest } from "../auth/msalConfig";
+import { FaUpload, FaLock, FaUnlock, FaFileAlt } from "react-icons/fa";
 
 const KnowledgeBase = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [publicFiles, setPublicFiles] = useState([]);
+  const [privateFiles, setPrivateFiles] = useState([]);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const [description, setDescription] = useState("");
+  const [visibility, setVisibility] = useState("private");
+  const [uploadStatus, setUploadStatus] = useState("");
 
-  const filteredDocuments = sampleDocuments.filter(doc =>
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const PUBLIC_FOLDER = "SOPs/Public";
+  const PRIVATE_FOLDER = "SOPs/Private";
+
+  // Authenticate and get access token
+  const getAccessToken = async () => {
+    try {
+      const response = await msalInstance.acquireTokenSilent(loginRequest);
+      setAccessToken(response.accessToken);
+    } catch (error) {
+      console.error("Error acquiring token:", error);
+    }
+  };
+
+  // Upload file to OneDrive
+  const handleFileUpload = async () => {
+    if (!uploadFile || !fileName) {
+      alert("Please provide a file and a name.");
+      return;
+    }
+
+    try {
+      setUploadStatus("Uploading...");
+      const folderPath = visibility === "public" ? PUBLIC_FOLDER : PRIVATE_FOLDER;
+      const uploadUrl = `https://graph.microsoft.com/v1.0/me/drive/root:/${folderPath}/${fileName}:/content`;
+
+      // Upload file to OneDrive
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": uploadFile.type,
+        },
+        body: uploadFile,
+      });
+
+      if (response.ok) {
+        const fileData = await response.json();
+
+        // If public, set sharing permissions
+        if (visibility === "public") {
+          await setPublicPermission(fileData.id);
+        }
+
+        setUploadStatus("File uploaded successfully!");
+        fetchFiles(); // Refresh file list
+      } else {
+        throw new Error("Failed to upload file.");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setUploadStatus("File upload failed.");
+    }
+  };
+
+  // Set file permission to public
+  const setPublicPermission = async (fileId) => {
+    try {
+      const response = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/createLink`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "view", scope: "organization" }), // Share within the domain
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to set public permission.");
+      }
+    } catch (error) {
+      console.error("Error setting public permission:", error);
+    }
+  };
+
+  // Fetch public and private files
+  const fetchFiles = async () => {
+    try {
+      // Fetch public files
+      const publicResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/root:/${PUBLIC_FOLDER}:/children`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      if (publicResponse.ok) {
+        const publicData = await publicResponse.json();
+        setPublicFiles(publicData.value || []);
+      }
+
+      // Fetch private files
+      const privateResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/root:/${PRIVATE_FOLDER}:/children`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      if (privateResponse.ok) {
+        const privateData = await privateResponse.json();
+        setPrivateFiles(privateData.value || []);
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  useEffect(() => {
+    getAccessToken();
+    fetchFiles();
+  }, []);
 
   return (
-    <div className="p-6 min-h-screen bg-white text-gray-800">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold flex items-center gap-3">
-          <FiBookOpen className="text-blue-600" /> Knowledge Base
-        </h1>
-        <p className="text-gray-500 mt-2">Explore our official SOP (Standard Operating Procedure) documents.</p>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Knowledge Base</h1>
+
+      {/* Tabs for Public and Private Repositories */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-2">Public Repository</h2>
+        <ul>
+          {publicFiles.map((file) => (
+            <li key={file.id}>
+              <a
+                href={file.webUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500"
+              >
+                {file.name}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div className="flex justify-between mb-6">
-        <div className="relative w-80">
-          <FiSearch className="absolute top-3 left-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search SOPs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none"
-          />
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-2">Private Repository</h2>
+        <ul>
+          {privateFiles.map((file) => (
+            <li key={file.id}>
+              <FaFileAlt className="inline-block mr-2" />
+              {file.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* File Upload Form */}
+      <div className="p-4 border rounded">
+        <h2 className="text-xl font-bold mb-4">Upload File</h2>
+        <input
+          type="text"
+          placeholder="File Name"
+          value={fileName}
+          onChange={(e) => setFileName(e.target.value)}
+          className="border p-2 w-full mb-2"
+        />
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="border p-2 w-full mb-2"
+        ></textarea>
+        <input
+          type="file"
+          onChange={(e) => setUploadFile(e.target.files[0])}
+          className="mb-2"
+        />
+        <div className="mb-2">
+          <label>
+            <input
+              type="radio"
+              value="private"
+              checked={visibility === "private"}
+              onChange={(e) => setVisibility(e.target.value)}
+            />
+            Private
+          </label>
+          <label className="ml-4">
+            <input
+              type="radio"
+              value="public"
+              checked={visibility === "public"}
+              onChange={(e) => setVisibility(e.target.value)}
+            />
+            Public
+          </label>
         </div>
+        <button
+          onClick={handleFileUpload}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          <FaUpload className="inline-block mr-2" />
+          Upload
+        </button>
+        {uploadStatus && <p className="mt-2">{uploadStatus}</p>}
       </div>
-
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredDocuments.map((doc) => (
-          <div key={doc.id} className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-md border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-lg font-semibold">
-                <FiFileText className="text-blue-500" /> {doc.title}
-              </div>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{doc.type}</span>
-            </div>
-            <p className="text-gray-700 text-sm mb-4">{doc.description}</p>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {doc.tags.map((tag, idx) => (
-                <span key={idx} className="bg-gray-200 px-2 py-1 rounded-full text-xs text-gray-600">#{tag}</span>
-              ))}
-            </div>
-            <div className="flex justify-between text-gray-400 text-xs">
-              <div>📅 {doc.updatedAt}</div>
-              <button className="flex items-center gap-1 text-blue-600 hover:underline text-sm">
-                <FiDownload /> View
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredDocuments.length === 0 && (
-        <div className="text-center text-gray-500 mt-20">
-          No documents found.
-        </div>
-      )}
     </div>
   );
 };
