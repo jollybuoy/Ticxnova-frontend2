@@ -12,7 +12,7 @@ import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from "./components/AIChatBot";
 import Reports from "./pages/Reports";
-import KnowledgeBase from "./pages/KnowledgeBase";
+import KnowledgeBase from "./pages/KnowledgeBase"; // KnowledgeBase Component
 import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
 import Messages from "./pages/Messages";
@@ -36,24 +36,27 @@ function App() {
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
 
-  useEffect(() => {
-    console.log("User Token:", userToken);
-    console.log("MSAL Authenticated:", msalAuthenticated);
+  // Required Scopes for OneDrive and Microsoft Graph API
+  const requiredScopes = [
+    "User.Read",
+    "Files.ReadWrite",
+    "Files.ReadWrite.All",
+  ];
 
+  useEffect(() => {
     setCustomAuth(!!userToken);
     setLoading(false);
   }, [userToken, msalAuthenticated]);
 
   useEffect(() => {
-    console.log("Fetching Microsoft User Details...");
     const fetchMicrosoftUserDetails = async () => {
       try {
         const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.ReadWrite.All"],
+          scopes: requiredScopes, // Add required scopes here
           account: accounts[0],
         });
 
-        const userPrincipalName = accounts[0]?.username || "unknown";
+        const userPrincipalName = accounts[0]?.username;
 
         const graphResponse = await fetch(
           `https://graph.microsoft.com/v1.0/users/${userPrincipalName}?$select=displayName,department,userPrincipalName`,
@@ -90,7 +93,7 @@ function App() {
   }, [msalAuthenticated, instance, accounts]);
 
   const handleLogin = () => {
-    instance.loginRedirect().catch((err) => {
+    instance.loginRedirect({ scopes: requiredScopes }).catch((err) => {
       console.error("Microsoft login failed:", err);
     });
   };
@@ -106,9 +109,6 @@ function App() {
 
   const isAuthenticated = msalAuthenticated || customAuth;
   const activeUser = msUserDetails || user;
-
-  console.log("Is Authenticated:", isAuthenticated);
-  console.log("Active User:", activeUser);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -165,7 +165,18 @@ function App() {
               onClick={() => setShowAI(true)}
               aria-label="Open Ticxnova AI"
             >
-              {/* AI Button */}
+              <div className="relative w-28 h-28 group">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 opacity-40 blur-lg animate-pulse" />
+                <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-purple-700 rounded-full shadow-2xl flex items-center justify-center animate-spin-slow relative z-10">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white text-xl">🤖</div>
+                  <div className="absolute top-2 left-0 w-full text-center">
+                    <span className="text-white text-sm font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce">
+                      Ticxnova AI
+                    </span>
+                  </div>
+                  <span className="text-4xl">🧠</span>
+                </div>
+              </div>
             </button>
             <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken || user?.idToken} />
           </>
