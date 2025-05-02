@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaDownload,
   FaFilter,
@@ -6,6 +6,9 @@ import {
   FaCalendarAlt,
   FaTasks,
   FaCircle,
+  FaTrophy,
+  FaUserTie,
+  FaBuilding,
 } from "react-icons/fa";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -25,23 +28,23 @@ const Reports = () => {
       ticketId: "TIC-1028",
       type: "Task",
       priority: "P3",
-      status: "Open",
+      status: "Resolved",
       subject: "Sample Ticket 29",
       assignedTo: "Robert Brown",
       department: "Sales",
-      createdAt: "2025-04-29",
-      resolvedAt: "-",
+      createdAt: "2025-05-02T03:30:00",
+      resolvedAt: "2025-05-02T04:30:00",
     },
     {
       ticketId: "TIC-1031",
       type: "Incident",
       priority: "P1",
-      status: "Pending",
+      status: "Resolved",
       subject: "Sample Ticket 32",
       assignedTo: "Jane Smith",
       department: "HR",
-      createdAt: "2025-04-29",
-      resolvedAt: "-",
+      createdAt: "2025-05-02T02:00:00",
+      resolvedAt: "2025-05-02T03:45:00",
     },
     {
       ticketId: "TIC-1038",
@@ -51,8 +54,8 @@ const Reports = () => {
       subject: "Sample Ticket 39",
       assignedTo: "Sarah Williams",
       department: "Legal",
-      createdAt: "2025-04-29",
-      resolvedAt: "2025-04-29",
+      createdAt: "2025-05-01T23:45:00",
+      resolvedAt: "2025-05-02T00:30:00",
     },
   ];
 
@@ -100,6 +103,29 @@ const Reports = () => {
     return matchesDateRange && matchesPriority && matchesStatus && matchesDepartment;
   });
 
+  // Analytics Calculations
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+  const ticketsClosedLastHour = ticketData.filter((ticket) => {
+    const resolvedAt = new Date(ticket.resolvedAt);
+    return resolvedAt >= oneHourAgo && resolvedAt <= now;
+  });
+
+  const topAgents = [...new Set(ticketData.map((ticket) => ticket.assignedTo))].map(
+    (agent) => ({
+      agent,
+      count: ticketData.filter((ticket) => ticket.assignedTo === agent).length,
+    })
+  );
+
+  const topDepartments = [...new Set(ticketData.map((ticket) => ticket.department))].map(
+    (department) => ({
+      department,
+      count: ticketData.filter((ticket) => ticket.department === department).length,
+    })
+  );
+
   return (
     <div className="p-6 bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen">
       {/* Header */}
@@ -110,6 +136,56 @@ const Reports = () => {
         <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-indigo-700 flex items-center">
           <FaDownload className="mr-2" /> Export
         </button>
+      </div>
+
+      {/* Analytics Section */}
+      <div className="p-6 bg-white shadow-md rounded-lg mb-10">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <FaTrophy /> Analytics
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Top Tickets Closed in Last Hour */}
+          <div className="p-4 bg-blue-100 rounded-lg shadow flex flex-col items-center">
+            <h3 className="text-xl font-bold text-blue-700 mb-2">
+              Tickets Closed (Last Hour)
+            </h3>
+            <p className="text-4xl font-bold text-blue-900">
+              {ticketsClosedLastHour.length}
+            </p>
+          </div>
+
+          {/* Top Agents */}
+          <div className="p-4 bg-green-100 rounded-lg shadow flex flex-col items-center">
+            <h3 className="text-xl font-bold text-green-700 mb-2">Top Agents</h3>
+            <ul className="text-green-900">
+              {topAgents
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3)
+                .map((agent, index) => (
+                  <li key={index} className="font-medium">
+                    {agent.agent}: {agent.count} tickets
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          {/* Top Departments */}
+          <div className="p-4 bg-yellow-100 rounded-lg shadow flex flex-col items-center">
+            <h3 className="text-xl font-bold text-yellow-700 mb-2">
+              Top Departments
+            </h3>
+            <ul className="text-yellow-900">
+              {topDepartments
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3)
+                .map((dept, index) => (
+                  <li key={index} className="font-medium">
+                    {dept.department}: {dept.count} tickets
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
