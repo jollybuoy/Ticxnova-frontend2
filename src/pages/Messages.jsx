@@ -12,6 +12,9 @@ import {
   FaPlus,
   FaSyncAlt,
   FaAddressBook,
+  FaFolder,
+  FaChevronDown,
+  FaChevronRight,
 } from "react-icons/fa";
 
 const Messages = () => {
@@ -23,8 +26,9 @@ const Messages = () => {
   const [composeMode, setComposeMode] = useState(null); // Modes: "new", "reply", "replyAll", "forward"
   const [addressBookVisible, setAddressBookVisible] = useState(false);
   const [accessToken, setAccessToken] = useState("");
+  const [expandedFolders, setExpandedFolders] = useState({}); // Keeps track of expanded folders
 
-  const fetchFolders = async () => {
+  const fetchFolders = async (parentFolderId = null) => {
     try {
       const response = await instance.acquireTokenSilent({
         scopes: ["Mail.Read"],
@@ -32,11 +36,26 @@ const Messages = () => {
       });
       setAccessToken(response.accessToken);
 
-      const folderResponse = await fetch("https://graph.microsoft.com/v1.0/me/mailFolders", {
-        headers: { Authorization: `Bearer ${response.accessToken}` },
-      });
+      const folderResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/mailFolders${
+          parentFolderId ? `/${parentFolderId}/childFolders` : ""
+        }`,
+        {
+          headers: { Authorization: `Bearer ${response.accessToken}` },
+        }
+      );
       const data = await folderResponse.json();
-      setFolders(data.value || []);
+      if (parentFolderId) {
+        setFolders((prevFolders) =>
+          prevFolders.map((folder) =>
+            folder.id === parentFolderId
+              ? { ...folder, childFolders: data.value }
+              : folder
+          )
+        );
+      } else {
+        setFolders(data.value || []);
+      }
     } catch (error) {
       console.error("Error fetching folders", error);
     }
@@ -59,11 +78,11 @@ const Messages = () => {
   };
 
   useEffect(() => {
-    fetchFolders();
+    fetchFolders(); // Fetch top-level folders
   }, []);
 
   useEffect(() => {
-    if (selectedFolderId) fetchEmails();
+    if (selectedFolderId) fetchEmails(); // Fetch emails for selected folder
   }, [selectedFolderId]);
 
   // Refresh emails every 30 seconds
@@ -75,6 +94,16 @@ const Messages = () => {
     // Cleanup interval on component unmount
     return () => clearInterval(refreshInterval);
   }, [selectedFolderId]);
+
+  const toggleFolderExpansion = (folderId) => {
+    setExpandedFolders((prevState) => ({
+      ...prevState,
+      [folderId]: !prevState[folderId],
+    }));
+    if (!expandedFolders[folderId]) {
+      fetchFolders(folderId); // Fetch child folders if expanding
+    }
+  };
 
   const openComposeModal = (mode) => {
     console.log(`Opening compose modal for mode: ${mode}`);
@@ -131,40 +160,54 @@ const Messages = () => {
       <div className="flex flex-grow">
         {/* Navigation Pane */}
         <aside className="w-1/5 bg-gray-100 border-r border-gray-300 p-4">
-          <h3 className="text-lg font-bold mb-4">Favorites</h3>
-          <ul className="mb-6 space-y-2">
-            <li
-              className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
-                selectedFolderId === "inbox" ? "bg-blue-200" : ""
-              }`}
-              onClick={() => setSelectedFolderId("inbox")}
-            >
-              <FaInbox className="inline mr-2" /> Inbox
-            </li>
-            <li
-              className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
-                selectedFolderId === "drafts" ? "bg-blue-200" : ""
-              }`}
-              onClick={() => setSelectedFolderId("drafts")}
-            >
-              <FaFileAlt className="inline mr-2" /> Drafts
-            </li>
-            <li
-              className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
-                selectedFolderId === "sent" ? "bg-blue-200" : ""
-              }`}
-              onClick={() => setSelectedFolderId("sent")}
-            >
-              <FaPaperPlane className="inline mr-2" /> Sent
-            </li>
-            <li
-              className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
-                selectedFolderId === "deleted" ? "bg-blue-200" : ""
-              }`}
-              onClick={() => setSelectedFolderId("deleted")}
-            >
-              <FaTrashAlt className="inline mr-2" /> Deleted
-            </li>
+          <h3 className="text-lg font-bold mb-4">Folders</h3>
+          <ul className="space-y-2">
+            {folders.map((folder) => (
+              <li key={folder.id}>
+                <div
+                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-200 ${
+                    selectedFolderId === folder.id ? "bg-blue-200" : ""
+                  }`}
+                  onClick={() => setSelectedFolderId(folder.id)}
+                >
+                  {folder.childFolderCount > 0 && (
+                    <button
+                      className="mr-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFolderExpansion(folder.id);
+                      }}
+                    >
+                      {expandedFolders[folder.id] ? (
+                        <FaChevronDown />
+                      ) : (
+                        <FaChevronRight />
+                      )}
+                    </button>
+                  )}
+                  <FaFolder className="mr-2" />
+                  {folder.displayName}
+                </div>
+                {expandedFolders[folder.id] && folder.childFolders && (
+                  <ul className="ml-6 space-y-2">
+                    {folder.childFolders.map((childFolder) => (
+                      <li
+                        key={childFolder.id}
+                        className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
+                          selectedFolderId === childFolder.id
+                            ? "bg-blue-200"
+                            : ""
+                        }`}
+                        onClick={() => setSelectedFolderId(childFolder.id)}
+                      >
+                        <FaFolder className="mr-2" />
+                        {childFolder.displayName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
           </ul>
         </aside>
 
@@ -190,8 +233,12 @@ const Messages = () => {
                 }`}
                 onClick={() => setSelectedEmail(email)}
               >
-                <h3 className="font-bold text-blue-600">{email.subject || "(No Subject)"}</h3>
-                <p className="text-gray-500">{email.from?.emailAddress?.name}</p>
+                <h3 className="font-bold text-blue-600">
+                  {email.subject || "(No Subject)"}
+                </h3>
+                <p className="text-gray-500">
+                  {email.from?.emailAddress?.name}
+                </p>
                 <p className="text-sm text-gray-400">{email.bodyPreview}</p>
               </li>
             ))}
@@ -215,7 +262,9 @@ const Messages = () => {
             </p>
             <div
               className="mt-4 border-t pt-4"
-              dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
+              dangerouslySetInnerHTML={{
+                __html: selectedEmail.body?.content,
+              }}
             ></div>
           </section>
         )}
