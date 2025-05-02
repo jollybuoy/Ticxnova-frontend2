@@ -22,69 +22,123 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 
 const EnhancedReports = () => {
   const [activeTab, setActiveTab] = useState("Dashboard");
-  const [filters, setFilters] = useState({});
-  const [filterChips, setFilterChips] = useState([]);
-
-  const statusData = [
-    { name: "Resolved", value: 55, color: "#4CAF50" },
-    { name: "Open", value: 22, color: "#FFC107" },
-    { name: "Critical", value: 21, color: "#F44336" },
-  ];
-
-  const priorityData = [
-    { priority: "P1", tickets: 21, color: "#FF0000" },
-    { priority: "P2", tickets: 20, color: "#FFA500" },
-    { priority: "P3", tickets: 29, color: "#FFD700" },
-    { priority: "P4", tickets: 30, color: "#00FF00" },
-  ];
 
   const dashboardMetrics = [
-    { title: "Total Tickets", value: 100, change: "+5%", icon: <FaChartBar className="text-blue-500" /> },
-    { title: "Open Tickets", value: 22, change: "-2%", icon: <FaClock className="text-yellow-500" /> },
-    { title: "Resolved Tickets", value: 55, change: "+12%", icon: <FaCheckCircle className="text-green-500" /> },
-    { title: "Critical Issues", value: 21, change: "+3", icon: <FaExclamationTriangle className="text-red-500" /> },
+    {
+      title: "Total Tickets",
+      value: 100,
+      change: "+5%",
+      color: "from-indigo-500 to-purple-600",
+      icon: <FaChartBar className="text-blue-500" />,
+    },
+    {
+      title: "Open Tickets",
+      value: 22,
+      change: "-2%",
+      color: "from-orange-400 to-yellow-200",
+      icon: <FaClock className="text-yellow-500" />,
+    },
+    {
+      title: "Resolved Tickets",
+      value: 55,
+      change: "+12%",
+      color: "from-green-500 to-lime-500",
+      icon: <FaCheckCircle className="text-green-500" />,
+    },
+    {
+      title: "Critical Issues",
+      value: 21,
+      change: "+3",
+      color: "from-red-500 to-pink-500",
+      icon: <FaExclamationTriangle className="text-red-500" />,
+    },
+    {
+      title: "Top Department",
+      value: "Marketing",
+      subtext: "16 tickets",
+      color: "from-orange-500 to-yellow-500",
+    },
+    {
+      title: "Top Agent",
+      value: "Sarah Williams",
+      subtext: "23 tickets",
+      color: "from-teal-500 to-blue-500",
+    },
+    {
+      title: "SLA Compliance",
+      value: "95%",
+      change: "+5%",
+      color: "from-green-400 to-green-600",
+    },
   ];
 
   const ticketsData = [
     {
-      priority: "P2",
-      status: "Closed",
-      subject: "Sample Ticket 23",
-      assignedTo: "Sarah Williams",
-      department: "Finance",
-      created: "Apr 29, 2025",
-      resolved: "Apr 30, 2025",
-    },
-    {
       priority: "P1",
       status: "Open",
-      subject: "Sample Ticket 12",
+      subject: "Critical system failure",
       assignedTo: "John Doe",
       department: "IT",
+      created: "May 1, 2025",
+      resolved: "-",
+      priorityColor: "text-red-500",
+      statusColor: "text-yellow-500",
+    },
+    {
+      priority: "P2",
+      status: "Closed",
+      subject: "Network issue",
+      assignedTo: "Jane Smith",
+      department: "Networking",
+      created: "Apr 30, 2025",
+      resolved: "May 1, 2025",
+      priorityColor: "text-orange-500",
+      statusColor: "text-green-500",
+    },
+    {
+      priority: "P3",
+      status: "Open",
+      subject: "Login issue",
+      assignedTo: "Alice Johnson",
+      department: "Support",
       created: "Apr 28, 2025",
       resolved: "-",
+      priorityColor: "text-yellow-500",
+      statusColor: "text-yellow-500",
     },
   ];
 
-  const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
-    if (!filterChips.some((chip) => chip.field === field)) {
-      setFilterChips([...filterChips, { field, value }]);
-    }
-  };
+  const statusData = [
+    { status: "Open", count: 22 },
+    { status: "Resolved", count: 55 },
+    { status: "Critical", count: 21 },
+  ];
 
-  const removeFilterChip = (field) => {
-    setFilterChips(filterChips.filter((chip) => chip.field !== field));
-    setFilters((prev) => {
-      const newFilters = { ...prev };
-      delete newFilters[field];
-      return newFilters;
-    });
-  };
+  const priorityData = [
+    { priority: "P1", count: 21 },
+    { priority: "P2", count: 20 },
+    { priority: "P3", count: 30 },
+  ];
+
+  const trendsData = [
+    { month: "Jan", count: 20 },
+    { month: "Feb", count: 30 },
+    { month: "Mar", count: 25 },
+    { month: "Apr", count: 40 },
+    { month: "May", count: 35 },
+  ];
+
+  const slaData = [
+    { name: "Compliant", value: 95 },
+    { name: "Violation", value: 5 },
+  ];
+
+  const COLORS = ["#34d399", "#fbbf24", "#60a5fa", "#f87171", "#a78bfa", "#f472b6"];
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
@@ -97,10 +151,10 @@ const EnhancedReports = () => {
           <p className="text-sm text-gray-500">Showing 100 of 100 tickets</p>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow-lg transition hover:scale-105">
+          <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow-lg transition transform hover:scale-105">
             <FaFilter className="inline mr-2" /> Filters
           </button>
-          <button className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-lg transition hover:scale-105">
+          <button className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-lg transition transform hover:scale-105">
             <FaDownload className="inline mr-2" /> Export
           </button>
         </div>
@@ -146,22 +200,54 @@ const EnhancedReports = () => {
           {dashboardMetrics.map((metric, index) => (
             <div
               key={index}
-              className="p-6 bg-gradient-to-r from-white to-gray-50 rounded-lg shadow-lg hover:shadow-xl transition"
+              className={`p-6 bg-gradient-to-r ${metric.color} rounded-lg shadow-lg hover:shadow-xl transition`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-700">
+                  <h4 className="text-lg font-semibold text-gray-100">
                     {metric.title}
                   </h4>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {metric.value}
-                  </p>
-                  <p className="text-sm text-gray-500">{metric.change}</p>
+                  <p className="text-2xl font-bold text-white">{metric.value}</p>
+                  {metric.subtext && (
+                    <p className="text-sm text-gray-200">{metric.subtext}</p>
+                  )}
                 </div>
                 <div className="text-4xl">{metric.icon}</div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {activeTab === "Charts" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={slaData}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={60}
+                outerRadius={90}
+                label
+              >
+                <Cell fill="#22c55e" />
+                <Cell fill="#ef4444" />
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={statusData}>
+              <XAxis dataKey="status" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#68a1ff" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
 
@@ -182,8 +268,12 @@ const EnhancedReports = () => {
             <tbody>
               {ticketsData.map((ticket, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-2 border">{ticket.priority}</td>
-                  <td className="px-4 py-2 border">{ticket.status}</td>
+                  <td className={`px-4 py-2 border ${ticket.priorityColor}`}>
+                    {ticket.priority}
+                  </td>
+                  <td className={`px-4 py-2 border ${ticket.statusColor}`}>
+                    {ticket.status}
+                  </td>
                   <td className="px-4 py-2 border">{ticket.subject}</td>
                   <td className="px-4 py-2 border">{ticket.assignedTo}</td>
                   <td className="px-4 py-2 border">{ticket.department}</td>
