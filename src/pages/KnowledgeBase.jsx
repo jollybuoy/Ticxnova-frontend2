@@ -1,53 +1,150 @@
-// src/pages/KnowledgeBase.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiFileText, FiUpload, FiSearch, FiBookOpen, FiUser, FiCloud, FiDownload } from "react-icons/fi";
+import { msalInstance, loginRequest } from "../auth/msalConfig";
 import UploadDocument from "../components/UploadDocument";
-
-const mockPublicDocs = [
-  {
-    id: 1,
-    title: "Reset AD Password",
-    tags: ["AD", "Password", "Security"],
-    description: "Steps to reset your Active Directory password securely.",
-    type: "pdf",
-    updatedAt: "2025-04-15",
-    owner: "Admin"
-  },
-  {
-    id: 2,
-    title: "MFA Setup Guide",
-    tags: ["Security", "MFA"],
-    description: "How to enable Multi-Factor Authentication in your account.",
-    type: "pdf",
-    updatedAt: "2025-04-10",
-    owner: "Admin"
-  }
-];
-
-const initialUserDocs = [
-  {
-    id: 101,
-    title: "VPN Fix for Mac",
-    tags: ["VPN", "Mac"],
-    description: "How I fixed VPN connectivity issue on macOS Ventura.",
-    type: "docx",
-    updatedAt: "2025-04-14",
-    owner: "me"
-  }
-];
 
 const KnowledgeBase = () => {
   const [activeTab, setActiveTab] = useState("public");
   const [search, setSearch] = useState("");
-  const [userDocs, setUserDocs] = useState(initialUserDocs);
+  const [publicDocs, setPublicDocs] = useState([]);
+  const [userDocs, setUserDocs] = useState([]);
+  const [accessToken, setAccessToken] = useState(null);
 
-  const handleUserUpload = (newDoc) => {
-    setUserDocs((prev) => [newDoc, ...prev]);
+  const PUBLIC_FOLDER = "SOPs/Public";
+  const PRIVATE_FOLDER = "SOPs/Private";
+
+  // Fetch Access Token
+  const fetchAccessToken = async () => {
+    try {
+      const response = await msalInstance.acquireTokenSilent(loginRequest);
+      setAccessToken(response.accessToken);
+    } catch (error) {
+      console.error("Failed to acquire token:", error);
+    }
   };
 
-  const filteredDocs = (activeTab === "public" ? mockPublicDocs : userDocs).filter(doc =>
+  // Ensure Folders Exist
+  const ensureFoldersExist = async () => {
+    try {
+      const response = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const data = await response.json();
+
+      const sopFolder = data.value.find((folder) => folder.name === "SOPs");
+      if (!sopFolder) {
+        await createFolder("SOPs");
+      }
+
+      const subfoldersResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/SOPs:/children`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const subfolders = await subfoldersResponse.json();
+
+      if (!subfolders.value.find((folder) => folder.name === "Public")) {
+        await createFolder(PUBLIC_FOLDER);
+      }
+      if (!subfolders.value.find((folder) => folder.name === "Private")) {
+        await createFolder(PRIVATE_FOLDER);
+      }
+    } catch (error) {
+      console.error("Error ensuring folders exist:", error);
+    }
+  };
+
+  const createFolder = async (folderPath) => {
+    const folderName = folderPath.split("/").pop();
+    const parentPath = folderPath.includes("/") ? folderPath.split("/").slice(0, -1).join("/") : "";
+
+    const url = parentPath
+      ? `https://graph.microsoft.com/v1.0/me/drive/root:/${parentPath}:/children`
+      : `https://graph.microsoft.com/v1.0/me/drive/root/children`;
+
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: folderName,
+          folder: {},
+          "@microsoft.graph.conflictBehavior": "rename",
+        }),
+      });
+    } catch (error) {
+      console.error(`Error creating folder (${folderName}):`, error);
+    }
+  };
+
+  // Fetch Documents
+  const fetchDocuments = async (folderPath, setter) => {
+    try {
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${folderPath}:/children`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const docs = data.value.map((doc) => ({
+          id: doc.id,
+          title: doc.name,
+          tags: ["OneDrive"], // Example tag, replace with metadata if available
+          description: "Document stored in OneDrive.",
+          type: doc.name.split(".").pop(),
+          updatedAt: doc.lastModifiedDateTime.split("T")[0],
+          owner: "Admin", // Replace with owner info if available
+        }));
+        setter(docs);
+      }
+    } catch (error) {
+      console.error(`Error fetching documents from ${folderPath}:`, error);
+    }
+  };
+
+  // Handle Upload
+  const handleUserUpload = async (file) => {
+    const uploadUrl = `https://graph.microsoft.com/v1.0/me/drive/root:/${PRIVATE_FOLDER}/${file.name}:/content`;
+    try {
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (response.ok) {
+        const uploadedFile = await response.json();
+        const newDoc = {
+          id: uploadedFile.id,
+          title: uploadedFile.name,
+          tags: ["OneDrive"],
+          description: "Uploaded to OneDrive.",
+          type: uploadedFile.name.split(".").pop(),
+          updatedAt: uploadedFile.lastModifiedDateTime.split("T")[0],
+          owner: "me",
+        };
+        setUserDocs((prev) => [newDoc, ...prev]);
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAccessToken().then(() => {
+      ensureFoldersExist().then(() => {
+        fetchDocuments(PUBLIC_FOLDER, setPublicDocs);
+        fetchDocuments(PRIVATE_FOLDER, setUserDocs);
+      });
+    });
+  }, []);
+
+  const filteredDocs = (activeTab === "public" ? publicDocs : userDocs).filter((doc) =>
     doc.title.toLowerCase().includes(search.toLowerCase()) ||
-    doc.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+    doc.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
