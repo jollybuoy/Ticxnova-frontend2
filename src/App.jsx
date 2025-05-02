@@ -37,11 +37,15 @@ function App() {
   const user = accounts[0] || null;
 
   useEffect(() => {
+    console.log("User Token:", userToken);
+    console.log("MSAL Authenticated:", msalAuthenticated);
+
     setCustomAuth(!!userToken);
     setLoading(false);
   }, [userToken, msalAuthenticated]);
 
   useEffect(() => {
+    console.log("Fetching Microsoft User Details...");
     const fetchMicrosoftUserDetails = async () => {
       try {
         const response = await instance.acquireTokenSilent({
@@ -49,7 +53,7 @@ function App() {
           account: accounts[0],
         });
 
-        const userPrincipalName = accounts[0].username; // email
+        const userPrincipalName = accounts[0]?.username || "unknown";
 
         const graphResponse = await fetch(
           `https://graph.microsoft.com/v1.0/users/${userPrincipalName}?$select=displayName,department,userPrincipalName`,
@@ -61,8 +65,7 @@ function App() {
         );
 
         const userData = await graphResponse.json();
-
-        console.log("🧠 Microsoft Graph User Data:", userData);
+        console.log("Microsoft Graph User Data:", userData);
 
         // Save to backend
         await axios.post("/auth/microsoft-login", {
@@ -71,14 +74,13 @@ function App() {
           department: userData.department || "General",
         });
 
-        // Save to frontend state
         setMsUserDetails({
           email: userData.userPrincipalName,
           name: userData.displayName,
           department: userData.department || "General",
         });
       } catch (err) {
-        console.error("❌ Microsoft login error:", err);
+        console.error("Error fetching Microsoft user details:", err);
       }
     };
 
@@ -104,6 +106,9 @@ function App() {
 
   const isAuthenticated = msalAuthenticated || customAuth;
   const activeUser = msUserDetails || user;
+
+  console.log("Is Authenticated:", isAuthenticated);
+  console.log("Active User:", activeUser);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -160,18 +165,7 @@ function App() {
               onClick={() => setShowAI(true)}
               aria-label="Open Ticxnova AI"
             >
-              <div className="relative w-28 h-28 group">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 opacity-40 blur-lg animate-pulse" />
-                <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-purple-700 rounded-full shadow-2xl flex items-center justify-center animate-spin-slow relative z-10">
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white text-xl">🤖</div>
-                  <div className="absolute top-2 left-0 w-full text-center">
-                    <span className="text-white text-sm font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce">
-                      Ticxnova AI
-                    </span>
-                  </div>
-                  <span className="text-4xl">🧠</span>
-                </div>
-              </div>
+              {/* AI Button */}
             </button>
             <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken || user?.idToken} />
           </>
