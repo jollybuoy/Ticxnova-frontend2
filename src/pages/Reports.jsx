@@ -2,22 +2,19 @@ import React, { useState } from "react";
 import {
   FaDownload,
   FaFilter,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaTicketAlt,
-  FaClock,
-  FaLayerGroup,
+  FaChartPie,
   FaCalendarAlt,
-  FaBuilding,
   FaTasks,
+  FaCircle,
 } from "react-icons/fa";
-import { Line, Doughnut, Bar } from "react-chartjs-2";
-import 'chart.js/auto';
+import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "tailwindcss/tailwind.css";
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState("table");
   const [filters, setFilters] = useState({
-    dateRange: { start: "", end: "" },
+    dateRange: { start: null, end: null },
     priority: [],
     status: [],
     department: [],
@@ -63,9 +60,25 @@ const Reports = () => {
     return [...new Set(ticketData.map((item) => item[key]))];
   };
 
-  const priorityOptions = uniqueValues("priority");
-  const statusOptions = uniqueValues("status");
-  const departmentOptions = uniqueValues("department");
+  const priorityOptions = uniqueValues("priority").map((p) => ({
+    value: p,
+    label: p,
+  }));
+  const statusOptions = uniqueValues("status").map((s) => ({
+    value: s,
+    label: s,
+  }));
+  const departmentOptions = uniqueValues("department").map((d) => ({
+    value: d,
+    label: d,
+  }));
+
+  const handleFilterChange = (key, selectedOptions) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: selectedOptions.map((option) => option.value),
+    }));
+  };
 
   const filteredData = ticketData.filter((ticket) => {
     const matchesDateRange =
@@ -87,62 +100,59 @@ const Reports = () => {
     return matchesDateRange && matchesPriority && matchesStatus && matchesDepartment;
   });
 
-  const handleFilterChange = (filterKey, value, checked) => {
-    setFilters((prev) => {
-      const updatedValues = checked
-        ? [...prev[filterKey], value]
-        : prev[filterKey].filter((v) => v !== value);
-
-      return { ...prev, [filterKey]: updatedValues };
-    });
-  };
-
   return (
-    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-100 min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-indigo-800">📊 Reports & Analytics</h1>
-        <button
-          onClick={() => console.log("Export functionality here")}
-          className="bg-indigo-600 text-white px-6 py-3 rounded-lg flex items-center text-lg hover:bg-indigo-700 shadow-lg"
-        >
-          <FaDownload className="mr-3" /> Export
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-4xl font-bold text-indigo-800">
+          📊 Reports & Analytics
+        </h1>
+        <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-indigo-700 flex items-center">
+          <FaDownload className="mr-2" /> Export
         </button>
       </div>
 
-      {/* Filter Section */}
-      <div className="p-6 bg-white shadow-lg rounded-lg mb-8">
+      {/* Filters */}
+      <div className="p-6 bg-white shadow-md rounded-lg mb-10">
         <h2 className="text-2xl font-bold text-gray-700 mb-4 flex items-center gap-2">
           <FaFilter /> Filters
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Date Range Filter */}
+          {/* Date Range Picker */}
           <div>
             <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FaCalendarAlt /> Date Range:
             </label>
-            <input
-              type="date"
-              className="border p-3 rounded-lg w-full mb-3 focus:ring-2 focus:ring-indigo-500 shadow-sm"
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  dateRange: { ...filters.dateRange, start: e.target.value },
-                })
-              }
-              placeholder="Start Date"
-            />
-            <input
-              type="date"
-              className="border p-3 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 shadow-sm"
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  dateRange: { ...filters.dateRange, end: e.target.value },
-                })
-              }
-              placeholder="End Date"
-            />
+            <div className="flex gap-4">
+              <DatePicker
+                selected={filters.dateRange.start}
+                onChange={(date) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    dateRange: { ...prev.dateRange, start: date },
+                  }))
+                }
+                selectsStart
+                startDate={filters.dateRange.start}
+                endDate={filters.dateRange.end}
+                className="border p-2 rounded-md w-full"
+                placeholderText="Start Date"
+              />
+              <DatePicker
+                selected={filters.dateRange.end}
+                onChange={(date) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    dateRange: { ...prev.dateRange, end: date },
+                  }))
+                }
+                selectsEnd
+                startDate={filters.dateRange.start}
+                endDate={filters.dateRange.end}
+                className="border p-2 rounded-md w-full"
+                placeholderText="End Date"
+              />
+            </div>
           </div>
 
           {/* Priority Filter */}
@@ -150,92 +160,72 @@ const Reports = () => {
             <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FaTasks /> Priority:
             </label>
-            {priorityOptions.map((priority) => (
-              <div key={priority} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  onChange={(e) =>
-                    handleFilterChange("priority", priority, e.target.checked)
-                  }
-                />
-                <span className="text-gray-700 text-lg">{priority}</span>
-              </div>
-            ))}
+            <Select
+              options={priorityOptions}
+              isMulti
+              onChange={(selected) => handleFilterChange("priority", selected)}
+              className="text-gray-700"
+            />
           </div>
 
           {/* Status Filter */}
           <div>
             <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <FaLayerGroup /> Status:
+              <FaCircle /> Status:
             </label>
-            {statusOptions.map((status) => (
-              <div key={status} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  onChange={(e) =>
-                    handleFilterChange("status", status, e.target.checked)
-                  }
-                />
-                <span className="text-gray-700 text-lg">{status}</span>
-              </div>
-            ))}
+            <Select
+              options={statusOptions}
+              isMulti
+              onChange={(selected) => handleFilterChange("status", selected)}
+              className="text-gray-700"
+            />
           </div>
 
           {/* Department Filter */}
           <div>
             <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <FaBuilding /> Department:
+              <FaChartPie /> Department:
             </label>
-            {departmentOptions.map((department) => (
-              <div key={department} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  onChange={(e) =>
-                    handleFilterChange("department", department, e.target.checked)
-                  }
-                />
-                <span className="text-gray-700 text-lg">{department}</span>
-              </div>
-            ))}
+            <Select
+              options={departmentOptions}
+              isMulti
+              onChange={(selected) => handleFilterChange("department", selected)}
+              className="text-gray-700"
+            />
           </div>
         </div>
       </div>
 
-      {/* Table Section */}
-      {activeTab === "table" && (
-        <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-          <table className="w-full text-lg text-left text-gray-700">
-            <thead className="text-xl uppercase bg-indigo-500 text-white">
-              <tr>
-                {Object.keys(ticketData[0]).map((col) => (
-                  <th key={col} className="px-6 py-4">
-                    {col}
-                  </th>
+      {/* Table */}
+      <div className="overflow-x-auto bg-white shadow-md rounded-md">
+        <table className="w-full text-left text-gray-700">
+          <thead className="bg-indigo-500 text-white">
+            <tr>
+              {Object.keys(ticketData[0]).map((key) => (
+                <th key={key} className="px-6 py-4">
+                  {key}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((row, index) => (
+              <tr
+                key={index}
+                className={`${
+                  index % 2 === 0 ? "bg-gray-100" : "bg-white"
+                } hover:bg-indigo-100`}
+              >
+                {Object.values(row).map((value, idx) => (
+                  <td key={idx} className="px-6 py-4">
+                    {value}
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((row, i) => (
-                <tr
-                  key={i}
-                  className={`border-t ${
-                    i % 2 === 0 ? "bg-indigo-50" : "bg-white"
-                  } hover:bg-indigo-100`}
-                >
-                  {Object.values(row).map((val, idx) => (
-                    <td key={idx} className="px-6 py-4">
-                      {val}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
