@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   FaInbox,
-  FaFileAlt,
   FaTrashAlt,
   FaPaperPlane,
   FaReply,
@@ -22,16 +21,16 @@ const Messages = () => {
   const [folders, setFolders] = useState([]);
   const [emails, setEmails] = useState([]);
   const [selectedFolderId, setSelectedFolderId] = useState("inbox");
-  const [selectedEmailIndex, setSelectedEmailIndex] = useState(null); // Index of selected email
-  const [composeMode, setComposeMode] = useState(null); // Modes: "new", "reply", "replyAll", "forward"
+  const [selectedEmailIndex, setSelectedEmailIndex] = useState(null);
+  const [composeMode, setComposeMode] = useState(null);
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, email: null });
   const [addressBookVisible, setAddressBookVisible] = useState(false);
   const [accessToken, setAccessToken] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({});
-  const [lastInboxEmailId, setLastInboxEmailId] = useState(null); // Tracks the latest email ID in the inbox
-
+  const [lastInboxEmailId, setLastInboxEmailId] = useState(null);
   const soundNotification = new Audio("/notification-sound.mp3");
 
+  // Fetch folders
   const fetchFolders = async (parentFolderId = null) => {
     try {
       const response = await instance.acquireTokenSilent({
@@ -65,9 +64,9 @@ const Messages = () => {
     }
   };
 
+  // Fetch emails
   const fetchEmails = async (folderId = selectedFolderId, notify = false) => {
     try {
-      console.log(`Fetching emails for folder: ${folderId}`);
       const mailResponse = await fetch(
         `https://graph.microsoft.com/v1.0/me/mailFolders/${folderId}/messages`,
         {
@@ -90,12 +89,13 @@ const Messages = () => {
     }
   };
 
+  // Trigger notification
   const triggerNotification = (email) => {
     if (Notification.permission === "granted") {
       new Notification("New Email Received", {
         body: `${email.subject}\nFrom: ${email.from?.emailAddress?.name}`,
       });
-      soundNotification.play(); // Play sound for each notification
+      soundNotification.play(); // Play sound
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
@@ -108,6 +108,7 @@ const Messages = () => {
     }
   };
 
+  // Mark email as read/unread
   const markAsReadUnread = async (email, isRead) => {
     try {
       await fetch(`https://graph.microsoft.com/v1.0/me/messages/${email.id}`, {
@@ -118,7 +119,6 @@ const Messages = () => {
         },
         body: JSON.stringify({ isRead }),
       });
-      // Update the email state to reflect the change
       setEmails((prevEmails) =>
         prevEmails.map((e) =>
           e.id === email.id ? { ...e, isRead } : e
@@ -140,7 +140,7 @@ const Messages = () => {
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       fetchEmails("inbox", true);
-    }, 30000); // 30 seconds
+    }, 30000);
     return () => clearInterval(refreshInterval);
   }, []);
 
@@ -166,9 +166,7 @@ const Messages = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Top Navigation Pane */}
       <header className="flex items-center bg-gray-200 p-4 border-b">
-        {/* Other buttons */}
         <button
           className="flex items-center bg-yellow-500 text-white px-4 py-2 rounded mr-4"
           onClick={() => fetchEmails()}
@@ -178,12 +176,10 @@ const Messages = () => {
       </header>
 
       <div className="flex flex-grow">
-        {/* Navigation Pane */}
         <aside className="w-1/5 bg-gray-100 border-r border-gray-300 p-4">
           <h3 className="text-lg font-bold mb-4">Folders</h3>
         </aside>
 
-        {/* Email List */}
         <main className="w-2/5 bg-white border-r border-gray-300 p-4">
           <ul>
             {emails.map((email, index) => (
