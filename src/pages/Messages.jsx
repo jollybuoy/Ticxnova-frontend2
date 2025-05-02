@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   FaInbox,
-  FaDrafts,
+  FaFileAlt, // Replaced FaDrafts with FaFileAlt
   FaTrashAlt,
   FaPaperPlane,
   FaReply,
@@ -85,7 +85,7 @@ const Messages = () => {
             }`}
             onClick={() => setSelectedFolderId("drafts")}
           >
-            <FaDrafts className="inline mr-2" /> Drafts
+            <FaFileAlt className="inline mr-2" /> Drafts
           </li>
           <li
             className={`p-2 rounded cursor-pointer hover:bg-gray-200 ${
@@ -184,26 +184,6 @@ const Messages = () => {
             </button>
           </div>
         </section>
-      )}
-
-      {/* Tasks Pane */}
-      {showTasksPane && (
-        <aside className="w-1/5 bg-white border-l border-gray-300 p-4">
-          <header className="flex justify-between mb-4">
-            <h3 className="text-lg font-bold">Tasks</h3>
-            <button
-              onClick={() => setShowTasksPane(false)}
-              className="text-gray-400"
-            >
-              ✖
-            </button>
-          </header>
-          <ul className="space-y-2">
-            <li className="p-2 rounded border">Task 1</li>
-            <li className="p-2 rounded border">Task 2</li>
-            <li className="p-2 rounded border">Task 3</li>
-          </ul>
-        </aside>
       )}
     </div>
   );
