@@ -44,6 +44,7 @@ const Messages = () => {
 
   const fetchEmails = async (folderId = selectedFolderId) => {
     try {
+      console.log(`Fetching emails for folder: ${folderId}`);
       const mailResponse = await fetch(
         `https://graph.microsoft.com/v1.0/me/mailFolders/${folderId}/messages`,
         {
@@ -76,10 +77,12 @@ const Messages = () => {
   }, [selectedFolderId]);
 
   const openComposeModal = (mode) => {
+    console.log(`Opening compose modal for mode: ${mode}`);
     setComposeMode(mode);
   };
 
   const toggleAddressBook = () => {
+    console.log("Toggling address book visibility");
     setAddressBookVisible(!addressBookVisible);
   };
 
@@ -217,19 +220,6 @@ const Messages = () => {
           </section>
         )}
       </div>
-
-      {/* Address Book Modal */}
-      {addressBookVisible && (
-        <div className="absolute inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-lg w-1/3">
-            <header className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">Address Book</h3>
-              <button onClick={toggleAddressBook}>✖</button>
-            </header>
-            <p>Address book feature coming soon...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
