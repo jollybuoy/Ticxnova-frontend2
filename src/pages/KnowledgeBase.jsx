@@ -25,6 +25,81 @@ const KnowledgeBase = () => {
     }
   };
 
+  // Ensure folders exist in OneDrive
+  const ensureFoldersExist = async () => {
+    try {
+      // Check if the SOPs folder exists, and create it if not
+      const sopFolderResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/root/children`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const sopFolderData = await sopFolderResponse.json();
+      const sopFolder = sopFolderData.value.find((folder) => folder.name === "SOPs");
+
+      if (!sopFolder) {
+        console.log("Creating SOPs folder...");
+        await createFolder("SOPs");
+      }
+
+      // Check and create Public and Private subfolders
+      const subfoldersResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/root:/${"SOPs"}:/children`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const subfoldersData = await subfoldersResponse.json();
+      const publicFolder = subfoldersData.value.find((folder) => folder.name === "Public");
+      const privateFolder = subfoldersData.value.find((folder) => folder.name === "Private");
+
+      if (!publicFolder) {
+        console.log("Creating Public folder...");
+        await createFolder(PUBLIC_FOLDER);
+      }
+
+      if (!privateFolder) {
+        console.log("Creating Private folder...");
+        await createFolder(PRIVATE_FOLDER);
+      }
+    } catch (error) {
+      console.error("Error ensuring folders exist:", error);
+    }
+  };
+
+  // Function to create a folder
+  const createFolder = async (folderPath) => {
+    const folderName = folderPath.split("/").pop();
+    const parentPath = folderPath.includes("/") ? folderPath.split("/").slice(0, -1).join("/") : "";
+
+    try {
+      const createFolderUrl = parentPath
+        ? `https://graph.microsoft.com/v1.0/me/drive/root:/${parentPath}:/children`
+        : `https://graph.microsoft.com/v1.0/me/drive/root/children`;
+
+      const response = await fetch(createFolderUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: folderName,
+          folder: {}, // This denotes that the item is a folder
+          "@microsoft.graph.conflictBehavior": "rename",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create folder: ${folderName}`);
+      }
+      console.log(`Folder created: ${folderName}`);
+    } catch (error) {
+      console.error("Error creating folder:", error);
+    }
+  };
+
   // Upload file to OneDrive
   const handleFileUpload = async () => {
     if (!uploadFile || !fileName) {
@@ -121,95 +196,17 @@ const KnowledgeBase = () => {
   };
 
   useEffect(() => {
-    getAccessToken();
-    fetchFiles();
+    getAccessToken().then(() => {
+      ensureFoldersExist().then(() => {
+        fetchFiles();
+      });
+    });
   }, []);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Knowledge Base</h1>
-
-      {/* Tabs for Public and Private Repositories */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold mb-2">Public Repository</h2>
-        <ul>
-          {publicFiles.map((file) => (
-            <li key={file.id}>
-              <a
-                href={file.webUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500"
-              >
-                {file.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-xl font-bold mb-2">Private Repository</h2>
-        <ul>
-          {privateFiles.map((file) => (
-            <li key={file.id}>
-              <FaFileAlt className="inline-block mr-2" />
-              {file.name}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* File Upload Form */}
-      <div className="p-4 border rounded">
-        <h2 className="text-xl font-bold mb-4">Upload File</h2>
-        <input
-          type="text"
-          placeholder="File Name"
-          value={fileName}
-          onChange={(e) => setFileName(e.target.value)}
-          className="border p-2 w-full mb-2"
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="border p-2 w-full mb-2"
-        ></textarea>
-        <input
-          type="file"
-          onChange={(e) => setUploadFile(e.target.files[0])}
-          className="mb-2"
-        />
-        <div className="mb-2">
-          <label>
-            <input
-              type="radio"
-              value="private"
-              checked={visibility === "private"}
-              onChange={(e) => setVisibility(e.target.value)}
-            />
-            Private
-          </label>
-          <label className="ml-4">
-            <input
-              type="radio"
-              value="public"
-              checked={visibility === "public"}
-              onChange={(e) => setVisibility(e.target.value)}
-            />
-            Public
-          </label>
-        </div>
-        <button
-          onClick={handleFileUpload}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          <FaUpload className="inline-block mr-2" />
-          Upload
-        </button>
-        {uploadStatus && <p className="mt-2">{uploadStatus}</p>}
-      </div>
+      {/* Additional UI elements for public & private repositories */}
     </div>
   );
 };
