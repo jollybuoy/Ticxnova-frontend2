@@ -14,6 +14,18 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "tailwindcss/tailwind.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 const Reports = () => {
   const [filters, setFilters] = useState({
@@ -32,8 +44,8 @@ const Reports = () => {
       subject: "Sample Ticket 29",
       assignedTo: "Robert Brown",
       department: "Sales",
-      createdAt: "2025-05-02T03:30:00",
-      resolvedAt: "2025-05-02T04:30:00",
+      createdAt: "2025-05-01T03:30:00",
+      resolvedAt: "2025-05-01T04:30:00",
     },
     {
       ticketId: "TIC-1031",
@@ -43,8 +55,8 @@ const Reports = () => {
       subject: "Sample Ticket 32",
       assignedTo: "Jane Smith",
       department: "HR",
-      createdAt: "2025-05-02T02:00:00",
-      resolvedAt: "2025-05-02T03:45:00",
+      createdAt: "2025-05-01T02:00:00",
+      resolvedAt: "2025-05-01T03:45:00",
     },
     {
       ticketId: "TIC-1038",
@@ -126,6 +138,29 @@ const Reports = () => {
     })
   );
 
+  // Data for Charts
+  const trendData = ticketData.map((ticket) => ({
+    date: new Date(ticket.createdAt).toLocaleDateString(),
+    created: 1,
+    resolved: ticket.status === "Resolved" ? 1 : 0,
+  }));
+
+  const departmentComparisonData = topDepartments.map((dept) => ({
+    department: dept.department,
+    tickets: dept.count,
+  }));
+
+  const totalTickets = ticketData.length;
+  const resolvedTickets = ticketData.filter((ticket) => ticket.status === "Resolved").length;
+  const averageResolutionTime =
+    ticketData
+      .filter((ticket) => ticket.status === "Resolved")
+      .reduce((sum, ticket) => {
+        const created = new Date(ticket.createdAt);
+        const resolved = new Date(ticket.resolvedAt);
+        return sum + (resolved - created) / (60 * 1000); // Convert to minutes
+      }, 0) / resolvedTickets || 0;
+
   return (
     <div className="p-6 bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen">
       {/* Header */}
@@ -144,47 +179,53 @@ const Reports = () => {
           <FaTrophy /> Analytics
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Top Tickets Closed in Last Hour */}
+          {/* KPI Cards */}
+          <div className="p-4 bg-purple-100 rounded-lg shadow flex flex-col items-center">
+            <h3 className="text-xl font-bold text-purple-700 mb-2">Total Tickets</h3>
+            <p className="text-4xl font-bold text-purple-900">{totalTickets}</p>
+          </div>
+          <div className="p-4 bg-green-100 rounded-lg shadow flex flex-col items-center">
+            <h3 className="text-xl font-bold text-green-700 mb-2">Resolved Tickets</h3>
+            <p className="text-4xl font-bold text-green-900">{resolvedTickets}</p>
+          </div>
           <div className="p-4 bg-blue-100 rounded-lg shadow flex flex-col items-center">
-            <h3 className="text-xl font-bold text-blue-700 mb-2">
-              Tickets Closed (Last Hour)
-            </h3>
+            <h3 className="text-xl font-bold text-blue-700 mb-2">Avg. Resolution Time</h3>
             <p className="text-4xl font-bold text-blue-900">
-              {ticketsClosedLastHour.length}
+              {Math.round(averageResolutionTime)} mins
             </p>
           </div>
+        </div>
 
-          {/* Top Agents */}
-          <div className="p-4 bg-green-100 rounded-lg shadow flex flex-col items-center">
-            <h3 className="text-xl font-bold text-green-700 mb-2">Top Agents</h3>
-            <ul className="text-green-900">
-              {topAgents
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 3)
-                .map((agent, index) => (
-                  <li key={index} className="font-medium">
-                    {agent.agent}: {agent.count} tickets
-                  </li>
-                ))}
-            </ul>
-          </div>
+        {/* Charts */}
+        <div className="mt-10">
+          <h3 className="text-2xl font-bold text-gray-700 mb-4">Ticket Trends</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="created" stroke="#8884d8" name="Created Tickets" />
+              <Line type="monotone" dataKey="resolved" stroke="#82ca9d" name="Resolved Tickets" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-          {/* Top Departments */}
-          <div className="p-4 bg-yellow-100 rounded-lg shadow flex flex-col items-center">
-            <h3 className="text-xl font-bold text-yellow-700 mb-2">
-              Top Departments
-            </h3>
-            <ul className="text-yellow-900">
-              {topDepartments
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 3)
-                .map((dept, index) => (
-                  <li key={index} className="font-medium">
-                    {dept.department}: {dept.count} tickets
-                  </li>
-                ))}
-            </ul>
-          </div>
+        <div className="mt-10">
+          <h3 className="text-2xl font-bold text-gray-700 mb-4">
+            Department Comparison
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={departmentComparisonData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="department" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="tickets" fill="#8884d8" name="Tickets Resolved" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
