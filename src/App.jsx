@@ -32,6 +32,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showAI, setShowAI] = useState(false);
   const [msUserDetails, setMsUserDetails] = useState(null);
+  const [accessToken, setAccessToken] = useState(null); // Access token for Graph API calls
 
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
@@ -44,15 +45,22 @@ function App() {
   useEffect(() => {
     const fetchMicrosoftUserDetails = async () => {
       try {
+        // Acquire token with all necessary scopes
         const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.ReadWrite.All"],
+          scopes: [
+            "User.Read",         // Read the authenticated user's profile
+            "User.ReadBasic.All", // Read profiles of other users
+            "Files.ReadWrite",   // Access files on OneDrive
+            "Mail.Read",         // Read user emails
+            "Mail.Send"          // Send emails on behalf of the user
+          ],
           account: accounts[0],
         });
 
-        const userPrincipalName = accounts[0].username; // email
+        setAccessToken(response.accessToken); // Save access token for child components
 
         const graphResponse = await fetch(
-          `https://graph.microsoft.com/v1.0/users/${userPrincipalName}?$select=displayName,department,userPrincipalName`,
+          `https://graph.microsoft.com/v1.0/me?$select=displayName,jobTitle,department,mail`,
           {
             headers: {
               Authorization: `Bearer ${response.accessToken}`,
@@ -60,25 +68,31 @@ function App() {
           }
         );
 
+        if (!graphResponse.ok) {
+          throw new Error("Failed to fetch user profile details");
+        }
+
         const userData = await graphResponse.json();
 
-        console.log("🧠 Microsoft Graph User Data:", userData);
+        console.log("🧠 User Profile Data:", userData);
 
-        // Save to backend
-        await axios.post("/auth/microsoft-login", {
-          email: userData.userPrincipalName,
-          name: userData.displayName,
-          department: userData.department || "General",
+        // Save user details to state
+        setMsUserDetails({
+          name: userData.displayName, // Name of the user
+          designation: userData.jobTitle || "Not Available", // Job title (designation)
+          department: userData.department || "Not Available", // Department
+          email: userData.mail, // Email address
         });
 
-        // Save to frontend state
-        setMsUserDetails({
-          email: userData.userPrincipalName,
+        // Optional: Save to backend if needed
+        await axios.post("/auth/microsoft-login", {
+          email: userData.mail,
           name: userData.displayName,
+          designation: userData.jobTitle,
           department: userData.department || "General",
         });
       } catch (err) {
-        console.error("❌ Microsoft login error:", err);
+        console.error("❌ Error fetching user profile details:", err);
       }
     };
 
@@ -88,9 +102,19 @@ function App() {
   }, [msalAuthenticated, instance, accounts]);
 
   const handleLogin = () => {
-    instance.loginRedirect().catch((err) => {
-      console.error("Microsoft login failed:", err);
-    });
+    instance
+      .loginRedirect({
+        scopes: [
+          "User.Read",         // Read the authenticated user's profile
+          "User.ReadBasic.All", // Read profiles of other users
+          "Files.ReadWrite",   // Access files on OneDrive
+          "Mail.Read",         // Read user emails
+          "Mail.Send"          // Send emails on behalf of the user
+        ],
+      })
+      .catch((err) => {
+        console.error("Microsoft login failed:", err);
+      });
   };
 
   const handleLogout = () => {
@@ -113,6 +137,7 @@ function App() {
     <Router>
       <div className="relative">
         <Routes>
+          {/* Public Routes */}
           <Route
             path="/"
             element={
@@ -126,6 +151,7 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/contact-admin" element={<ContactAdmin />} />
 
+          {/* Authenticated Routes */}
           {isAuthenticated && (
             <Route element={<MainLayout user={activeUser} handleLogout={handleLogout} />}>
               <Route path="/dashboard" element={<Dashboard user={activeUser} />} />
@@ -133,7 +159,7 @@ function App() {
               <Route path="/all-tickets" element={<AllTickets user={activeUser} />} />
               <Route path="/ticket/:id" element={<TicketDetails user={activeUser} />} />
               <Route path="/reports" element={<Reports user={activeUser} />} />
-              <Route path="/knowledgebase" element={<KnowledgeBase user={activeUser} />} />
+              <Route path="/knowledgebase" element={<KnowledgeBase user={activeUser} accessToken={accessToken} />} />
               <Route path="/notifications" element={<Notifications user={activeUser} />} />
               <Route path="/users" element={<Users user={activeUser} />} />
               <Route path="/messages" element={<Messages user={activeUser} />} />
@@ -149,6 +175,7 @@ function App() {
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
         </Routes>
 
+        {/* AI ChatBot */}
         {isAuthenticated && (
           <>
             <button
