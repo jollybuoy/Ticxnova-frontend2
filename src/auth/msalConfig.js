@@ -19,6 +19,8 @@ export const loginRequest = {
     "User.Read",
     "Mail.Read",
     "Mail.ReadWrite",
-    "Mail.Send"
+    "Mail.Send", 
+Files.ReadWrite,
+Files.ReadWrite.All
   ]
 };
