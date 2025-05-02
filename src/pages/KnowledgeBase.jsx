@@ -3,7 +3,7 @@ import { msalInstance, loginRequest } from "../auth/msalConfig";
 import { FaUpload, FaLock, FaUnlock, FaFileAlt } from "react-icons/fa";
 
 const KnowledgeBase = () => {
-  const [accessToken, setAccessToken] = useState("");
+  const [accessToken, setAccessToken] = useState(null);
   const [publicFiles, setPublicFiles] = useState([]);
   const [privateFiles, setPrivateFiles] = useState([]);
   const [uploadFile, setUploadFile] = useState(null);
