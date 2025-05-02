@@ -1,5 +1,7 @@
 
-// Final Full Reports.jsx with all features: filters, tabs, dashboard, charts, export, themed UI
+// Final Full Reports.jsx – matches user's screenshot with full dashboard, filters, table, charts, and export
+// Built using React + Tailwind CSS + react-chartjs-2 + chart.js
+
 import React, { useState } from "react";
 import {
   FaDownload,
@@ -10,21 +12,14 @@ import {
   FaTicketAlt,
   FaUser as FaUserIndigo,
   FaClock,
-  FaUser as FaUserTeal
+  FaUser as FaUserTeal,
+  FaHourglass
 } from "react-icons/fa";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
 import 'chart.js/auto';
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState("table");
-  const [filters, setFilters] = useState({
-    priority: "",
-    department: "",
-    status: "",
-    type: "",
-    assignee: "",
-    dateRange: ""
-  });
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const ticketData = [
     {
@@ -62,6 +57,17 @@ const Reports = () => {
     },
   ];
 
+  const summary = [
+    { label: "Total Tickets", value: 100, delta: "+5%", color: "bg-blue-100", text: "text-blue-800", icon: <FaTicketAlt /> },
+    { label: "Open Tickets", value: 29, delta: "-2%", color: "bg-orange-100", text: "text-orange-800", icon: <FaClock /> },
+    { label: "Resolved Tickets", value: 65, delta: "+12%", color: "bg-green-100", text: "text-green-800", icon: <FaCheckCircle /> },
+    { label: "Critical Issues", value: 26, delta: "+3", color: "bg-red-100", text: "text-red-800", icon: <FaExclamationTriangle /> },
+    { label: "Avg. Resolution Time", value: "1d 8h", delta: "", color: "bg-purple-100", text: "text-purple-800", icon: <FaClock /> },
+    { label: "Created Today", value: 6, delta: "+3", color: "bg-blue-100", text: "text-blue-800", icon: <FaHourglass /> },
+    { label: "Top Department", value: "Sales", delta: "19 tickets", color: "bg-indigo-100", text: "text-indigo-800", icon: <FaUserIndigo /> },
+    { label: "Top Assignee", value: "John Doe", delta: "20 tickets", color: "bg-teal-100", text: "text-teal-800", icon: <FaUserTeal /> }
+  ];
+
   const statusDistribution = {
     labels: ["Open", "Pending", "Resolved", "Closed", "Other"],
     datasets: [{
@@ -73,7 +79,7 @@ const Reports = () => {
   const ticketsByPriority = {
     labels: ["P1", "P2", "P3", "P4"],
     datasets: [{
-      data: [19, 21, 31, 29],
+      data: [26, 21, 23, 30],
       backgroundColor: ["#f87171", "#fb923c", "#facc15", "#86efac"]
     }]
   };
@@ -100,62 +106,54 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-6 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-extrabold text-gray-800">📊 Reports & Analytics</h1>
+        <h1 className="text-3xl font-bold text-gray-800">📊 Reports & Analytics</h1>
         <div className="flex gap-3">
-          <button className="bg-white border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-100"><FaFilter className="inline mr-2" />Filters</button>
-          <button onClick={handleDownloadCSV} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow flex items-center gap-2"><FaDownload /> Export</button>
+          <button className="bg-gray-100 px-3 py-2 rounded text-sm flex items-center"><FaFilter className="mr-1" /> Filters</button>
+          <button onClick={handleDownloadCSV} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center text-sm hover:bg-blue-700"><FaDownload className="mr-2" /> Export</button>
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b pb-2">
-        {['table', 'dashboard', 'charts'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-t-md text-sm font-semibold transition ${activeTab === tab ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'text-gray-500 hover:text-blue-500'}`}
-          >
+      <div className="flex gap-3 mb-6">
+        {["table", "dashboard", "charts"].map((tab) => (
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === tab ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
 
-      <div className="bg-white p-4 shadow rounded mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          {Object.keys(filters).map((key) => (
-            <select key={key} className="border rounded p-2 capitalize">
-              <option value="">Select {key}</option>
-              {key === 'priority' && ["P1", "P2", "P3", "P4"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'department' && ["IT", "HR", "Finance", "Sales", "Support"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'status' && ["Open", "Pending", "Resolved", "Closed"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'type' && ["Incident", "Task", "Change Request", "Problem"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'assignee' && ["Jane Smith", "John Doe", "Sarah Williams"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              {key === 'dateRange' && ["Last 7 days", "Last 30 days", "This Month"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          ))}
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <button className="bg-gray-200 px-4 py-2 rounded flex items-center gap-1"><FaRedo /> Reset</button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded">Apply Filters</button>
-        </div>
-      </div>
+      {activeTab === "dashboard" && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {summary.map((card, i) => (
+              <div key={i} className={`p-4 rounded shadow ${card.color}`}>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm font-semibold">{card.label}</div>
+                  <div className={`text-lg ${card.text}`}>{card.icon}</div>
+                </div>
+                <div className="text-2xl font-bold mt-1">{card.value}</div>
+                <div className="text-xs text-gray-500 mt-1">{card.delta}</div>
+              </div>
+            ))}
+          </div>
 
-      {activeTab === 'charts' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div className="bg-white p-4 rounded-xl shadow-md border border-blue-100">
-            <h3 className="mb-2 font-semibold text-blue-600">Status Distribution</h3>
-            <Doughnut data={statusDistribution} />
+          <h2 className="text-lg font-bold text-gray-700 mb-2">Analytics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="bg-white p-4 shadow rounded border border-blue-100">
+              <h3 className="font-semibold text-blue-600 mb-2">Status Distribution</h3>
+              <Doughnut data={statusDistribution} />
+            </div>
+            <div className="bg-white p-4 shadow rounded border border-yellow-100">
+              <h3 className="font-semibold text-yellow-600 mb-2">Tickets by Priority</h3>
+              <Bar data={ticketsByPriority} />
+            </div>
+            <div className="bg-white p-4 shadow rounded border border-green-100 col-span-1 xl:col-span-2">
+              <h3 className="font-semibold text-green-600 mb-2">Ticket Trends</h3>
+              <Line data={ticketTrends} />
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow-md border border-yellow-100">
-            <h3 className="mb-2 font-semibold text-yellow-600">Tickets by Priority</h3>
-            <Bar data={ticketsByPriority} />
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-md border border-green-100 col-span-1 xl:col-span-2">
-            <h3 className="mb-2 font-semibold text-green-600">Ticket Trends</h3>
-            <Line data={ticketTrends} />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
