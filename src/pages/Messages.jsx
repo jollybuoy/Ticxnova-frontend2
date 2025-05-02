@@ -65,6 +65,16 @@ const Messages = () => {
     if (selectedFolderId) fetchEmails();
   }, [selectedFolderId]);
 
+  // Refresh emails every 30 seconds
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      fetchEmails();
+    }, 30000); // 30 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(refreshInterval);
+  }, [selectedFolderId]);
+
   const openComposeModal = (mode) => {
     setComposeMode(mode);
   };
