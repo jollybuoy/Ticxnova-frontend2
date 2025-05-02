@@ -27,8 +27,16 @@ import {
   Cell,
 } from "recharts";
 
-const Reports = () => {
+const AdvancedReports = () => {
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const [filters, setFilters] = useState({
+    dateRange: "",
+    priority: "",
+    department: "",
+    status: "",
+    type: "",
+    assignee: "",
+  });
 
   // Example data for charts and metrics
   const statusData = [
@@ -55,14 +63,14 @@ const Reports = () => {
   ];
 
   const dashboardMetrics = [
-    { title: "Total Tickets", value: 100, change: "+5%", icon: <FaChartBar /> },
-    { title: "Open Tickets", value: 22, change: "-2%", icon: <FaClock /> },
-    { title: "Resolved Tickets", value: 55, change: "+12%", icon: <FaCheckCircle /> },
-    { title: "Critical Issues", value: 21, change: "+3", icon: <FaExclamationTriangle /> },
-    { title: "Avg. Resolution Time", value: "1d 5h", change: "", icon: <FaClock /> },
-    { title: "Created Today", value: 3, change: "-3", icon: <FaClock /> },
-    { title: "Top Department", value: "Marketing", subtext: "16 tickets", icon: <FaChartBar /> },
-    { title: "Top Assignee", value: "Sarah Williams", subtext: "23 tickets", icon: <FaChartLine /> },
+    { title: "Total Tickets", value: 100, change: "+5%", icon: <FaChartBar className="text-blue-500" /> },
+    { title: "Open Tickets", value: 22, change: "-2%", icon: <FaClock className="text-yellow-500" /> },
+    { title: "Resolved Tickets", value: 55, change: "+12%", icon: <FaCheckCircle className="text-green-500" /> },
+    { title: "Critical Issues", value: 21, change: "+3", icon: <FaExclamationTriangle className="text-red-500" /> },
+    { title: "Avg. Resolution Time", value: "1d 5h", change: "", icon: <FaClock className="text-purple-500" /> },
+    { title: "Created Today", value: 3, change: "-3", icon: <FaClock className="text-blue-500" /> },
+    { title: "Top Department", value: "Marketing", subtext: "16 tickets", icon: <FaChartBar className="text-orange-500" /> },
+    { title: "Top Assignee", value: "Sarah Williams", subtext: "23 tickets", icon: <FaChartLine className="text-teal-500" /> },
   ];
 
   const ticketsData = [
@@ -86,19 +94,23 @@ const Reports = () => {
     },
   ];
 
+  const handleFilterChange = (field, value) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Reports & Analytics</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Reports & Analytics</h1>
           <p className="text-sm text-gray-500">Showing 100 of 100 tickets</p>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="px-4 py-2 bg-gray-200 rounded">
-            <FaFilter className="inline mr-2" /> Filters
+          <button className="px-4 py-2 bg-gray-200 hover:bg-blue-100 rounded shadow transition">
+            <FaFilter className="inline mr-2 text-blue-500" /> Filters
           </button>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded">
+          <button className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded shadow transition">
             <FaDownload className="inline mr-2" /> Export
           </button>
         </div>
@@ -107,24 +119,24 @@ const Reports = () => {
       {/* Tabs */}
       <div className="flex items-center space-x-4 mb-6">
         <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "Table" ? "bg-blue-500 text-white" : "bg-gray-200"
+          className={`px-4 py-2 rounded shadow transition ${
+            activeTab === "Table" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
           }`}
           onClick={() => setActiveTab("Table")}
         >
           <FaTable className="inline mr-2" /> Table
         </button>
         <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "Dashboard" ? "bg-blue-500 text-white" : "bg-gray-200"
+          className={`px-4 py-2 rounded shadow transition ${
+            activeTab === "Dashboard" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
           }`}
           onClick={() => setActiveTab("Dashboard")}
         >
           <FaChartLine className="inline mr-2" /> Dashboard
         </button>
         <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "Charts" ? "bg-blue-500 text-white" : "bg-gray-200"
+          className={`px-4 py-2 rounded shadow transition ${
+            activeTab === "Charts" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
           }`}
           onClick={() => setActiveTab("Charts")}
         >
@@ -144,35 +156,35 @@ const Reports = () => {
               <input
                 type="text"
                 placeholder="Date Range"
-                className="border rounded p-2"
+                className="border rounded p-2 w-full"
+                onChange={(e) => handleFilterChange("dateRange", e.target.value)}
               />
-              <select className="border rounded p-2">
-                <option>Priority</option>
-                <option>P1</option>
-                <option>P2</option>
-                <option>P3</option>
-                <option>P4</option>
+              <select
+                className="border rounded p-2 w-full"
+                onChange={(e) => handleFilterChange("priority", e.target.value)}
+              >
+                <option value="">Priority</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+                <option value="P3">P3</option>
+                <option value="P4">P4</option>
               </select>
-              <select className="border rounded p-2">
-                <option>Department</option>
-                <option>Marketing</option>
-                <option>IT</option>
-                <option>HR</option>
-                <option>Sales</option>
+              <select
+                className="border rounded p-2 w-full"
+                onChange={(e) => handleFilterChange("department", e.target.value)}
+              >
+                <option value="">Department</option>
+                <option value="Marketing">Marketing</option>
+                <option value="IT">IT</option>
+                <option value="HR">HR</option>
+                <option value="Sales">Sales</option>
               </select>
               <input
                 type="text"
                 placeholder="Search Tickets"
-                className="border rounded p-2"
+                className="border rounded p-2 w-full"
+                onChange={(e) => handleFilterChange("search", e.target.value)}
               />
-            </div>
-            <div className="flex justify-end mt-4">
-              <button className="px-4 py-2 bg-blue-500 text-white rounded mr-2">
-                <FaSave className="inline mr-2" /> Save Filters
-              </button>
-              <button className="px-4 py-2 bg-gray-200 rounded">
-                <FaUndo className="inline mr-2" /> Reset
-              </button>
             </div>
           </div>
 
@@ -181,14 +193,14 @@ const Reports = () => {
             {dashboardMetrics.map((metric, index) => (
               <div
                 key={index}
-                className="p-4 bg-white shadow rounded flex items-center justify-between"
+                className="p-4 bg-white shadow rounded flex items-center justify-between hover:shadow-lg transition"
               >
                 <div>
-                  <h4 className="text-lg font-bold">{metric.title}</h4>
-                  <p className="text-xl font-bold">{metric.value}</p>
+                  <h4 className="text-lg font-bold text-gray-700">{metric.title}</h4>
+                  <p className="text-xl font-bold text-gray-900">{metric.value}</p>
                   {metric.subtext && <p className="text-sm text-gray-500">{metric.subtext}</p>}
                 </div>
-                <div className="text-3xl text-gray-400">{metric.icon}</div>
+                <div className="text-3xl">{metric.icon}</div>
               </div>
             ))}
           </div>
@@ -197,28 +209,28 @@ const Reports = () => {
 
       {activeTab === "Table" && (
         <div className="bg-white shadow rounded p-4">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2">Priority</th>
-                <th className="px-4 py-2">Status</th>
-                <th className="px-4 py-2">Subject</th>
-                <th className="px-4 py-2">Assigned To</th>
-                <th className="px-4 py-2">Department</th>
-                <th className="px-4 py-2">Created</th>
-                <th className="px-4 py-2">Resolved</th>
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 border">Priority</th>
+                <th className="px-4 py-2 border">Status</th>
+                <th className="px-4 py-2 border">Subject</th>
+                <th className="px-4 py-2 border">Assigned To</th>
+                <th className="px-4 py-2 border">Department</th>
+                <th className="px-4 py-2 border">Created</th>
+                <th className="px-4 py-2 border">Resolved</th>
               </tr>
             </thead>
             <tbody>
               {ticketsData.map((ticket, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-2">{ticket.priority}</td>
-                  <td className="px-4 py-2">{ticket.status}</td>
-                  <td className="px-4 py-2">{ticket.subject}</td>
-                  <td className="px-4 py-2">{ticket.assignedTo}</td>
-                  <td className="px-4 py-2">{ticket.department}</td>
-                  <td className="px-4 py-2">{ticket.created}</td>
-                  <td className="px-4 py-2">{ticket.resolved}</td>
+                <tr key={index} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-2 border">{ticket.priority}</td>
+                  <td className="px-4 py-2 border">{ticket.status}</td>
+                  <td className="px-4 py-2 border">{ticket.subject}</td>
+                  <td className="px-4 py-2 border">{ticket.assignedTo}</td>
+                  <td className="px-4 py-2 border">{ticket.department}</td>
+                  <td className="px-4 py-2 border">{ticket.created}</td>
+                  <td className="px-4 py-2 border">{ticket.resolved}</td>
                 </tr>
               ))}
             </tbody>
@@ -287,4 +299,4 @@ const Reports = () => {
   );
 };
 
-export default Reports;
+export default AdvancedReports;
