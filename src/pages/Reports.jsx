@@ -6,7 +6,13 @@ import {
   FaExclamationTriangle,
   FaTicketAlt,
   FaClock,
+  FaLayerGroup,
+  FaCalendarAlt,
+  FaBuilding,
+  FaTasks,
 } from "react-icons/fa";
+import { Line, Doughnut, Bar } from "react-chartjs-2";
+import 'chart.js/auto';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("table");
@@ -92,27 +98,32 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📊 Reports & Analytics</h1>
+    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-100 min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-extrabold text-indigo-800">📊 Reports & Analytics</h1>
         <button
           onClick={() => console.log("Export functionality here")}
-          className="bg-blue-600 text-white px-4 py-2 rounded flex items-center text-sm hover:bg-blue-700"
+          className="bg-indigo-600 text-white px-6 py-3 rounded-lg flex items-center text-lg hover:bg-indigo-700 shadow-lg"
         >
-          <FaDownload className="mr-2" /> Export
+          <FaDownload className="mr-3" /> Export
         </button>
       </div>
 
       {/* Filter Section */}
-      <div className="p-4 bg-gray-100 rounded mb-4">
-        <h2 className="text-lg font-bold mb-2">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="p-6 bg-white shadow-lg rounded-lg mb-8">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <FaFilter /> Filters
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Date Range Filter */}
           <div>
-            <label className="block text-sm font-medium mb-1">Date Range:</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <FaCalendarAlt /> Date Range:
+            </label>
             <input
               type="date"
-              className="border p-2 rounded w-full mb-2"
+              className="border p-3 rounded-lg w-full mb-3 focus:ring-2 focus:ring-indigo-500 shadow-sm"
               onChange={(e) =>
                 setFilters({
                   ...filters,
@@ -123,7 +134,7 @@ const Reports = () => {
             />
             <input
               type="date"
-              className="border p-2 rounded w-full"
+              className="border p-3 rounded-lg w-full focus:ring-2 focus:ring-indigo-500 shadow-sm"
               onChange={(e) =>
                 setFilters({
                   ...filters,
@@ -136,51 +147,57 @@ const Reports = () => {
 
           {/* Priority Filter */}
           <div>
-            <label className="block text-sm font-medium mb-1">Priority:</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <FaTasks /> Priority:
+            </label>
             {priorityOptions.map((priority) => (
-              <div key={priority} className="flex items-center mb-1">
+              <div key={priority} className="flex items-center mb-2">
                 <input
                   type="checkbox"
-                  className="mr-2"
+                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   onChange={(e) =>
                     handleFilterChange("priority", priority, e.target.checked)
                   }
                 />
-                <span>{priority}</span>
+                <span className="text-gray-700 text-lg">{priority}</span>
               </div>
             ))}
           </div>
 
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium mb-1">Status:</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <FaLayerGroup /> Status:
+            </label>
             {statusOptions.map((status) => (
-              <div key={status} className="flex items-center mb-1">
+              <div key={status} className="flex items-center mb-2">
                 <input
                   type="checkbox"
-                  className="mr-2"
+                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   onChange={(e) =>
                     handleFilterChange("status", status, e.target.checked)
                   }
                 />
-                <span>{status}</span>
+                <span className="text-gray-700 text-lg">{status}</span>
               </div>
             ))}
           </div>
 
           {/* Department Filter */}
           <div>
-            <label className="block text-sm font-medium mb-1">Department:</label>
+            <label className="block text-lg font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <FaBuilding /> Department:
+            </label>
             {departmentOptions.map((department) => (
-              <div key={department} className="flex items-center mb-1">
+              <div key={department} className="flex items-center mb-2">
                 <input
                   type="checkbox"
-                  className="mr-2"
+                  className="mr-3 h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   onChange={(e) =>
                     handleFilterChange("department", department, e.target.checked)
                   }
                 />
-                <span>{department}</span>
+                <span className="text-gray-700 text-lg">{department}</span>
               </div>
             ))}
           </div>
@@ -189,12 +206,12 @@ const Reports = () => {
 
       {/* Table Section */}
       {activeTab === "table" && (
-        <div className="overflow-x-auto shadow border rounded-lg">
-          <table className="w-full text-sm text-left text-gray-600">
-            <thead className="text-xs uppercase bg-gray-100 text-gray-600">
+        <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
+          <table className="w-full text-lg text-left text-gray-700">
+            <thead className="text-xl uppercase bg-indigo-500 text-white">
               <tr>
                 {Object.keys(ticketData[0]).map((col) => (
-                  <th key={col} className="px-4 py-3">
+                  <th key={col} className="px-6 py-4">
                     {col}
                   </th>
                 ))}
@@ -202,9 +219,14 @@ const Reports = () => {
             </thead>
             <tbody>
               {filteredData.map((row, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
+                <tr
+                  key={i}
+                  className={`border-t ${
+                    i % 2 === 0 ? "bg-indigo-50" : "bg-white"
+                  } hover:bg-indigo-100`}
+                >
                   {Object.values(row).map((val, idx) => (
-                    <td key={idx} className="px-4 py-2">
+                    <td key={idx} className="px-6 py-4">
                       {val}
                     </td>
                   ))}
