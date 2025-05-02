@@ -1,4 +1,5 @@
-// Full Enhanced Reports.jsx with complete layout, themed table, and styled charts
+
+// Final Full Reports.jsx with all features: filters, tabs, dashboard, charts, export, themed UI
 import React, { useState } from "react";
 import {
   FaDownload,
@@ -88,8 +89,7 @@ const Reports = () => {
   const handleDownloadCSV = () => {
     const csvHeader = Object.keys(ticketData[0]).join(",");
     const csvRows = ticketData.map((row) => Object.values(row).join(","));
-    const csvContent = [csvHeader, ...csvRows].join("
-");
+    const csvContent = [csvHeader, ...csvRows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -121,55 +121,43 @@ const Reports = () => {
         ))}
       </div>
 
-{activeTab === 'table' && (
-  <div className="overflow-auto">
-    <table className="w-full border text-sm shadow rounded-lg overflow-hidden">
-      <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
-        <tr>
-          <th className="p-3 border text-left text-blue-700 font-semibold">#</th>
-          {Object.keys(ticketData[0]).map((header) => (
-            <th key={header} className="p-3 border text-left text-blue-700 font-semibold capitalize">{header}</th>
+      <div className="bg-white p-4 shadow rounded mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {Object.keys(filters).map((key) => (
+            <select key={key} className="border rounded p-2 capitalize">
+              <option value="">Select {key}</option>
+              {key === 'priority' && ["P1", "P2", "P3", "P4"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'department' && ["IT", "HR", "Finance", "Sales", "Support"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'status' && ["Open", "Pending", "Resolved", "Closed"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'type' && ["Incident", "Task", "Change Request", "Problem"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'assignee' && ["Jane Smith", "John Doe", "Sarah Williams"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              {key === 'dateRange' && ["Last 7 days", "Last 30 days", "This Month"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        {ticketData.map((ticket, idx) => (
-          <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-blue-50 transition"}>
-            <td className="p-3 border text-gray-400 font-mono">{idx + 1}</td>
-            {Object.entries(ticket).map(([key, value]) => (
-              <td key={key} className="p-3 border">
-                {key === 'priority' ? (
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${value === 'P1' ? 'bg-red-100 text-red-700' : value === 'P2' ? 'bg-yellow-100 text-yellow-700' : value === 'P3' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{value}</span>
-                ) : key === 'status' ? (
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${value === 'Open' ? 'bg-blue-100 text-blue-700' : value === 'Pending' ? 'bg-yellow-100 text-yellow-700' : value === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{value}</span>
-                ) : (
-                  value
-                )}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <button className="bg-gray-200 px-4 py-2 rounded flex items-center gap-1"><FaRedo /> Reset</button>
+          <button className="bg-green-600 text-white px-4 py-2 rounded">Apply Filters</button>
+        </div>
+      </div>
 
-{activeTab === 'charts' && (
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    <div className="bg-white p-4 rounded-xl shadow-md border border-blue-100">
-      <h3 className="mb-2 font-semibold text-blue-600">Status Distribution</h3>
-      <Doughnut data={statusDistribution} />
+      {activeTab === 'charts' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="bg-white p-4 rounded-xl shadow-md border border-blue-100">
+            <h3 className="mb-2 font-semibold text-blue-600">Status Distribution</h3>
+            <Doughnut data={statusDistribution} />
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow-md border border-yellow-100">
+            <h3 className="mb-2 font-semibold text-yellow-600">Tickets by Priority</h3>
+            <Bar data={ticketsByPriority} />
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow-md border border-green-100 col-span-1 xl:col-span-2">
+            <h3 className="mb-2 font-semibold text-green-600">Ticket Trends</h3>
+            <Line data={ticketTrends} />
+          </div>
+        </div>
+      )}
     </div>
-    <div className="bg-white p-4 rounded-xl shadow-md border border-yellow-100">
-      <h3 className="mb-2 font-semibold text-yellow-600">Tickets by Priority</h3>
-      <Bar data={ticketsByPriority} />
-    </div>
-    <div className="bg-white p-4 rounded-xl shadow-md border border-green-100 col-span-1 xl:col-span-2">
-      <h3 className="mb-2 font-semibold text-green-600">Ticket Trends</h3>
-      <Line data={ticketTrends} />
-    </div>
-  </div>
-)}
   );
 };
 
