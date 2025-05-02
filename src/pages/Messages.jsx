@@ -27,6 +27,7 @@ const Messages = () => {
   const [addressBookVisible, setAddressBookVisible] = useState(false);
   const [accessToken, setAccessToken] = useState("");
   const [expandedFolders, setExpandedFolders] = useState({}); // Keeps track of expanded folders
+  const [lastInboxEmailId, setLastInboxEmailId] = useState(null); // Tracks the latest email ID in the inbox
 
   const fetchFolders = async (parentFolderId = null) => {
     try {
@@ -61,7 +62,7 @@ const Messages = () => {
     }
   };
 
-  const fetchEmails = async (folderId = selectedFolderId) => {
+  const fetchEmails = async (folderId = selectedFolderId, notify = false) => {
     try {
       console.log(`Fetching emails for folder: ${folderId}`);
       const mailResponse = await fetch(
@@ -72,8 +73,38 @@ const Messages = () => {
       );
       const data = await mailResponse.json();
       setEmails(data.value || []);
+
+      // Check for new emails in the inbox
+      if (notify && folderId === "inbox" && data.value.length > 0) {
+        const latestEmail = data.value[0];
+        if (latestEmail.id !== lastInboxEmailId) {
+          setLastInboxEmailId(latestEmail.id);
+          triggerNotification(latestEmail);
+        }
+      }
     } catch (error) {
       console.error("Error fetching emails", error);
+    }
+  };
+
+  const triggerNotification = (email) => {
+    // Ensure notifications are enabled
+    if (Notification.permission === "granted") {
+      new Notification("New Email Received", {
+        body: `${email.subject || "No Subject"}\nFrom: ${
+          email.from?.emailAddress?.name || "Unknown"
+        }`,
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification("New Email Received", {
+            body: `${email.subject || "No Subject"}\nFrom: ${
+              email.from?.emailAddress?.name || "Unknown"
+            }`,
+          });
+        }
+      });
     }
   };
 
@@ -85,15 +116,15 @@ const Messages = () => {
     if (selectedFolderId) fetchEmails(); // Fetch emails for selected folder
   }, [selectedFolderId]);
 
-  // Refresh emails every 30 seconds
+  // Refresh inbox emails every 30 seconds and check for new emails
   useEffect(() => {
     const refreshInterval = setInterval(() => {
-      fetchEmails();
+      fetchEmails("inbox", true); // Pass true to enable notifications
     }, 30000); // 30 seconds
 
     // Cleanup interval on component unmount
     return () => clearInterval(refreshInterval);
-  }, [selectedFolderId]);
+  }, []);
 
   const toggleFolderExpansion = (folderId) => {
     setExpandedFolders((prevState) => ({
