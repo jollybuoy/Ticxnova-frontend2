@@ -1,4 +1,3 @@
-
 // Full Reports.jsx with working Table, Dashboard, Charts, Filters and Export
 import React, { useState } from "react";
 import {
@@ -109,7 +108,7 @@ const Reports = () => {
 
       <div className="flex gap-3 mb-6">
         {["table", "dashboard", "charts"].map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === tab ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === tab ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
