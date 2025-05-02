@@ -29,7 +29,6 @@ const EnhancedReports = () => {
   const [filters, setFilters] = useState({});
   const [filterChips, setFilterChips] = useState([]);
 
-  // Example data for charts and metrics
   const statusData = [
     { name: "Resolved", value: 55, color: "#4CAF50" },
     { name: "Open", value: 22, color: "#FFC107" },
@@ -48,6 +47,27 @@ const EnhancedReports = () => {
     { title: "Open Tickets", value: 22, change: "-2%", icon: <FaClock className="text-yellow-500" /> },
     { title: "Resolved Tickets", value: 55, change: "+12%", icon: <FaCheckCircle className="text-green-500" /> },
     { title: "Critical Issues", value: 21, change: "+3", icon: <FaExclamationTriangle className="text-red-500" /> },
+  ];
+
+  const ticketsData = [
+    {
+      priority: "P2",
+      status: "Closed",
+      subject: "Sample Ticket 23",
+      assignedTo: "Sarah Williams",
+      department: "Finance",
+      created: "Apr 29, 2025",
+      resolved: "Apr 30, 2025",
+    },
+    {
+      priority: "P1",
+      status: "Open",
+      subject: "Sample Ticket 12",
+      assignedTo: "John Doe",
+      department: "IT",
+      created: "Apr 28, 2025",
+      resolved: "-",
+    },
   ];
 
   const handleFilterChange = (field, value) => {
@@ -120,7 +140,7 @@ const EnhancedReports = () => {
         </button>
       </div>
 
-      {/* Content */}
+      {/* Dynamic Content */}
       {activeTab === "Dashboard" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {dashboardMetrics.map((metric, index) => (
@@ -145,46 +165,34 @@ const EnhancedReports = () => {
         </div>
       )}
 
-      {activeTab === "Charts" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Status Distribution */}
-          <div className="p-4 bg-white rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Status Distribution</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Tickets by Priority */}
-          <div className="p-4 bg-white rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Tickets by Priority</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={priorityData}>
-                <XAxis dataKey="priority" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="tickets">
-                  {priorityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {activeTab === "Table" && (
+        <div className="bg-white shadow rounded p-4">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 border">Priority</th>
+                <th className="px-4 py-2 border">Status</th>
+                <th className="px-4 py-2 border">Subject</th>
+                <th className="px-4 py-2 border">Assigned To</th>
+                <th className="px-4 py-2 border">Department</th>
+                <th className="px-4 py-2 border">Created</th>
+                <th className="px-4 py-2 border">Resolved</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ticketsData.map((ticket, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-2 border">{ticket.priority}</td>
+                  <td className="px-4 py-2 border">{ticket.status}</td>
+                  <td className="px-4 py-2 border">{ticket.subject}</td>
+                  <td className="px-4 py-2 border">{ticket.assignedTo}</td>
+                  <td className="px-4 py-2 border">{ticket.department}</td>
+                  <td className="px-4 py-2 border">{ticket.created}</td>
+                  <td className="px-4 py-2 border">{ticket.resolved}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
