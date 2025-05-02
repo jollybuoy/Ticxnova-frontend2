@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { FaFolder, FaInbox, FaEnvelope, FaReply, FaReplyAll, FaShareSquare } from "react-icons/fa";
+import { FaFolder, FaInbox, FaEnvelope, FaReply, FaReplyAll, FaShareSquare, FaTrashAlt } from "react-icons/fa";
 
 const Messages = () => {
   const { instance, accounts } = useMsal();
@@ -18,13 +18,6 @@ const Messages = () => {
   const [attachments, setAttachments] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(null);
-  const [pagination, setPagination] = useState({ nextLink: null, previousLink: null });
-
-  const filteredEmails = emails.filter(
-    (email) =>
-      email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      email.from?.emailAddress?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const fetchFolders = async () => {
     try {
@@ -47,7 +40,7 @@ const Messages = () => {
     }
   };
 
-  const fetchEmails = async (folderId = selectedFolderId, nextLink = null) => {
+  const fetchEmails = async (folderId = selectedFolderId) => {
     setLoading(true);
     try {
       const response = await instance.acquireTokenSilent({
@@ -56,16 +49,17 @@ const Messages = () => {
       });
       setAccessToken(response.accessToken);
 
-      const endpoint = nextLink || `https://graph.microsoft.com/v1.0/me/mailFolders/${folderId}/messages?$top=10`;
-      const mailResponse = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${response.accessToken}`,
-        },
-      });
+      const mailResponse = await fetch(
+        `https://graph.microsoft.com/v1.0/me/mailFolders/${folderId}/messages?$top=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${response.accessToken}`,
+          },
+        }
+      );
 
       const data = await mailResponse.json();
       setEmails(data.value || []);
-      setPagination({ nextLink: data["@odata.nextLink"], previousLink: null });
     } catch (error) {
       console.error("Error fetching emails", error);
     } finally {
@@ -121,7 +115,6 @@ const Messages = () => {
         setComposeTo("");
         setComposeSubject("");
         setComposeBody("");
-        setAttachments([]);
       } else {
         setSendSuccess(false);
         setTimeout(() => setSendSuccess(null), 3000);
@@ -131,6 +124,21 @@ const Messages = () => {
       setSendSuccess(false);
     } finally {
       setSending(false);
+    }
+  };
+
+  const deleteEmail = async (emailId) => {
+    try {
+      await fetch(`https://graph.microsoft.com/v1.0/me/messages/${emailId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      setEmails((prevEmails) => prevEmails.filter((email) => email.id !== emailId));
+      setSelectedEmail(null);
+    } catch (error) {
+      console.error("Error deleting email", error);
     }
   };
 
@@ -176,7 +184,6 @@ const Messages = () => {
             🔄 Refresh
           </button>
         </div>
-
         <input
           type="text"
           className="w-full p-2 mb-4 border rounded"
@@ -184,14 +191,11 @@ const Messages = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-
         {loading ? (
           <p>Loading emails...</p>
-        ) : filteredEmails.length === 0 ? (
-          <p>No emails found in this folder.</p>
         ) : (
           <ul className="space-y-4">
-            {filteredEmails.map((email) => (
+            {emails.map((email) => (
               <li
                 key={email.id}
                 className={`p-4 rounded-lg border cursor-pointer hover:bg-gray-50 ${
@@ -230,6 +234,34 @@ const Messages = () => {
               className="mt-4 text-sm text-gray-800 border-t pt-4"
               dangerouslySetInnerHTML={{ __html: selectedEmail.body?.content }}
             />
+          </div>
+          <div className="mt-4 flex justify-between">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={() => {
+                setCompose(true);
+                setComposeTo(selectedEmail.from?.emailAddress?.address || "");
+                setComposeSubject(`Re: ${selectedEmail.subject}`);
+              }}
+            >
+              Reply
+            </button>
+            <button
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              onClick={() => {
+                setCompose(true);
+                setComposeTo(selectedEmail.from?.emailAddress?.address || "");
+                setComposeSubject(`Re: ${selectedEmail.subject}`);
+              }}
+            >
+              Forward
+            </button>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              onClick={() => deleteEmail(selectedEmail.id)}
+            >
+              Delete
+            </button>
           </div>
         </section>
       )}
