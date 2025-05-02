@@ -12,7 +12,7 @@ import MainLayout from "./components/MainLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from "./components/AIChatBot";
 import Reports from "./pages/Reports";
-import KnowledgeBase from "./pages/KnowledgeBase"; // KnowledgeBase Component
+import KnowledgeBase from "./pages/KnowledgeBase";
 import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
 import Messages from "./pages/Messages";
@@ -36,13 +36,6 @@ function App() {
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
 
-  // Required Scopes for OneDrive and Microsoft Graph API
-  const requiredScopes = [
-    "User.Read",
-    "Files.ReadWrite",
-    "Files.ReadWrite.All",
-  ];
-
   useEffect(() => {
     setCustomAuth(!!userToken);
     setLoading(false);
@@ -52,11 +45,11 @@ function App() {
     const fetchMicrosoftUserDetails = async () => {
       try {
         const response = await instance.acquireTokenSilent({
-          scopes: requiredScopes, // Add required scopes here
+          scopes: ["User.Read", "User.ReadBasic.All", "User.Read.All", "User.ReadWrite.All"],
           account: accounts[0],
         });
 
-        const userPrincipalName = accounts[0]?.username;
+        const userPrincipalName = accounts[0].username; // email
 
         const graphResponse = await fetch(
           `https://graph.microsoft.com/v1.0/users/${userPrincipalName}?$select=displayName,department,userPrincipalName`,
@@ -68,7 +61,8 @@ function App() {
         );
 
         const userData = await graphResponse.json();
-        console.log("Microsoft Graph User Data:", userData);
+
+        console.log("🧠 Microsoft Graph User Data:", userData);
 
         // Save to backend
         await axios.post("/auth/microsoft-login", {
@@ -77,13 +71,14 @@ function App() {
           department: userData.department || "General",
         });
 
+        // Save to frontend state
         setMsUserDetails({
           email: userData.userPrincipalName,
           name: userData.displayName,
           department: userData.department || "General",
         });
       } catch (err) {
-        console.error("Error fetching Microsoft user details:", err);
+        console.error("❌ Microsoft login error:", err);
       }
     };
 
@@ -93,7 +88,7 @@ function App() {
   }, [msalAuthenticated, instance, accounts]);
 
   const handleLogin = () => {
-    instance.loginRedirect({ scopes: requiredScopes }).catch((err) => {
+    instance.loginRedirect().catch((err) => {
       console.error("Microsoft login failed:", err);
     });
   };
@@ -118,7 +113,6 @@ function App() {
     <Router>
       <div className="relative">
         <Routes>
-          {/* Public Routes */}
           <Route
             path="/"
             element={
@@ -132,7 +126,6 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/contact-admin" element={<ContactAdmin />} />
 
-          {/* Authenticated Routes */}
           {isAuthenticated && (
             <Route element={<MainLayout user={activeUser} handleLogout={handleLogout} />}>
               <Route path="/dashboard" element={<Dashboard user={activeUser} />} />
@@ -153,11 +146,9 @@ function App() {
             </Route>
           )}
 
-          {/* Fallback Route */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
         </Routes>
 
-        {/* AI ChatBot */}
         {isAuthenticated && (
           <>
             <button
