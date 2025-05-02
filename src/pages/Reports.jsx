@@ -7,6 +7,8 @@ import {
   FaTasks,
   FaCircle,
   FaTrophy,
+  FaUserTie,
+  FaUsers,
 } from "react-icons/fa";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -42,8 +44,8 @@ const Reports = () => {
       subject: "Sample Ticket 29",
       assignedTo: "Robert Brown",
       department: "Sales",
-      createdAt: "2025-05-01T03:30:00",
-      resolvedAt: "2025-05-01T04:30:00",
+      createdAt: "2025-04-01T03:30:00",
+      resolvedAt: "2025-04-02T04:30:00",
     },
     {
       ticketId: "TIC-1031",
@@ -53,8 +55,8 @@ const Reports = () => {
       subject: "Sample Ticket 32",
       assignedTo: "Jane Smith",
       department: "HR",
-      createdAt: "2025-05-01T02:00:00",
-      resolvedAt: "2025-05-01T03:45:00",
+      createdAt: "2025-04-10T02:00:00",
+      resolvedAt: "2025-04-11T03:45:00",
     },
     {
       ticketId: "TIC-1038",
@@ -64,30 +66,10 @@ const Reports = () => {
       subject: "Sample Ticket 39",
       assignedTo: "Sarah Williams",
       department: "Legal",
-      createdAt: "2025-05-01T23:45:00",
-      resolvedAt: "2025-05-02T00:30:00",
+      createdAt: "2025-04-20T23:45:00",
+      resolvedAt: "2025-04-21T00:30:00",
     },
   ];
-
-  const filteredTickets = ticketData.filter((ticket) => {
-    const matchesDateRange =
-      (!filters.dateRange.start ||
-        new Date(ticket.createdAt) >= new Date(filters.dateRange.start)) &&
-      (!filters.dateRange.end ||
-        new Date(ticket.createdAt) <= new Date(filters.dateRange.end));
-
-    const matchesPriority =
-      filters.priority.length === 0 || filters.priority.includes(ticket.priority);
-
-    const matchesStatus =
-      filters.status.length === 0 || filters.status.includes(ticket.status);
-
-    const matchesDepartment =
-      filters.department.length === 0 ||
-      filters.department.includes(ticket.department);
-
-    return matchesDateRange && matchesPriority && matchesStatus && matchesDepartment;
-  });
 
   const handleFilterChange = (key, selectedOptions) => {
     setFilters((prev) => ({
@@ -96,9 +78,31 @@ const Reports = () => {
     }));
   };
 
-  const handleGenerateReport = () => {
-    alert("Report generated! (This can be extended to export CSV/PDF files)");
-  };
+  // Calculate analytics
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  const topClosers = ticketData
+    .filter((ticket) => new Date(ticket.resolvedAt) >= oneMonthAgo)
+    .reduce((acc, ticket) => {
+      acc[ticket.assignedTo] = (acc[ticket.assignedTo] || 0) + 1;
+      return acc;
+    }, {});
+
+  const topAssignees = ticketData.reduce((acc, ticket) => {
+    acc[ticket.assignedTo] = (acc[ticket.assignedTo] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topClosersData = Object.entries(topClosers)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
+  const topAssigneesData = Object.entries(topAssignees)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
 
   return (
     <div className="p-6 bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen">
@@ -122,14 +126,44 @@ const Reports = () => {
           <div className="p-4 bg-green-100 rounded-lg shadow flex flex-col items-center">
             <h3 className="text-xl font-bold text-green-700 mb-2">Resolved Tickets</h3>
             <p className="text-4xl font-bold text-green-900">
-              {filteredTickets.filter((ticket) => ticket.status === "Resolved").length}
+              {ticketData.filter((ticket) => ticket.status === "Resolved").length}
             </p>
           </div>
           <div className="p-4 bg-blue-100 rounded-lg shadow flex flex-col items-center">
             <h3 className="text-xl font-bold text-blue-700 mb-2">Open Tickets</h3>
             <p className="text-4xl font-bold text-blue-900">
-              {filteredTickets.filter((ticket) => ticket.status === "Open").length}
+              {ticketData.filter((ticket) => ticket.status === "Open").length}
             </p>
+          </div>
+        </div>
+
+        {/* Additional Analytics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="p-4 bg-yellow-100 rounded-lg shadow">
+            <h3 className="text-lg font-bold text-yellow-700 mb-2">
+              <FaUserTie className="inline mr-2 text-yellow-500" />
+              Top Closers (Last Month)
+            </h3>
+            <ul className="text-yellow-900">
+              {topClosersData.map((closer, index) => (
+                <li key={index} className="font-medium">
+                  {closer.name}: {closer.count} tickets
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="p-4 bg-orange-100 rounded-lg shadow">
+            <h3 className="text-lg font-bold text-orange-700 mb-2">
+              <FaUsers className="inline mr-2 text-orange-500" />
+              Top Assignees
+            </h3>
+            <ul className="text-orange-900">
+              {topAssigneesData.map((assignee, index) => (
+                <li key={index} className="font-medium">
+                  {assignee.name}: {assignee.count} tickets
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -139,7 +173,7 @@ const Reports = () => {
         <h2 className="text-2xl font-bold text-gray-700 mb-4">
           <FaFilter className="inline mr-2 text-green-500" /> Reports Filtering
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Date Range Filter */}
           <div>
             <label className="block text-lg font-medium text-gray-700 mb-2">
@@ -226,47 +260,41 @@ const Reports = () => {
             />
           </div>
         </div>
-        <div className="mt-6">
-          <button
-            onClick={handleGenerateReport}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-indigo-700 flex items-center"
-          >
-            <FaDownload className="mr-2" /> Generate Report
-          </button>
-        </div>
       </div>
 
-      {/* Filtered Tickets Table */}
+      {/* Ticket Trends */}
+      <div className="p-6 bg-white shadow-md rounded-lg mb-10">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          <FaChartPie className="inline mr-2 text-red-500" /> Ticket Trends
+        </h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={ticketData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="createdAt" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="created" stroke="#8884d8" name="Created Tickets" />
+            <Line type="monotone" dataKey="resolved" stroke="#82ca9d" name="Resolved Tickets" />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Department Comparison */}
       <div className="p-6 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Filtered Tickets</h2>
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-indigo-500 text-white">
-            <tr>
-              <th className="px-4 py-2">Ticket ID</th>
-              <th className="px-4 py-2">Subject</th>
-              <th className="px-4 py-2">Priority</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Assigned To</th>
-              <th className="px-4 py-2">Department</th>
-              <th className="px-4 py-2">Created At</th>
-              <th className="px-4 py-2">Resolved At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTickets.map((ticket) => (
-              <tr key={ticket.ticketId} className="border-t">
-                <td className="px-4 py-2">{ticket.ticketId}</td>
-                <td className="px-4 py-2">{ticket.subject}</td>
-                <td className="px-4 py-2">{ticket.priority}</td>
-                <td className="px-4 py-2">{ticket.status}</td>
-                <td className="px-4 py-2">{ticket.assignedTo}</td>
-                <td className="px-4 py-2">{ticket.department}</td>
-                <td className="px-4 py-2">{ticket.createdAt}</td>
-                <td className="px-4 py-2">{ticket.resolvedAt}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          <FaTasks className="inline mr-2 text-purple-500" /> Department Comparison
+        </h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={ticketData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="department" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="tickets" fill="#8884d8" name="Tickets Resolved" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
