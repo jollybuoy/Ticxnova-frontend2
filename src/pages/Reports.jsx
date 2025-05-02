@@ -69,35 +69,35 @@ const Reports = () => {
     },
   ];
 
-  const totalTickets = ticketData.length;
-  const resolvedTickets = ticketData.filter((ticket) => ticket.status === "Resolved").length;
-  const averageResolutionTime =
-    ticketData
-      .filter((ticket) => ticket.status === "Resolved")
-      .reduce((sum, ticket) => {
-        const createdAt = new Date(ticket.createdAt);
-        const resolvedAt = new Date(ticket.resolvedAt);
-        return sum + (resolvedAt - createdAt) / (60 * 1000); // Convert to minutes
-      }, 0) / resolvedTickets || 0;
+  const filteredTickets = ticketData.filter((ticket) => {
+    const matchesDateRange =
+      (!filters.dateRange.start ||
+        new Date(ticket.createdAt) >= new Date(filters.dateRange.start)) &&
+      (!filters.dateRange.end ||
+        new Date(ticket.createdAt) <= new Date(filters.dateRange.end));
 
-  const trendData = ticketData.map((ticket) => ({
-    date: new Date(ticket.createdAt).toLocaleDateString(),
-    created: 1,
-    resolved: ticket.status === "Resolved" ? 1 : 0,
-  }));
+    const matchesPriority =
+      filters.priority.length === 0 || filters.priority.includes(ticket.priority);
 
-  const departmentComparisonData = [
-    ...new Set(ticketData.map((ticket) => ticket.department)),
-  ].map((department) => ({
-    department,
-    tickets: ticketData.filter((ticket) => ticket.department === department).length,
-  }));
+    const matchesStatus =
+      filters.status.length === 0 || filters.status.includes(ticket.status);
+
+    const matchesDepartment =
+      filters.department.length === 0 ||
+      filters.department.includes(ticket.department);
+
+    return matchesDateRange && matchesPriority && matchesStatus && matchesDepartment;
+  });
 
   const handleFilterChange = (key, selectedOptions) => {
     setFilters((prev) => ({
       ...prev,
       [key]: selectedOptions.map((option) => option.value),
     }));
+  };
+
+  const handleGenerateReport = () => {
+    alert("Report generated! (This can be extended to export CSV/PDF files)");
   };
 
   return (
@@ -117,16 +117,18 @@ const Reports = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-purple-100 rounded-lg shadow flex flex-col items-center">
             <h3 className="text-xl font-bold text-purple-700 mb-2">Total Tickets</h3>
-            <p className="text-4xl font-bold text-purple-900">{totalTickets}</p>
+            <p className="text-4xl font-bold text-purple-900">{ticketData.length}</p>
           </div>
           <div className="p-4 bg-green-100 rounded-lg shadow flex flex-col items-center">
             <h3 className="text-xl font-bold text-green-700 mb-2">Resolved Tickets</h3>
-            <p className="text-4xl font-bold text-green-900">{resolvedTickets}</p>
+            <p className="text-4xl font-bold text-green-900">
+              {filteredTickets.filter((ticket) => ticket.status === "Resolved").length}
+            </p>
           </div>
           <div className="p-4 bg-blue-100 rounded-lg shadow flex flex-col items-center">
-            <h3 className="text-xl font-bold text-blue-700 mb-2">Avg. Resolution Time</h3>
+            <h3 className="text-xl font-bold text-blue-700 mb-2">Open Tickets</h3>
             <p className="text-4xl font-bold text-blue-900">
-              {Math.round(averageResolutionTime)} mins
+              {filteredTickets.filter((ticket) => ticket.status === "Open").length}
             </p>
           </div>
         </div>
@@ -138,7 +140,7 @@ const Reports = () => {
           <FaFilter className="inline mr-2 text-green-500" /> Reports Filtering
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Filters */}
+          {/* Date Range Filter */}
           <div>
             <label className="block text-lg font-medium text-gray-700 mb-2">
               <FaCalendarAlt className="inline mr-2 text-blue-500" /> Date Range
@@ -172,48 +174,99 @@ const Reports = () => {
               placeholderText="End Date"
             />
           </div>
-          {/* Other filters */}
+
+          {/* Priority Filter */}
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              <FaTasks className="inline mr-2 text-purple-500" /> Priority
+            </label>
+            <Select
+              options={[
+                { value: "P1", label: "P1" },
+                { value: "P2", label: "P2" },
+                { value: "P3", label: "P3" },
+              ]}
+              isMulti
+              onChange={(selected) => handleFilterChange("priority", selected)}
+              className="text-gray-700"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              <FaCircle className="inline mr-2 text-red-500" /> Status
+            </label>
+            <Select
+              options={[
+                { value: "Open", label: "Open" },
+                { value: "Resolved", label: "Resolved" },
+                { value: "Pending", label: "Pending" },
+              ]}
+              isMulti
+              onChange={(selected) => handleFilterChange("status", selected)}
+              className="text-gray-700"
+            />
+          </div>
+
+          {/* Department Filter */}
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              <FaChartPie className="inline mr-2 text-orange-500" /> Department
+            </label>
+            <Select
+              options={[
+                { value: "Sales", label: "Sales" },
+                { value: "HR", label: "HR" },
+                { value: "Legal", label: "Legal" },
+              ]}
+              isMulti
+              onChange={(selected) => handleFilterChange("department", selected)}
+              className="text-gray-700"
+            />
+          </div>
         </div>
-        <div className="mt-4">
-          <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-indigo-700 flex items-center">
-            <FaDownload className="mr-2" /> Export Reports
+        <div className="mt-6">
+          <button
+            onClick={handleGenerateReport}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-indigo-700 flex items-center"
+          >
+            <FaDownload className="mr-2" /> Generate Report
           </button>
         </div>
       </div>
 
-      {/* Ticket Trends */}
-      <div className="p-6 bg-white shadow-md rounded-lg mb-10">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">
-          <FaChartPie className="inline mr-2 text-red-500" /> Ticket Trends
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={trendData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="created" stroke="#8884d8" name="Created Tickets" />
-            <Line type="monotone" dataKey="resolved" stroke="#82ca9d" name="Resolved Tickets" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Department Comparison */}
+      {/* Filtered Tickets Table */}
       <div className="p-6 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">
-          <FaTasks className="inline mr-2 text-purple-500" /> Department Comparison
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={departmentComparisonData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="department" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="tickets" fill="#8884d8" name="Tickets Resolved" />
-          </BarChart>
-        </ResponsiveContainer>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">Filtered Tickets</h2>
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-indigo-500 text-white">
+            <tr>
+              <th className="px-4 py-2">Ticket ID</th>
+              <th className="px-4 py-2">Subject</th>
+              <th className="px-4 py-2">Priority</th>
+              <th className="px-4 py-2">Status</th>
+              <th className="px-4 py-2">Assigned To</th>
+              <th className="px-4 py-2">Department</th>
+              <th className="px-4 py-2">Created At</th>
+              <th className="px-4 py-2">Resolved At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTickets.map((ticket) => (
+              <tr key={ticket.ticketId} className="border-t">
+                <td className="px-4 py-2">{ticket.ticketId}</td>
+                <td className="px-4 py-2">{ticket.subject}</td>
+                <td className="px-4 py-2">{ticket.priority}</td>
+                <td className="px-4 py-2">{ticket.status}</td>
+                <td className="px-4 py-2">{ticket.assignedTo}</td>
+                <td className="px-4 py-2">{ticket.department}</td>
+                <td className="px-4 py-2">{ticket.createdAt}</td>
+                <td className="px-4 py-2">{ticket.resolvedAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
