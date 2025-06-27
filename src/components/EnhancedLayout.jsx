@@ -127,46 +127,46 @@ const EnhancedLayout = ({ setAuth }) => {
 
   return (
     <div className={`min-h-screen flex ${theme === 'dark' ? 'dark' : ''}`}>
-      {/* Ultra Professional Sidebar */}
+      {/* Professional White Sidebar */}
       <motion.div
         initial={false}
         animate={{ width: isCollapsed ? 80 : 320 }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
-        className="relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl overflow-hidden border-r border-slate-700/50"
+        className="relative bg-white text-gray-800 shadow-2xl overflow-hidden border-r border-gray-200"
       >
-        {/* Animated Professional Background */}
+        {/* Professional White Background with Subtle Patterns */}
         <div className="absolute inset-0">
           {/* Subtle geometric patterns */}
-          <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 opacity-3">
             <div className="absolute top-0 left-0 w-full h-full" style={{
               backgroundImage: `
-                linear-gradient(45deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-                linear-gradient(-45deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                linear-gradient(45deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(-45deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
               `,
               backgroundSize: '20px 20px'
             }} />
           </div>
           
           {/* Professional gradient overlays */}
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-blue-600/10 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-purple-600/10 to-transparent"></div>
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-blue-50/30 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-purple-50/30 to-transparent"></div>
           
           {/* Subtle animated elements */}
           <motion.div
             animate={{ 
               scale: [1, 1.1, 1],
-              opacity: [0.1, 0.2, 0.1]
+              opacity: [0.02, 0.05, 0.02]
             }}
             transition={{ duration: 8, repeat: Infinity }}
-            className="absolute top-1/4 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-xl"
+            className="absolute top-1/4 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-xl"
           />
           <motion.div
             animate={{ 
               scale: [1.1, 1, 1.1],
-              opacity: [0.1, 0.15, 0.1]
+              opacity: [0.02, 0.04, 0.02]
             }}
             transition={{ duration: 10, repeat: Infinity }}
-            className="absolute bottom-1/4 left-0 w-24 h-24 bg-purple-500/10 rounded-full blur-xl"
+            className="absolute bottom-1/4 left-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl"
           />
         </div>
 
@@ -184,17 +184,17 @@ const EnhancedLayout = ({ setAuth }) => {
                   transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                   src={logo}
                   alt="Logo"
-                  className="h-14 w-14 rounded-full shadow-xl ring-2 ring-white/20"
+                  className="h-14 w-14 rounded-full shadow-xl ring-2 ring-blue-200"
                 />
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full animate-pulse border-2 border-slate-900"></div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full animate-pulse border-2 border-white shadow-lg"></div>
               </div>
               {!isCollapsed && (
                 <div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                     TICXNOVA
                   </h2>
-                  <p className="text-xs text-gray-400 font-medium">AI-Powered Platform</p>
-                  <div className="text-xs text-blue-300 font-mono mt-1">
+                  <p className="text-xs text-gray-500 font-medium">AI-Powered Platform</p>
+                  <div className="text-xs text-blue-600 font-mono mt-1 bg-blue-50 px-2 py-1 rounded-md">
                     {currentTime.toLocaleTimeString()}
                   </div>
                 </div>
@@ -204,12 +204,12 @@ const EnhancedLayout = ({ setAuth }) => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/10"
+              className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 shadow-md border border-gray-200"
             >
               <motion.div
                 animate={{ rotate: isCollapsed ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-lg"
+                className="text-lg text-gray-600"
               >
                 ◀
               </motion.div>
@@ -224,23 +224,23 @@ const EnhancedLayout = ({ setAuth }) => {
               marginBottom: isCollapsed ? 0 : 24
             }}
             transition={{ duration: 0.3 }}
-            className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 backdrop-blur-sm border border-white/10 overflow-hidden"
+            className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 border border-blue-100 shadow-sm overflow-hidden"
           >
             <div className="flex items-center gap-4">
               <div className="relative">
                 <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D8ABC&color=fff&size=48`}
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff&size=48`}
                   alt="Avatar"
-                  className="h-12 w-12 rounded-full border-2 border-white/30 shadow-lg"
+                  className="h-12 w-12 rounded-full border-2 border-blue-200 shadow-lg"
                 />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900 animate-pulse"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse shadow-sm"></div>
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-white text-sm">{userName}</p>
-                <p className="text-xs text-gray-300">System Administrator</p>
+                <p className="font-semibold text-gray-800 text-sm">{userName}</p>
+                <p className="text-xs text-gray-600">System Administrator</p>
                 <div className="flex items-center gap-1 mt-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-300">Online</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-600 font-medium">Online</span>
                 </div>
               </div>
             </div>
@@ -257,7 +257,9 @@ const EnhancedLayout = ({ setAuth }) => {
                   whileHover={{ scale: 1.02, x: 5 }}
                   whileTap={{ scale: 0.98 }}
                   className={`relative group cursor-pointer rounded-2xl transition-all duration-300 overflow-hidden ${
-                    isActive(item.path) ? 'bg-white/20 shadow-xl border border-white/20' : 'hover:bg-white/10'
+                    isActive(item.path) 
+                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 shadow-lg border border-blue-200' 
+                      : 'hover:bg-gray-50 hover:shadow-md'
                   }`}
                   onClick={() => {
                     if (item.submenu) {
@@ -268,17 +270,17 @@ const EnhancedLayout = ({ setAuth }) => {
                   }}
                 >
                   {/* Background gradient on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                   
                   <div className="relative z-10 flex items-center justify-between p-4">
                     <div className="flex items-center gap-4">
-                      <div className={`text-2xl p-3 rounded-xl bg-gradient-to-r ${item.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`text-2xl p-3 rounded-xl bg-gradient-to-r ${item.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300 text-white`}>
                         {item.icon}
                       </div>
                       {!isCollapsed && (
                         <div>
-                          <span className="font-semibold text-white">{item.label}</span>
-                          <p className="text-xs text-gray-400 mt-1">{item.description}</p>
+                          <span className="font-semibold text-gray-800">{item.label}</span>
+                          <p className="text-xs text-gray-500 mt-1">{item.description}</p>
                         </div>
                       )}
                     </div>
@@ -286,7 +288,7 @@ const EnhancedLayout = ({ setAuth }) => {
                       <motion.div
                         animate={{ rotate: activeSubmenu === item.id ? 90 : 0 }}
                         transition={{ duration: 0.2 }}
-                        className="text-white/70"
+                        className="text-gray-500"
                       >
                         ▶
                       </motion.div>
@@ -322,8 +324,8 @@ const EnhancedLayout = ({ setAuth }) => {
                           whileHover={{ x: 8, scale: 1.02 }}
                           className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                             isActive(subItem.path) 
-                              ? 'bg-white/20 text-blue-300 shadow-lg border border-white/20' 
-                              : 'hover:bg-white/10 text-white/80 hover:text-white'
+                              ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 shadow-md border border-blue-200' 
+                              : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 hover:shadow-sm'
                           }`}
                           onClick={() => navigate(subItem.path)}
                         >
@@ -346,7 +348,7 @@ const EnhancedLayout = ({ setAuth }) => {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleLogout}
-            className="w-full mt-8 p-4 bg-gradient-to-r from-red-500 via-red-600 to-pink-600 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 border border-red-400/20"
+            className="w-full mt-8 p-4 bg-gradient-to-r from-red-500 via-red-600 to-pink-600 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 border border-red-200 text-white"
           >
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl">🔓</span>
@@ -362,7 +364,7 @@ const EnhancedLayout = ({ setAuth }) => {
         <motion.header
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white/90 backdrop-blur-xl border-b border-gray-200/50 p-6 shadow-sm"
+          className="bg-white/95 backdrop-blur-xl border-b border-gray-200 p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -379,7 +381,7 @@ const EnhancedLayout = ({ setAuth }) => {
                   })}
                 </p>
               </div>
-              <div className="flex items-center gap-3 px-4 py-2 bg-green-100 rounded-full border border-green-200">
+              <div className="flex items-center gap-3 px-4 py-2 bg-green-50 rounded-full border border-green-200">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -393,7 +395,7 @@ const EnhancedLayout = ({ setAuth }) => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors shadow-md"
+                className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors shadow-md border border-gray-200"
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </motion.button>
@@ -401,7 +403,7 @@ const EnhancedLayout = ({ setAuth }) => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 rounded-xl bg-blue-100 hover:bg-blue-200 transition-colors shadow-md"
+                  className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md border border-blue-200"
                 >
                   🔔
                 </motion.button>
