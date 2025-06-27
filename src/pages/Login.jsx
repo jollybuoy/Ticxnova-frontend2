@@ -97,7 +97,8 @@ const Login = ({ setAuth }) => {
   }, []);
 
   const createMockToken = (user) => {
-    const tokenData = {
+    const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const payload = btoa(JSON.stringify({
       userId: Math.floor(Math.random() * 1000) + 1,
       name: user.role,
       email: user.email,
@@ -107,9 +108,47 @@ const Login = ({ setAuth }) => {
                  user.role.includes('Agent') ? 'Support' : 'General',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    };
+    }));
+    const signature = btoa("mock-signature");
     
-    return btoa(JSON.stringify(tokenData));
+    return `${header}.${payload}.${signature}`;
+  };
+
+  const performLogin = (user) => {
+    console.log("🚀 Performing login for:", user.email);
+    
+    try {
+      // Create mock token
+      const mockToken = createMockToken(user);
+      
+      // Clear any existing auth data first
+      localStorage.clear();
+      
+      // Store new authentication data
+      localStorage.setItem("token", mockToken);
+      localStorage.setItem("loginMethod", "demo");
+      localStorage.setItem("email", user.email);
+      localStorage.setItem("userName", user.role);
+      
+      console.log("✅ Login data stored successfully");
+      console.log("📧 Email:", user.email);
+      console.log("👤 User:", user.role);
+      
+      // Update auth state immediately
+      if (setAuth) {
+        console.log("🔄 Setting auth state to true");
+        setAuth(true);
+      }
+      
+      // Navigate to dashboard
+      console.log("🧭 Navigating to dashboard...");
+      navigate("/dashboard", { replace: true });
+      
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      setError("Login failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   const handleLogin = async (e) => {
@@ -117,45 +156,21 @@ const Login = ({ setAuth }) => {
     setIsLoading(true);
     setError("");
     
-    try {
-      // Check test credentials
-      const testUser = testCredentials.find(
-        cred => cred.email === username && cred.password === password
-      );
-      
-      if (testUser) {
-        console.log("✅ Test credentials matched:", testUser.email);
-        
-        // Create mock token
-        const mockToken = createMockToken(testUser);
-        
-        // Store authentication data
-        localStorage.setItem("token", mockToken);
-        localStorage.setItem("loginMethod", "demo");
-        localStorage.setItem("email", testUser.email);
-        localStorage.setItem("userName", testUser.role);
-        
-        console.log("✅ Demo login successful for:", testUser.email);
-        
-        // Update auth state
-        if (setAuth) {
-          setAuth(true);
-        }
-        
-        // Navigate to dashboard
-        setTimeout(() => {
-          navigate("/dashboard", { replace: true });
-        }, 500);
-        
-      } else {
-        setError("❌ Invalid credentials. Please use the test credentials provided below.");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setError("❌ Login failed. Please try again.");
-    }
+    console.log("🔐 Manual login attempt:", username);
     
-    setIsLoading(false);
+    // Check test credentials
+    const testUser = testCredentials.find(
+      cred => cred.email === username && cred.password === password
+    );
+    
+    if (testUser) {
+      console.log("✅ Test credentials matched:", testUser.email);
+      performLogin(testUser);
+    } else {
+      console.log("❌ Invalid credentials provided");
+      setError("❌ Invalid credentials. Please use the test credentials provided below.");
+      setIsLoading(false);
+    }
   };
 
   const handleMicrosoftLogin = () => {
@@ -165,45 +180,22 @@ const Login = ({ setAuth }) => {
   };
 
   const fillTestCredentials = (cred) => {
+    console.log("📝 Filling credentials for:", cred.email);
     setUsername(cred.email);
     setPassword(cred.password);
     setShowTestCredentials(false);
     setError("");
   };
 
-  const quickLogin = async (cred) => {
+  const quickLogin = (cred) => {
+    console.log("⚡ Quick login initiated for:", cred.email);
     setError("");
     setIsLoading(true);
     
-    try {
-      console.log("🚀 Quick login for:", cred.email);
-      
-      // Create mock token
-      const mockToken = createMockToken(cred);
-      
-      // Store authentication data
-      localStorage.setItem("token", mockToken);
-      localStorage.setItem("loginMethod", "demo");
-      localStorage.setItem("email", cred.email);
-      localStorage.setItem("userName", cred.role);
-      
-      console.log("✅ Quick login successful for:", cred.email);
-      
-      // Update auth state
-      if (setAuth) {
-        setAuth(true);
-      }
-      
-      // Navigate after a short delay
-      setTimeout(() => {
-        navigate("/dashboard", { replace: true });
-      }, 1000);
-      
-    } catch (error) {
-      console.error("Quick login error:", error);
-      setError("❌ Quick login failed. Please try again.");
-      setIsLoading(false);
-    }
+    // Small delay to show loading state
+    setTimeout(() => {
+      performLogin(cred);
+    }, 500);
   };
 
   return (

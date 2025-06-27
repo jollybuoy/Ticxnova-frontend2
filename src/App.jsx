@@ -44,49 +44,58 @@ function App() {
 
   const { notifications, addNotification, removeNotification } = useNotifications();
 
-  const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
 
-  // Enhanced authentication check
+  // Check authentication status
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("token");
       const loginMethod = localStorage.getItem("loginMethod");
       
-      console.log("🔍 Auth check:", { token: !!token, loginMethod, msalAuthenticated });
+      console.log("🔍 App auth check:", { 
+        token: !!token, 
+        loginMethod, 
+        msalAuthenticated,
+        customAuth 
+      });
       
-      if (token) {
+      if (token && loginMethod === "demo") {
         try {
           // Validate token structure
-          const decoded = JSON.parse(atob(token.split(".")[1]));
-          const isExpired = decoded.exp && decoded.exp * 1000 < Date.now();
-          
-          if (isExpired) {
-            console.log("⏰ Token expired, clearing auth");
-            localStorage.removeItem("token");
-            localStorage.removeItem("loginMethod");
-            localStorage.removeItem("email");
-            localStorage.removeItem("userName");
-            setCustomAuth(false);
+          const parts = token.split(".");
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            const isExpired = payload.exp && payload.exp * 1000 < Date.now();
+            
+            if (isExpired) {
+              console.log("⏰ Token expired, clearing auth");
+              localStorage.clear();
+              setCustomAuth(false);
+            } else {
+              console.log("✅ Valid demo token found, setting auth to true");
+              setCustomAuth(true);
+            }
           } else {
-            console.log("✅ Valid token found, setting auth to true");
-            setCustomAuth(true);
+            console.log("❌ Invalid token format");
+            localStorage.clear();
+            setCustomAuth(false);
           }
         } catch (error) {
-          console.error("❌ Invalid token format:", error);
-          localStorage.removeItem("token");
-          localStorage.removeItem("loginMethod");
+          console.error("❌ Token validation error:", error);
+          localStorage.clear();
           setCustomAuth(false);
         }
-      } else {
+      } else if (!token) {
+        console.log("❌ No token found");
         setCustomAuth(false);
       }
       
       setLoading(false);
     };
 
-    checkAuth();
-  }, [userToken, msalAuthenticated]);
+    // Small delay to ensure localStorage is ready
+    setTimeout(checkAuth, 100);
+  }, [msalAuthenticated]);
 
   useEffect(() => {
     const fetchMicrosoftUserDetails = async () => {
@@ -174,10 +183,7 @@ function App() {
   const handleLogout = () => {
     console.log("🚪 Logging out...");
     
-    localStorage.removeItem("token");
-    localStorage.removeItem("loginMethod");
-    localStorage.removeItem("email");
-    localStorage.removeItem("userName");
+    localStorage.clear();
     
     if (msalAuthenticated) {
       instance.logoutRedirect();
@@ -199,6 +205,14 @@ function App() {
     name: localStorage.getItem("userName") || "Demo User",
     email: localStorage.getItem("email") || "demo@ticxnova.com"
   };
+
+  console.log("🎯 App render state:", { 
+    isAuthenticated, 
+    loading, 
+    customAuth, 
+    msalAuthenticated,
+    activeUser: activeUser?.name 
+  });
 
   if (loading) {
     return (
@@ -308,7 +322,7 @@ function App() {
             <AIChatBot 
               isOpen={showAI} 
               onClose={() => setShowAI(false)} 
-              token={userToken || user?.idToken} 
+              token={localStorage.getItem("token") || user?.idToken} 
             />
             
             {/* Floating Action Button */}
