@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch, FiSend, FiSmile, FiPaperclip, FiPhone, FiVideo, FiMoreHorizontal, FiX, FiChevronDown } from "react-icons/fi";
+import io from "socket.io-client";
 
 const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,10 +12,134 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [frequentContacts, setFrequentContacts] = useState([]);
   const [isTyping, setIsTyping] = useState({});
+  const [socket, setSocket] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const messagesEndRef = useRef(null);
   const chatInputRef = useRef(null);
 
-  // Mock users data with presence status
+  // Emoji data
+  const emojis = [
+    "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
+    "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚",
+    "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩",
+    "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣",
+    "👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉",
+    "👆", "🖕", "👇", "☝️", "👋", "🤚", "🖐️", "✋", "🖖", "👏",
+    "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔"
+  ];
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (isOpen && !socket) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000', {
+          auth: { token },
+          transports: ['websocket', 'polling']
+        });
+
+        newSocket.on('connect', () => {
+          setConnectionStatus('connected');
+          console.log('Connected to chat server');
+        });
+
+        newSocket.on('disconnect', () => {
+          setConnectionStatus('disconnected');
+          console.log('Disconnected from chat server');
+        });
+
+        newSocket.on('connect_error', (error) => {
+          setConnectionStatus('error');
+          console.error('Connection error:', error);
+        });
+
+        // Listen for real-time events
+        newSocket.on('new_message', (messageData) => {
+          setMessages(prev => ({
+            ...prev,
+            [messageData.senderId]: [...(prev[messageData.senderId] || []), {
+              ...messageData,
+              senderId: messageData.senderId,
+              timestamp: new Date(messageData.timestamp)
+            }]
+          }));
+        });
+
+        newSocket.on('user_online', (userData) => {
+          setOnlineUsers(prev => {
+            const exists = prev.find(u => u.id === userData.userId);
+            if (!exists) {
+              return [...prev, {
+                id: userData.userId,
+                name: userData.name,
+                email: userData.email,
+                status: 'online',
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=3B82F6&color=fff`
+              }];
+            }
+            return prev;
+          });
+        });
+
+        newSocket.on('user_offline', (userData) => {
+          setOnlineUsers(prev => prev.filter(u => u.id !== userData.userId));
+        });
+
+        newSocket.on('user_typing', (data) => {
+          setIsTyping(prev => ({
+            ...prev,
+            [data.userId]: data.typing
+          }));
+        });
+
+        setSocket(newSocket);
+      }
+    }
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+        setConnectionStatus('disconnected');
+      }
+    };
+  }, [isOpen]);
+
+  // Fetch online users and chat data
+  useEffect(() => {
+    if (isOpen && connectionStatus === 'connected') {
+      fetchOnlineUsers();
+    }
+  }, [isOpen, connectionStatus]);
+
+  const fetchOnlineUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/users/online`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const users = await response.json();
+        setOnlineUsers(users.filter(u => u.status === 'online'));
+        setFrequentContacts(users.filter(u => u.isFrequent));
+      } else {
+        // Fallback to mock data if API is not available
+        setOnlineUsers(mockUsers.filter(u => u.status === 'online'));
+        setFrequentContacts(mockUsers.filter(u => u.isFrequent));
+      }
+    } catch (error) {
+      console.warn('Failed to fetch online users, using mock data:', error);
+      // Use mock data as fallback
+      setOnlineUsers(mockUsers.filter(u => u.status === 'online'));
+      setFrequentContacts(mockUsers.filter(u => u.isFrequent));
+    }
+  };
+
+  // Mock users data as fallback
   const mockUsers = [
     {
       id: 1,
@@ -59,97 +184,52 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
       department: "Finance",
       role: "Financial Analyst",
       isFrequent: false
-    },
-    {
-      id: 5,
-      name: "Lisa Thompson",
-      email: "lisa.thompson@company.com",
-      avatar: "https://ui-avatars.com/api/?name=Lisa+Thompson&background=EF4444&color=fff",
-      status: "busy",
-      lastSeen: "5 min ago",
-      department: "Marketing",
-      role: "Marketing Director",
-      isFrequent: true
-    },
-    {
-      id: 6,
-      name: "James Wilson",
-      email: "james.wilson@company.com",
-      avatar: "https://ui-avatars.com/api/?name=James+Wilson&background=06B6D4&color=fff",
-      status: "offline",
-      lastSeen: "2 hours ago",
-      department: "Operations",
-      role: "Operations Manager",
-      isFrequent: false
     }
   ];
 
-  // Emoji data
-  const emojis = [
-    "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
-    "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚",
-    "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩",
-    "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣",
-    "👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉",
-    "👆", "🖕", "👇", "☝️", "👋", "🤚", "🖐️", "✋", "🖖", "👏",
-    "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔"
-  ];
-
-  useEffect(() => {
-    // Simulate real-time user presence updates
-    const interval = setInterval(() => {
-      setOnlineUsers(mockUsers.filter(user => user.status === "online"));
-      setFrequentContacts(mockUsers.filter(user => user.isFrequent));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    // Initialize mock messages
-    const mockMessages = {
-      1: [
-        {
-          id: 1,
-          senderId: 1,
-          text: "Hey! How's the new ticketing system working out?",
-          timestamp: new Date(Date.now() - 300000),
-          type: "text"
-        },
-        {
-          id: 2,
-          senderId: "me",
-          text: "It's amazing! The AI features are really helpful 🚀",
-          timestamp: new Date(Date.now() - 240000),
-          type: "text"
-        },
-        {
-          id: 3,
-          senderId: 1,
-          text: "That's great to hear! Let me know if you need any help with the advanced features.",
-          timestamp: new Date(Date.now() - 180000),
-          type: "text"
+  const fetchChatMessages = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/messages/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      ],
-      2: [
-        {
-          id: 1,
-          senderId: 2,
-          text: "The new dashboard looks incredible! 👏",
-          timestamp: new Date(Date.now() - 600000),
-          type: "text"
-        },
-        {
-          id: 2,
-          senderId: "me",
-          text: "Thanks! We've put a lot of work into the UI/UX",
-          timestamp: new Date(Date.now() - 540000),
-          type: "text"
-        }
-      ]
-    };
-    setMessages(mockMessages);
-  }, []);
+      });
+
+      if (response.ok) {
+        const chatMessages = await response.json();
+        setMessages(prev => ({
+          ...prev,
+          [userId]: chatMessages
+        }));
+      } else {
+        // Use mock messages as fallback
+        const mockMessages = [
+          {
+            id: 1,
+            senderId: userId,
+            text: "Hey! How's the new ticketing system working out?",
+            timestamp: new Date(Date.now() - 300000),
+            type: "text"
+          },
+          {
+            id: 2,
+            senderId: "me",
+            text: "It's amazing! The AI features are really helpful 🚀",
+            timestamp: new Date(Date.now() - 240000),
+            type: "text"
+          }
+        ];
+        setMessages(prev => ({
+          ...prev,
+          [userId]: mockMessages
+        }));
+      }
+    } catch (error) {
+      console.warn('Failed to fetch chat messages, using mock data:', error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -159,26 +239,22 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
     scrollToBottom();
   }, [messages, selectedUser]);
 
-  const filteredUsers = mockUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredUsers = [...onlineUsers, ...mockUsers].filter((user, index, self) =>
+    index === self.findIndex(u => u.id === user.id) &&
+    (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.department.toLowerCase().includes(searchQuery.toLowerCase())
+    user.department.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    // Online users first
     if (a.status === "online" && b.status !== "online") return -1;
     if (b.status === "online" && a.status !== "online") return 1;
-    
-    // Frequent contacts next
     if (a.isFrequent && !b.isFrequent) return -1;
     if (b.isFrequent && !a.isFrequent) return 1;
-    
-    // Then by name
     return a.name.localeCompare(b.name);
   });
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim() || !selectedUser) return;
 
     const newMessage = {
@@ -189,42 +265,63 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
       type: "text"
     };
 
+    // Optimistically update UI
     setMessages(prev => ({
       ...prev,
       [selectedUser.id]: [...(prev[selectedUser.id] || []), newMessage]
     }));
 
     setMessage("");
-    
-    // Simulate typing indicator and response
-    setIsTyping(prev => ({ ...prev, [selectedUser.id]: true }));
-    
-    setTimeout(() => {
-      setIsTyping(prev => ({ ...prev, [selectedUser.id]: false }));
-      
-      // Simulate response
-      const responses = [
-        "Thanks for reaching out! 👍",
-        "I'll look into that right away.",
-        "Great question! Let me check on that.",
-        "Absolutely! I can help with that.",
-        "Perfect timing! I was just thinking about this.",
-        "Thanks for the update! 🙌"
-      ];
-      
-      const responseMessage = {
-        id: Date.now() + 1,
-        senderId: selectedUser.id,
-        text: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date(),
-        type: "text"
-      };
 
-      setMessages(prev => ({
-        ...prev,
-        [selectedUser.id]: [...(prev[selectedUser.id] || []), responseMessage]
-      }));
-    }, 2000);
+    try {
+      if (socket && connectionStatus === 'connected') {
+        // Send via socket for real-time delivery
+        socket.emit('send_message', {
+          receiverId: selectedUser.id,
+          message: newMessage.text,
+          type: 'text'
+        });
+      } else {
+        // Fallback to REST API
+        const token = localStorage.getItem("token");
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            receiverId: selectedUser.id,
+            message: newMessage.text,
+            type: 'text'
+          })
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to send message:', error);
+      // Simulate response for demo
+      setTimeout(() => {
+        const responses = [
+          "Thanks for reaching out! 👍",
+          "I'll look into that right away.",
+          "Great question! Let me check on that.",
+          "Absolutely! I can help with that."
+        ];
+        
+        const responseMessage = {
+          id: Date.now() + 1,
+          senderId: selectedUser.id,
+          text: responses[Math.floor(Math.random() * responses.length)],
+          timestamp: new Date(),
+          type: "text"
+        };
+
+        setMessages(prev => ({
+          ...prev,
+          [selectedUser.id]: [...(prev[selectedUser.id] || []), responseMessage]
+        }));
+      }, 1000);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -258,6 +355,14 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
     }
   };
 
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    fetchChatMessages(user.id);
+    if (socket) {
+      socket.emit('join_chat', { otherUserId: user.id });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -279,13 +384,16 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"
+                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                  connectionStatus === 'connected' ? 'bg-green-400' : 
+                  connectionStatus === 'error' ? 'bg-red-400' : 'bg-yellow-400'
+                }`}
               />
             </div>
             <div>
               <h3 className="font-bold text-lg">Team Chat</h3>
               <p className="text-xs text-blue-100">
-                {onlineUsers.length} online • {mockUsers.length} total
+                {onlineUsers.length} online • {connectionStatus}
               </p>
             </div>
           </div>
@@ -317,6 +425,15 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Connection Status */}
+          {connectionStatus !== 'connected' && (
+            <div className="p-2 bg-yellow-50 border-b border-yellow-200">
+              <p className="text-xs text-yellow-700 text-center">
+                {connectionStatus === 'error' ? '⚠️ Connection failed - using demo mode' : '🔄 Connecting...'}
+              </p>
+            </div>
+          )}
+
           {/* Online Users Section */}
           {onlineUsers.length > 0 && (
             <div className="p-3">
@@ -330,7 +447,7 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
                     key={user.id}
                     whileHover={{ scale: 1.02, x: 5 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleUserSelect(user)}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-white cursor-pointer transition-all duration-200 group"
                   >
                     <div className="relative">
@@ -368,7 +485,7 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
                     key={user.id}
                     whileHover={{ scale: 1.02, x: 5 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => handleUserSelect(user)}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-white cursor-pointer transition-all duration-200 group"
                   >
                     <div className="relative">
@@ -493,7 +610,7 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
                         <p className="text-sm">{msg.text}</p>
                       </div>
                       <p className="text-xs text-gray-500 mt-1 px-2">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     {msg.senderId !== "me" && (
