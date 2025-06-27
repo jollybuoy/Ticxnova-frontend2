@@ -47,7 +47,9 @@ router.post('/login', [
       { 
         userId: user.id, 
         email: user.email, 
-        role: user.role 
+        name: user.name,
+        role: user.role,
+        department: user.department
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
@@ -56,7 +58,7 @@ router.post('/login', [
     // Update last login
     await pool.request()
       .input('userId', user.id)
-      .query('UPDATE users SET last_login = GETDATE() WHERE id = @userId');
+      .query('UPDATE users SET last_login = GETDATE(), last_activity = GETDATE() WHERE id = @userId');
 
     logger.info(`User logged in: ${user.email}`);
 
@@ -120,7 +122,7 @@ router.post('/microsoft-login', [
         return res.status(401).json({ error: 'Account is disabled' });
       }
 
-      // Update user info
+      // Update user info and last login
       await pool.request()
         .input('userId', user.id)
         .input('name', name)
@@ -128,7 +130,8 @@ router.post('/microsoft-login', [
         .input('department', department)
         .query(`
           UPDATE users 
-          SET name = @name, designation = @designation, department = @department, last_login = GETDATE()
+          SET name = @name, designation = @designation, department = @department, 
+              last_login = GETDATE(), last_activity = GETDATE()
           WHERE id = @userId
         `);
     }
@@ -138,7 +141,9 @@ router.post('/microsoft-login', [
       { 
         userId: user.id, 
         email: user.email, 
-        role: user.role 
+        name: user.name,
+        role: user.role,
+        department: user.department
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
@@ -208,7 +213,9 @@ router.post('/register', [
       { 
         userId: user.id, 
         email: user.email, 
-        role: user.role 
+        name: user.name,
+        role: user.role,
+        department: user.department
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
