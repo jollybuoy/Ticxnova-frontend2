@@ -107,6 +107,16 @@ const Login = ({ setAuth }) => {
             🔐 Sign in with Microsoft
           </button>
 
+          {/* Demo Preview Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/demo")}
+            className="w-full mt-4 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white py-3 rounded-lg text-lg font-semibold transition duration-300"
+          >
+            🚀 View Demo Preview
+          </motion.button>
+
           <p className="text-sm text-gray-300 mt-5 text-center">
             By logging in, you agree to our{" "}
             <Link to="/privacy" className="text-sky-300 underline hover:text-sky-400">

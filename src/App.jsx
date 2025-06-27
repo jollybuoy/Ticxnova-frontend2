@@ -24,6 +24,7 @@ import AssetManagement from "./pages/AssetManagement";
 import EmailTemplates from "./pages/EmailTemplates";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactAdmin from "./pages/ContactAdmin";
+import DemoPreview from "./pages/DemoPreview";
 
 // Enhanced Components
 import AdvancedDashboard from "./components/AdvancedDashboard";
@@ -191,6 +192,10 @@ function App() {
                 )
               }
             />
+            
+            {/* Demo Preview Route - No Authentication Required */}
+            <Route path="/demo" element={<DemoPreview />} />
+            
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/contact-admin" element={<ContactAdmin />} />
 
