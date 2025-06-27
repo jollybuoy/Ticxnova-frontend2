@@ -12,10 +12,11 @@ const Login = ({ setAuth }) => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showTestCredentials, setShowTestCredentials] = useState(false);
-  const [loginMethod, setLoginMethod] = useState("credentials"); // "credentials" or "microsoft"
+  const [loginMethod, setLoginMethod] = useState("credentials");
   const [particles, setParticles] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { instance } = useMsal();
 
@@ -99,47 +100,82 @@ const Login = ({ setAuth }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
     try {
+      // First try the actual API
       const res = await API.post("/auth/login", { email: username, password });
       if (res.data?.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("loginMethod", "custom");
         localStorage.setItem("email", username);
-        setAuth(true);
-        navigate("/dashboard");
-      } else {
-        alert("Invalid credentials");
+        
+        // Ensure setAuth is called before navigation
+        if (setAuth) {
+          setAuth(true);
+        }
+        
+        // Small delay to ensure state updates
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 100);
+        return;
       }
     } catch (err) {
-      // For demo purposes, check test credentials
-      const testUser = testCredentials.find(
-        cred => cred.email === username && cred.password === password
-      );
-      
-      if (testUser) {
-        // Create a mock token for demo
+      console.log("API login failed, trying test credentials:", err.message);
+    }
+
+    // Fallback to test credentials
+    const testUser = testCredentials.find(
+      cred => cred.email === username && cred.password === password
+    );
+    
+    if (testUser) {
+      try {
+        // Create a comprehensive mock token
         const mockToken = btoa(JSON.stringify({
+          userId: Math.floor(Math.random() * 1000) + 1,
           name: testUser.role,
           email: testUser.email,
-          role: testUser.role,
-          exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+          role: testUser.role.toLowerCase().replace(/\s+/g, '_'),
+          department: testUser.role.includes('Admin') ? 'IT' : 
+                     testUser.role.includes('Manager') ? 'Management' : 
+                     testUser.role.includes('Agent') ? 'Support' : 'General',
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
         }));
         
+        // Store authentication data
         localStorage.setItem("token", mockToken);
-        localStorage.setItem("loginMethod", "custom");
-        localStorage.setItem("email", username);
-        setAuth(true);
-        navigate("/dashboard");
-      } else {
-        alert("Invalid credentials. Try the test credentials!");
+        localStorage.setItem("loginMethod", "demo");
+        localStorage.setItem("email", testUser.email);
+        localStorage.setItem("userName", testUser.role);
+        
+        console.log("Demo login successful for:", testUser.email);
+        
+        // Update auth state
+        if (setAuth) {
+          setAuth(true);
+        }
+        
+        // Navigate with replace to prevent back button issues
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 100);
+        
+      } catch (tokenError) {
+        console.error("Error creating demo token:", tokenError);
+        setError("Failed to create demo session. Please try again.");
       }
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError("Invalid credentials. Please use the test credentials provided.");
     }
+    
+    setIsLoading(false);
   };
 
   const handleMicrosoftLogin = () => {
+    setError("");
     localStorage.setItem("loginMethod", "microsoft");
     instance.loginRedirect(loginRequest);
   };
@@ -148,28 +184,52 @@ const Login = ({ setAuth }) => {
     setUsername(cred.email);
     setPassword(cred.password);
     setShowTestCredentials(false);
+    setError("");
   };
 
   const quickLogin = async (cred) => {
+    setError("");
     setUsername(cred.email);
     setPassword(cred.password);
     setIsLoading(true);
     
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      // Create mock token immediately
       const mockToken = btoa(JSON.stringify({
+        userId: Math.floor(Math.random() * 1000) + 1,
         name: cred.role,
         email: cred.email,
-        role: cred.role,
-        exp: Date.now() + 24 * 60 * 60 * 1000
+        role: cred.role.toLowerCase().replace(/\s+/g, '_'),
+        department: cred.role.includes('Admin') ? 'IT' : 
+                   cred.role.includes('Manager') ? 'Management' : 
+                   cred.role.includes('Agent') ? 'Support' : 'General',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
       }));
       
+      // Store authentication data
       localStorage.setItem("token", mockToken);
-      localStorage.setItem("loginMethod", "custom");
+      localStorage.setItem("loginMethod", "demo");
       localStorage.setItem("email", cred.email);
-      setAuth(true);
-      navigate("/dashboard");
-    }, 1500);
+      localStorage.setItem("userName", cred.role);
+      
+      console.log("Quick login successful for:", cred.email);
+      
+      // Update auth state
+      if (setAuth) {
+        setAuth(true);
+      }
+      
+      // Navigate after a short delay
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Quick login error:", error);
+      setError("Quick login failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -177,13 +237,13 @@ const Login = ({ setAuth }) => {
       {/* Professional Background Elements */}
       <div className="absolute inset-0">
         {/* Subtle geometric patterns */}
-        <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 opacity-3">
           <div className="w-full h-full" style={{
             backgroundImage: `
-              linear-gradient(45deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(-45deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+              linear-gradient(45deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+              linear-gradient(-45deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
             `,
-            backgroundSize: '40px 40px'
+            backgroundSize: '20px 20px'
           }} />
         </div>
 
@@ -356,6 +416,23 @@ const Login = ({ setAuth }) => {
                 Sign in to access your dashboard
               </p>
 
+              {/* Error Message */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-500">⚠️</span>
+                      {error}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Login Method Selector */}
               <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-2xl">
                 <button
@@ -491,9 +568,10 @@ const Login = ({ setAuth }) => {
                                       whileHover={{ scale: 1.05 }}
                                       whileTap={{ scale: 0.95 }}
                                       onClick={() => quickLogin(cred)}
-                                      className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-xs font-medium text-white transition-colors"
+                                      disabled={isLoading}
+                                      className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-xs font-medium text-white transition-colors disabled:opacity-50"
                                     >
-                                      Quick Login
+                                      {isLoading ? "..." : "Quick Login"}
                                     </motion.button>
                                   </div>
                                 </div>

@@ -49,9 +49,45 @@ function App() {
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
 
+  // Enhanced authentication check
   useEffect(() => {
-    setCustomAuth(!!userToken);
-    setLoading(false);
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const loginMethod = localStorage.getItem("loginMethod");
+      
+      console.log("Auth check:", { token: !!token, loginMethod, msalAuthenticated });
+      
+      if (token) {
+        try {
+          // Validate token structure
+          const decoded = JSON.parse(atob(token.split(".")[1]));
+          const isExpired = decoded.exp && decoded.exp * 1000 < Date.now();
+          
+          if (isExpired) {
+            console.log("Token expired, clearing auth");
+            localStorage.removeItem("token");
+            localStorage.removeItem("loginMethod");
+            localStorage.removeItem("email");
+            localStorage.removeItem("userName");
+            setCustomAuth(false);
+          } else {
+            console.log("Valid token found, setting auth to true");
+            setCustomAuth(true);
+          }
+        } catch (error) {
+          console.error("Invalid token format:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("loginMethod");
+          setCustomAuth(false);
+        }
+      } else {
+        setCustomAuth(false);
+      }
+      
+      setLoading(false);
+    };
+
+    checkAuth();
   }, [userToken, msalAuthenticated]);
 
   useEffect(() => {
@@ -146,11 +182,17 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("loginMethod");
+    localStorage.removeItem("email");
+    localStorage.removeItem("userName");
+    
     if (msalAuthenticated) {
       instance.logoutRedirect();
     } else {
       setCustomAuth(false);
+      window.location.href = "/";
     }
+    
     addNotification({
       type: 'info',
       title: 'Logged Out',
@@ -160,7 +202,10 @@ function App() {
   };
 
   const isAuthenticated = msalAuthenticated || customAuth;
-  const activeUser = msUserDetails || user;
+  const activeUser = msUserDetails || user || {
+    name: localStorage.getItem("userName") || "Demo User",
+    email: localStorage.getItem("email") || "demo@ticxnova.com"
+  };
 
   if (loading) {
     return (
@@ -180,7 +225,7 @@ function App() {
               path="/"
               element={
                 isAuthenticated ? (
-                  <Navigate to="/dashboard" />
+                  <Navigate to="/dashboard" replace />
                 ) : (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -201,7 +246,7 @@ function App() {
 
             {/* Authenticated Routes */}
             {isAuthenticated && (
-              <Route element={<EnhancedLayout user={activeUser} handleLogout={handleLogout} />}>
+              <Route element={<EnhancedLayout user={activeUser} handleLogout={handleLogout} setAuth={setCustomAuth} />}>
                 <Route path="/dashboard" element={<AdvancedDashboard user={activeUser} />} />
                 <Route path="/create-ticket" element={<CreateTicket user={activeUser} />} />
                 <Route path="/all-tickets" element={<AllTickets user={activeUser} />} />
@@ -216,11 +261,11 @@ function App() {
                 <Route path="/slatracker" element={<SlaTracker user={activeUser} />} />
                 <Route path="/assetmanagement" element={<AssetManagement user={activeUser} />} />
                 <Route path="/emailtemplates" element={<EmailTemplates user={activeUser} />} />
-                <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
+                <Route path="/auth/callback" element={<Navigate to="/dashboard" replace />} />
               </Route>
             )}
 
-            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
+            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />
           </Routes>
         </AnimatePresence>
 
