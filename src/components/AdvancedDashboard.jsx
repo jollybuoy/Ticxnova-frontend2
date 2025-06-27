@@ -18,6 +18,7 @@ const AdvancedDashboard = () => {
   const [monthlyTrends, setMonthlyTrends] = useState([]);
   const [realTimeData, setRealTimeData] = useState([]);
   const [isOffline, setIsOffline] = useState(false);
+  const [connectionError, setConnectionError] = useState(null);
 
   // Fallback data for when API is unavailable
   const fallbackData = {
@@ -59,6 +60,17 @@ const AdvancedDashboard = () => {
     ]
   };
 
+  // Initialize with fallback data to prevent empty states
+  useEffect(() => {
+    setSummary(fallbackData.summary);
+    setSlaStats(fallbackData.slaStats);
+    setActivityLog(fallbackData.activityLog);
+    setTypes(fallbackData.types);
+    setStatusData(fallbackData.statusData);
+    setPriorityData(fallbackData.priorityData);
+    setMonthlyTrends(fallbackData.monthlyTrends);
+  }, []);
+
   // Simulate real-time data updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -75,12 +87,40 @@ const AdvancedDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Enhanced error handling function
+  const handleApiError = (error) => {
+    let errorMessage = "Unable to connect to server";
+    
+    if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+      errorMessage = "Network connection failed - please check your internet connection";
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = "Server is not responding - please try again later";
+    } else if (error.response) {
+      // Server responded with error status
+      errorMessage = `Server error: ${error.response.status} ${error.response.statusText}`;
+    } else if (error.request) {
+      // Request was made but no response received
+      errorMessage = "No response from server - please check if the API server is running";
+    }
+    
+    setConnectionError(errorMessage);
+    setIsOffline(true);
+    
+    // Log error for debugging but don't throw
+    console.warn("Dashboard API connection issue:", errorMessage, error);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+      // Reset error state
+      setConnectionError(null);
+      
       try {
         setIsOffline(false);
         const params = { filterBy };
-        const [summaryRes, slaRes, activityRes, typesRes, statusRes, priorityRes, trendsRes] = await Promise.all([
+        
+        // Use Promise.allSettled to handle partial failures gracefully
+        const results = await Promise.allSettled([
           API.get("/tickets/dashboard/summary", { params }),
           API.get("/tickets/sla-stats", { params }),
           API.get("/tickets/activity-log", { params }),
@@ -90,25 +130,28 @@ const AdvancedDashboard = () => {
           API.get("/tickets/dashboard/monthly-trends", { params })
         ]);
 
-        setSummary(summaryRes.data);
-        setSlaStats(slaRes.data);
-        setActivityLog(activityRes.data);
-        setTypes(typesRes.data);
-        setStatusData(statusRes.data);
-        setPriorityData(priorityRes.data);
-        setMonthlyTrends(trendsRes.data);
-      } catch (err) {
-        console.error("Dashboard data fetch error:", err);
-        setIsOffline(true);
+        // Check if any requests succeeded
+        const hasSuccessfulRequest = results.some(result => result.status === 'fulfilled');
         
-        // Use fallback data when API is unavailable
-        setSummary(fallbackData.summary);
-        setSlaStats(fallbackData.slaStats);
-        setActivityLog(fallbackData.activityLog);
-        setTypes(fallbackData.types);
-        setStatusData(fallbackData.statusData);
-        setPriorityData(fallbackData.priorityData);
-        setMonthlyTrends(fallbackData.monthlyTrends);
+        if (hasSuccessfulRequest) {
+          // At least some data was fetched successfully
+          setIsOffline(false);
+          
+          // Update data for successful requests, keep fallback for failed ones
+          if (results[0].status === 'fulfilled') setSummary(results[0].value.data);
+          if (results[1].status === 'fulfilled') setSlaStats(results[1].value.data);
+          if (results[2].status === 'fulfilled') setActivityLog(results[2].value.data);
+          if (results[3].status === 'fulfilled') setTypes(results[3].value.data);
+          if (results[4].status === 'fulfilled') setStatusData(results[4].value.data);
+          if (results[5].status === 'fulfilled') setPriorityData(results[5].value.data);
+          if (results[6].status === 'fulfilled') setMonthlyTrends(results[6].value.data);
+        } else {
+          // All requests failed
+          throw results[0].reason || new Error("All API requests failed");
+        }
+      } catch (err) {
+        handleApiError(err);
+        // Data is already set to fallback values in useEffect initialization
       }
     };
 
@@ -148,17 +191,26 @@ const AdvancedDashboard = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Offline Banner */}
+      {/* Enhanced Offline Banner */}
       {isOffline && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg flex items-center gap-2"
+          className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg flex items-center gap-3"
         >
-          <div className="text-yellow-600">⚠️</div>
-          <div className="text-yellow-800">
-            <strong>Offline Mode:</strong> Unable to connect to server. Showing demo data.
+          <div className="text-yellow-600 text-xl">⚠️</div>
+          <div className="flex-1">
+            <div className="text-yellow-800 font-semibold">Demo Mode Active</div>
+            <div className="text-yellow-700 text-sm">
+              {connectionError || "Unable to connect to server. Showing demo data."}
+            </div>
           </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-3 py-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded-md text-sm font-medium transition-colors"
+          >
+            Retry
+          </button>
         </motion.div>
       )}
 
