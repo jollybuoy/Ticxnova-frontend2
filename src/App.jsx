@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "./api/axios";
 
 // Pages & Components
@@ -8,7 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateTicket from "./pages/CreateTicket";
 import AllTickets from "./pages/AllTickets";
-import MainLayout from "./components/MainLayout";
+import EnhancedLayout from "./components/EnhancedLayout";
 import TicketDetails from "./pages/TicketDetails";
 import AIChatBot from "./components/AIChatBot";
 import Reports from "./pages/Reports";
@@ -24,6 +25,13 @@ import EmailTemplates from "./pages/EmailTemplates";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContactAdmin from "./pages/ContactAdmin";
 
+// Enhanced Components
+import AdvancedDashboard from "./components/AdvancedDashboard";
+import FloatingActionButton from "./components/FloatingActionButton";
+import NotificationToast from "./components/NotificationToast";
+import LoadingSpinner from "./components/LoadingSpinner";
+import { useNotifications } from "./hooks/useNotifications";
+
 function App() {
   const { instance, accounts } = useMsal();
   const msalAuthenticated = useIsAuthenticated();
@@ -32,7 +40,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showAI, setShowAI] = useState(false);
   const [msUserDetails, setMsUserDetails] = useState(null);
-  const [accessToken, setAccessToken] = useState(null); // Access token for Graph API calls
+  const [accessToken, setAccessToken] = useState(null);
+  const [pageTransition, setPageTransition] = useState(false);
+
+  const { notifications, addNotification, removeNotification } = useNotifications();
 
   const userToken = localStorage.getItem("token");
   const user = accounts[0] || null;
@@ -45,19 +56,18 @@ function App() {
   useEffect(() => {
     const fetchMicrosoftUserDetails = async () => {
       try {
-        // Acquire token with all necessary scopes
         const response = await instance.acquireTokenSilent({
           scopes: [
-            "User.Read",         // Read the authenticated user's profile
-            "User.ReadBasic.All", // Read profiles of other users
-            "Files.ReadWrite",   // Access files on OneDrive
-            "Mail.Read",         // Read user emails
-            "Mail.Send"          // Send emails on behalf of the user
+            "User.Read",
+            "User.ReadBasic.All",
+            "Files.ReadWrite",
+            "Mail.Read",
+            "Mail.Send"
           ],
           account: accounts[0],
         });
 
-        setAccessToken(response.accessToken); // Save access token for child components
+        setAccessToken(response.accessToken);
 
         const graphResponse = await fetch(
           `https://graph.microsoft.com/v1.0/me?$select=displayName,jobTitle,department,mail`,
@@ -74,46 +84,62 @@ function App() {
 
         const userData = await graphResponse.json();
 
-        console.log("🧠 User Profile Data:", userData);
-
-        // Save user details to state
         setMsUserDetails({
-          name: userData.displayName, // Name of the user
-          designation: userData.jobTitle || "Not Available", // Job title (designation)
-          department: userData.department || "Not Available", // Department
-          email: userData.mail, // Email address
+          name: userData.displayName,
+          designation: userData.jobTitle || "Not Available",
+          department: userData.department || "Not Available",
+          email: userData.mail,
         });
 
-        // Optional: Save to backend if needed
         await axios.post("/auth/microsoft-login", {
           email: userData.mail,
           name: userData.displayName,
           designation: userData.jobTitle,
           department: userData.department || "General",
         });
+
+        // Welcome notification
+        addNotification({
+          type: 'success',
+          title: 'Welcome back!',
+          message: `Hello ${userData.displayName}, you're successfully logged in.`,
+          duration: 4000
+        });
       } catch (err) {
         console.error("❌ Error fetching user profile details:", err);
+        addNotification({
+          type: 'error',
+          title: 'Authentication Error',
+          message: 'Failed to fetch user profile details.',
+          duration: 5000
+        });
       }
     };
 
     if (msalAuthenticated) {
       fetchMicrosoftUserDetails();
     }
-  }, [msalAuthenticated, instance, accounts]);
+  }, [msalAuthenticated, instance, accounts, addNotification]);
 
   const handleLogin = () => {
     instance
       .loginRedirect({
         scopes: [
-          "User.Read",         // Read the authenticated user's profile
-          "User.ReadBasic.All", // Read profiles of other users
-          "Files.ReadWrite",   // Access files on OneDrive
-          "Mail.Read",         // Read user emails
-          "Mail.Send"          // Send emails on behalf of the user
+          "User.Read",
+          "User.ReadBasic.All",
+          "Files.ReadWrite",
+          "Mail.Read",
+          "Mail.Send"
         ],
       })
       .catch((err) => {
         console.error("Microsoft login failed:", err);
+        addNotification({
+          type: 'error',
+          title: 'Login Failed',
+          message: 'Microsoft authentication failed. Please try again.',
+          duration: 5000
+        });
       });
   };
 
@@ -124,81 +150,134 @@ function App() {
     } else {
       setCustomAuth(false);
     }
+    addNotification({
+      type: 'info',
+      title: 'Logged Out',
+      message: 'You have been successfully logged out.',
+      duration: 3000
+    });
   };
 
   const isAuthenticated = msalAuthenticated || customAuth;
   const activeUser = msUserDetails || user;
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <LoadingSpinner size="large" text="Initializing Ticxnova..." />
+      </div>
+    );
   }
 
   return (
     <Router>
       <div className="relative">
-        <Routes>
-          {/* Public Routes */}
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Login setAuth={setCustomAuth} handleLogin={handleLogin} />
-              )
-            }
-          />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/contact-admin" element={<ContactAdmin />} />
+        <AnimatePresence mode="wait">
+          <Routes>
+            {/* Public Routes */}
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" />
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <Login setAuth={setCustomAuth} handleLogin={handleLogin} />
+                  </motion.div>
+                )
+              }
+            />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/contact-admin" element={<ContactAdmin />} />
 
-          {/* Authenticated Routes */}
-          {isAuthenticated && (
-            <Route element={<MainLayout user={activeUser} handleLogout={handleLogout} />}>
-              <Route path="/dashboard" element={<Dashboard user={activeUser} />} />
-              <Route path="/create-ticket" element={<CreateTicket user={activeUser} />} />
-              <Route path="/all-tickets" element={<AllTickets user={activeUser} />} />
-              <Route path="/ticket/:id" element={<TicketDetails user={activeUser} />} />
-              <Route path="/reports" element={<Reports user={activeUser} />} />
-              <Route path="/knowledgebase" element={<KnowledgeBase user={activeUser} accessToken={accessToken} />} />
-              <Route path="/notifications" element={<Notifications user={activeUser} />} />
-              <Route path="/users" element={<Users user={activeUser} />} />
-              <Route path="/messages" element={<Messages user={activeUser} />} />
-              <Route path="/settings" element={<Settings user={activeUser} />} />
-              <Route path="/adminpanel" element={<AdminPanel user={activeUser} />} />
-              <Route path="/slatracker" element={<SlaTracker user={activeUser} />} />
-              <Route path="/assetmanagement" element={<AssetManagement user={activeUser} />} />
-              <Route path="/emailtemplates" element={<EmailTemplates user={activeUser} />} />
-              <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
-            </Route>
-          )}
+            {/* Authenticated Routes */}
+            {isAuthenticated && (
+              <Route element={<EnhancedLayout user={activeUser} handleLogout={handleLogout} />}>
+                <Route path="/dashboard" element={<AdvancedDashboard user={activeUser} />} />
+                <Route path="/create-ticket" element={<CreateTicket user={activeUser} />} />
+                <Route path="/all-tickets" element={<AllTickets user={activeUser} />} />
+                <Route path="/ticket/:id" element={<TicketDetails user={activeUser} />} />
+                <Route path="/reports" element={<Reports user={activeUser} />} />
+                <Route path="/knowledgebase" element={<KnowledgeBase user={activeUser} accessToken={accessToken} />} />
+                <Route path="/notifications" element={<Notifications user={activeUser} />} />
+                <Route path="/users" element={<Users user={activeUser} />} />
+                <Route path="/messages" element={<Messages user={activeUser} />} />
+                <Route path="/settings" element={<Settings user={activeUser} />} />
+                <Route path="/adminpanel" element={<AdminPanel user={activeUser} />} />
+                <Route path="/slatracker" element={<SlaTracker user={activeUser} />} />
+                <Route path="/assetmanagement" element={<AssetManagement user={activeUser} />} />
+                <Route path="/emailtemplates" element={<EmailTemplates user={activeUser} />} />
+                <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
+              </Route>
+            )}
 
-          <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
-        </Routes>
+            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
+          </Routes>
+        </AnimatePresence>
 
-        {/* AI ChatBot */}
+        {/* Enhanced AI ChatBot */}
         {isAuthenticated && (
           <>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               className="fixed bottom-5 right-5 z-50"
               onClick={() => setShowAI(true)}
               aria-label="Open Ticxnova AI"
             >
-              <div className="relative w-28 h-28 group">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 opacity-40 blur-lg animate-pulse" />
-                <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-purple-700 rounded-full shadow-2xl flex items-center justify-center animate-spin-slow relative z-10">
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white text-xl">🤖</div>
-                  <div className="absolute top-2 left-0 w-full text-center">
-                    <span className="text-white text-sm font-semibold drop-shadow-lg tracking-wide bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300 bg-clip-text text-transparent animate-bounce">
-                      Ticxnova AI
-                    </span>
+              <div className="relative w-32 h-32 group">
+                {/* Animated Rings */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 opacity-20 blur-xl animate-pulse" />
+                <div className="absolute inset-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 opacity-30 blur-lg animate-ping" />
+                
+                {/* Main Button */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="w-32 h-32 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 rounded-full shadow-2xl flex items-center justify-center relative z-10 border-4 border-white/20"
+                >
+                  {/* AI Icon */}
+                  <div className="text-center">
+                    <div className="text-4xl mb-1">🧠</div>
+                    <div className="text-white text-xs font-bold tracking-wider">
+                      <motion.span
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="bg-gradient-to-r from-cyan-300 via-pink-300 to-yellow-300 bg-clip-text text-transparent"
+                      >
+                        TICXNOVA AI
+                      </motion.span>
+                    </div>
                   </div>
-                  <span className="text-4xl">🧠</span>
-                </div>
+                  
+                  {/* Floating Particles */}
+                  <div className="absolute top-2 left-2 w-2 h-2 bg-cyan-300 rounded-full animate-bounce" />
+                  <div className="absolute top-4 right-3 w-1 h-1 bg-pink-300 rounded-full animate-pulse" />
+                  <div className="absolute bottom-3 left-4 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-ping" />
+                </motion.div>
               </div>
-            </button>
-            <AIChatBot isOpen={showAI} onClose={() => setShowAI(false)} token={userToken || user?.idToken} />
+            </motion.button>
+            
+            <AIChatBot 
+              isOpen={showAI} 
+              onClose={() => setShowAI(false)} 
+              token={userToken || user?.idToken} 
+            />
+            
+            {/* Floating Action Button */}
+            <FloatingActionButton />
           </>
         )}
+
+        {/* Notification System */}
+        <NotificationToast 
+          notifications={notifications} 
+          onRemove={removeNotification} 
+        />
       </div>
     </Router>
   );
