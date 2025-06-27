@@ -17,6 +17,47 @@ const AdvancedDashboard = () => {
   const [priorityData, setPriorityData] = useState([]);
   const [monthlyTrends, setMonthlyTrends] = useState([]);
   const [realTimeData, setRealTimeData] = useState([]);
+  const [isOffline, setIsOffline] = useState(false);
+
+  // Fallback data for when API is unavailable
+  const fallbackData = {
+    summary: { total: 156, open: 42, closed: 18 },
+    slaStats: { slaCompliancePercent: 94 },
+    activityLog: [
+      { action: "Ticket #1234 created", timestamp: "2 minutes ago" },
+      { action: "Ticket #1233 resolved", timestamp: "5 minutes ago" },
+      { action: "Ticket #1232 updated", timestamp: "8 minutes ago" },
+      { action: "Ticket #1231 assigned", timestamp: "12 minutes ago" },
+      { action: "Ticket #1230 closed", timestamp: "15 minutes ago" }
+    ],
+    types: [
+      { type: "Bug", count: 45 },
+      { type: "Feature", count: 32 },
+      { type: "Support", count: 28 },
+      { type: "Enhancement", count: 21 },
+      { type: "Documentation", count: 15 }
+    ],
+    statusData: [
+      { status: "Open", count: 42 },
+      { status: "In Progress", count: 28 },
+      { status: "Resolved", count: 65 },
+      { status: "Closed", count: 21 }
+    ],
+    priorityData: [
+      { priority: "Low", count: 35 },
+      { priority: "Medium", count: 48 },
+      { priority: "High", count: 32 },
+      { priority: "Critical", count: 12 }
+    ],
+    monthlyTrends: [
+      { month: "Jan", count: 45 },
+      { month: "Feb", count: 52 },
+      { month: "Mar", count: 48 },
+      { month: "Apr", count: 61 },
+      { month: "May", count: 55 },
+      { month: "Jun", count: 67 }
+    ]
+  };
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -37,6 +78,7 @@ const AdvancedDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsOffline(false);
         const params = { filterBy };
         const [summaryRes, slaRes, activityRes, typesRes, statusRes, priorityRes, trendsRes] = await Promise.all([
           API.get("/tickets/dashboard/summary", { params }),
@@ -57,6 +99,16 @@ const AdvancedDashboard = () => {
         setMonthlyTrends(trendsRes.data);
       } catch (err) {
         console.error("Dashboard data fetch error:", err);
+        setIsOffline(true);
+        
+        // Use fallback data when API is unavailable
+        setSummary(fallbackData.summary);
+        setSlaStats(fallbackData.slaStats);
+        setActivityLog(fallbackData.activityLog);
+        setTypes(fallbackData.types);
+        setStatusData(fallbackData.statusData);
+        setPriorityData(fallbackData.priorityData);
+        setMonthlyTrends(fallbackData.monthlyTrends);
       }
     };
 
@@ -96,6 +148,20 @@ const AdvancedDashboard = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Offline Banner */}
+      {isOffline && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg flex items-center gap-2"
+        >
+          <div className="text-yellow-600">⚠️</div>
+          <div className="text-yellow-800">
+            <strong>Offline Mode:</strong> Unable to connect to server. Showing demo data.
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -106,21 +172,24 @@ const AdvancedDashboard = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Advanced Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">Real-time insights and analytics</p>
+          <p className="text-gray-600 mt-2">
+            {isOffline ? "Demo data - Real-time insights and analytics" : "Real-time insights and analytics"}
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <select
             value={filterBy}
             onChange={(e) => setFilterBy(e.target.value)}
             className="px-4 py-2 rounded-xl bg-white shadow-lg border-0 focus:ring-2 focus:ring-blue-500"
+            disabled={isOffline}
           >
             <option value="all">🌐 All Tickets</option>
             <option value="mine">👤 My Tickets</option>
           </select>
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"
+            animate={{ rotate: isOffline ? 0 : 360 }}
+            transition={{ duration: 2, repeat: isOffline ? 0 : Infinity, ease: "linear" }}
+            className={`w-8 h-8 border-2 ${isOffline ? 'border-yellow-500' : 'border-blue-500'} border-t-transparent rounded-full`}
           />
         </div>
       </motion.div>
@@ -169,8 +238,8 @@ const AdvancedDashboard = () => {
         className="mb-8 p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20"
       >
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          Real-time Activity
+          <div className={`w-3 h-3 ${isOffline ? 'bg-yellow-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
+          {isOffline ? 'Demo Activity' : 'Real-time Activity'}
         </h2>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={realTimeData}>
@@ -315,7 +384,7 @@ const AdvancedDashboard = () => {
               transition={{ delay: 0.9 + index * 0.1 }}
               className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
             >
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className={`w-2 h-2 ${isOffline ? 'bg-yellow-500' : 'bg-blue-500'} rounded-full animate-pulse`}></div>
               <div className="flex-1">
                 <p className="text-sm font-medium">{activity.action || "Ticket updated"}</p>
                 <p className="text-xs text-gray-500">{activity.timestamp || "Just now"}</p>
