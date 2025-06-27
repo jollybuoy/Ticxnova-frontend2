@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMsal } from "@azure/msal-react";
 import logo from "../assets/ticxnova-logo.png";
 import AIChatBot from "./AIChatBot";
+import UserPresenceChat from "./UserPresenceChat";
 
 const EnhancedLayout = ({ setAuth }) => {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ const EnhancedLayout = ({ setAuth }) => {
   const [theme, setTheme] = useState("light");
   const [notifications, setNotifications] = useState(3);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showChatWindow, setShowChatWindow] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState(5);
   const { instance } = useMsal();
 
   // Update time every second
@@ -22,6 +26,14 @@ const EnhancedLayout = ({ setAuth }) => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Simulate online users count
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlineUsers(Math.floor(Math.random() * 3) + 4); // 4-6 users online
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const menuItems = [
@@ -360,7 +372,7 @@ const EnhancedLayout = ({ setAuth }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Enhanced Top Bar */}
+        {/* Enhanced Top Bar with User Presence */}
         <motion.header
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -399,6 +411,141 @@ const EnhancedLayout = ({ setAuth }) => {
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </motion.button>
+              
+              {/* Enhanced User Presence Button */}
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all shadow-md border border-blue-200 group"
+                >
+                  <div className="relative">
+                    <img
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff&size=32`}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full border-2 border-blue-200 shadow-sm group-hover:scale-110 transition-transform"
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-800">{userName}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-2 h-2 bg-green-500 rounded-full"
+                        />
+                        <span className="text-xs text-green-600 font-medium">{onlineUsers} online</span>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.2, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowChatWindow(true);
+                          setShowUserDropdown(false);
+                        }}
+                        className="p-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all"
+                      >
+                        <span className="text-xs">💬</span>
+                      </motion.button>
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: showUserDropdown ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-gray-500"
+                  >
+                    ▼
+                  </motion.div>
+                </motion.button>
+
+                {/* User Dropdown */}
+                <AnimatePresence>
+                  {showUserDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+                    >
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff&size=48`}
+                            alt="Avatar"
+                            className="w-12 h-12 rounded-full border-2 border-blue-200 shadow-lg"
+                          />
+                          <div>
+                            <p className="font-semibold text-gray-800">{userName}</p>
+                            <p className="text-sm text-gray-600">System Administrator</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600 font-medium">Online</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setShowChatWindow(true);
+                            setShowUserDropdown(false);
+                          }}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-all text-left group"
+                        >
+                          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white group-hover:scale-110 transition-transform">
+                            💬
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800">Team Chat</p>
+                            <p className="text-xs text-gray-500">{onlineUsers} users online</p>
+                          </div>
+                          <div className="ml-auto">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          </div>
+                        </motion.button>
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate("/settings")}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all text-left group"
+                        >
+                          <div className="p-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 text-white group-hover:scale-110 transition-transform">
+                            ⚙️
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800">Settings</p>
+                            <p className="text-xs text-gray-500">Account preferences</p>
+                          </div>
+                        </motion.button>
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-all text-left group"
+                        >
+                          <div className="p-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white group-hover:scale-110 transition-transform">
+                            🔓
+                          </div>
+                          <div>
+                            <p className="font-medium text-red-700">Logout</p>
+                            <p className="text-xs text-red-500">Sign out of account</p>
+                          </div>
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -435,6 +582,28 @@ const EnhancedLayout = ({ setAuth }) => {
           </motion.div>
         </main>
       </div>
+
+      {/* Advanced Chat Window */}
+      <AnimatePresence>
+        {showChatWindow && (
+          <UserPresenceChat
+            currentUser={{ name: userName, email: localStorage.getItem("email") }}
+            isOpen={showChatWindow}
+            onClose={() => setShowChatWindow(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Click outside to close dropdowns */}
+      {(showUserDropdown || showChatWindow) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setShowUserDropdown(false);
+            if (!showChatWindow) setShowChatWindow(false);
+          }}
+        />
+      )}
     </div>
   );
 };
