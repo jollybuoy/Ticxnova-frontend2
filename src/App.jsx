@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "./api/axios";
 
 // Pages & Components
 import Login from "./pages/Login";
@@ -42,7 +41,6 @@ function App() {
   const [showAI, setShowAI] = useState(false);
   const [msUserDetails, setMsUserDetails] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
-  const [pageTransition, setPageTransition] = useState(false);
 
   const { notifications, addNotification, removeNotification } = useNotifications();
 
@@ -55,7 +53,7 @@ function App() {
       const token = localStorage.getItem("token");
       const loginMethod = localStorage.getItem("loginMethod");
       
-      console.log("Auth check:", { token: !!token, loginMethod, msalAuthenticated });
+      console.log("🔍 Auth check:", { token: !!token, loginMethod, msalAuthenticated });
       
       if (token) {
         try {
@@ -64,18 +62,18 @@ function App() {
           const isExpired = decoded.exp && decoded.exp * 1000 < Date.now();
           
           if (isExpired) {
-            console.log("Token expired, clearing auth");
+            console.log("⏰ Token expired, clearing auth");
             localStorage.removeItem("token");
             localStorage.removeItem("loginMethod");
             localStorage.removeItem("email");
             localStorage.removeItem("userName");
             setCustomAuth(false);
           } else {
-            console.log("Valid token found, setting auth to true");
+            console.log("✅ Valid token found, setting auth to true");
             setCustomAuth(true);
           }
         } catch (error) {
-          console.error("Invalid token format:", error);
+          console.error("❌ Invalid token format:", error);
           localStorage.removeItem("token");
           localStorage.removeItem("loginMethod");
           setCustomAuth(false);
@@ -128,18 +126,11 @@ function App() {
           email: userData.mail,
         });
 
-        await axios.post("/auth/microsoft-login", {
-          email: userData.mail,
-          name: userData.displayName,
-          designation: userData.jobTitle,
-          department: userData.department || "General",
-        });
-
-        // Welcome notification
+        // Welcome notification for Microsoft users
         addNotification({
           type: 'success',
           title: 'Welcome back!',
-          message: `Hello ${userData.displayName}, you're successfully logged in.`,
+          message: `Hello ${userData.displayName}, you're successfully logged in via Microsoft.`,
           duration: 4000
         });
       } catch (err) {
@@ -181,6 +172,8 @@ function App() {
   };
 
   const handleLogout = () => {
+    console.log("🚪 Logging out...");
+    
     localStorage.removeItem("token");
     localStorage.removeItem("loginMethod");
     localStorage.removeItem("email");

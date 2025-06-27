@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../auth/msalConfig";
 import { motion, AnimatePresence } from "framer-motion";
-import API from "../api/axios";
 
 import logo from "../assets/ticxnova-logo.png";
 
@@ -97,53 +96,38 @@ const Login = ({ setAuth }) => {
     };
   }, []);
 
+  const createMockToken = (user) => {
+    const tokenData = {
+      userId: Math.floor(Math.random() * 1000) + 1,
+      name: user.role,
+      email: user.email,
+      role: user.role.toLowerCase().replace(/\s+/g, '_'),
+      department: user.role.includes('Admin') ? 'IT' : 
+                 user.role.includes('Manager') ? 'Management' : 
+                 user.role.includes('Agent') ? 'Support' : 'General',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+    };
+    
+    return btoa(JSON.stringify(tokenData));
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     
     try {
-      // First try the actual API
-      const res = await API.post("/auth/login", { email: username, password });
-      if (res.data?.token) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("loginMethod", "custom");
-        localStorage.setItem("email", username);
+      // Check test credentials
+      const testUser = testCredentials.find(
+        cred => cred.email === username && cred.password === password
+      );
+      
+      if (testUser) {
+        console.log("✅ Test credentials matched:", testUser.email);
         
-        // Ensure setAuth is called before navigation
-        if (setAuth) {
-          setAuth(true);
-        }
-        
-        // Small delay to ensure state updates
-        setTimeout(() => {
-          navigate("/dashboard", { replace: true });
-        }, 100);
-        return;
-      }
-    } catch (err) {
-      console.log("API login failed, trying test credentials:", err.message);
-    }
-
-    // Fallback to test credentials
-    const testUser = testCredentials.find(
-      cred => cred.email === username && cred.password === password
-    );
-    
-    if (testUser) {
-      try {
-        // Create a comprehensive mock token
-        const mockToken = btoa(JSON.stringify({
-          userId: Math.floor(Math.random() * 1000) + 1,
-          name: testUser.role,
-          email: testUser.email,
-          role: testUser.role.toLowerCase().replace(/\s+/g, '_'),
-          department: testUser.role.includes('Admin') ? 'IT' : 
-                     testUser.role.includes('Manager') ? 'Management' : 
-                     testUser.role.includes('Agent') ? 'Support' : 'General',
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-        }));
+        // Create mock token
+        const mockToken = createMockToken(testUser);
         
         // Store authentication data
         localStorage.setItem("token", mockToken);
@@ -151,24 +135,24 @@ const Login = ({ setAuth }) => {
         localStorage.setItem("email", testUser.email);
         localStorage.setItem("userName", testUser.role);
         
-        console.log("Demo login successful for:", testUser.email);
+        console.log("✅ Demo login successful for:", testUser.email);
         
         // Update auth state
         if (setAuth) {
           setAuth(true);
         }
         
-        // Navigate with replace to prevent back button issues
+        // Navigate to dashboard
         setTimeout(() => {
           navigate("/dashboard", { replace: true });
-        }, 100);
+        }, 500);
         
-      } catch (tokenError) {
-        console.error("Error creating demo token:", tokenError);
-        setError("Failed to create demo session. Please try again.");
+      } else {
+        setError("❌ Invalid credentials. Please use the test credentials provided below.");
       }
-    } else {
-      setError("Invalid credentials. Please use the test credentials provided.");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("❌ Login failed. Please try again.");
     }
     
     setIsLoading(false);
@@ -189,23 +173,13 @@ const Login = ({ setAuth }) => {
 
   const quickLogin = async (cred) => {
     setError("");
-    setUsername(cred.email);
-    setPassword(cred.password);
     setIsLoading(true);
     
     try {
-      // Create mock token immediately
-      const mockToken = btoa(JSON.stringify({
-        userId: Math.floor(Math.random() * 1000) + 1,
-        name: cred.role,
-        email: cred.email,
-        role: cred.role.toLowerCase().replace(/\s+/g, '_'),
-        department: cred.role.includes('Admin') ? 'IT' : 
-                   cred.role.includes('Manager') ? 'Management' : 
-                   cred.role.includes('Agent') ? 'Support' : 'General',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
-      }));
+      console.log("🚀 Quick login for:", cred.email);
+      
+      // Create mock token
+      const mockToken = createMockToken(cred);
       
       // Store authentication data
       localStorage.setItem("token", mockToken);
@@ -213,7 +187,7 @@ const Login = ({ setAuth }) => {
       localStorage.setItem("email", cred.email);
       localStorage.setItem("userName", cred.role);
       
-      console.log("Quick login successful for:", cred.email);
+      console.log("✅ Quick login successful for:", cred.email);
       
       // Update auth state
       if (setAuth) {
@@ -227,7 +201,7 @@ const Login = ({ setAuth }) => {
       
     } catch (error) {
       console.error("Quick login error:", error);
-      setError("Quick login failed. Please try again.");
+      setError("❌ Quick login failed. Please try again.");
       setIsLoading(false);
     }
   };
