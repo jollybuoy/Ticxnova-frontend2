@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBug,
   FaClipboardCheck,
+  FaBuilding,
 } from "react-icons/fa";
 import {
   HiWrenchScrewdriver,
@@ -17,7 +18,6 @@ import {
   FiCalendar, 
   FiClock, 
   FiUser, 
-  FiBuilding, 
   FiAlertTriangle,
   FiFileText,
   FiSave,
@@ -601,7 +601,7 @@ const CreateTicket = () => {
                 <div>
                   <label className={`block ${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-700 mb-2`}>
                     <span className="flex items-center gap-2">
-                      <FiBuilding className="text-purple-500" />
+                      <FaBuilding className="text-purple-500" />
                       Department *
                     </span>
                   </label>

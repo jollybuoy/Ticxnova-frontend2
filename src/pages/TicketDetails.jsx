@@ -4,6 +4,9 @@ import axios from "../api/axios";
 import Draggable from "react-draggable";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  FaBuilding,
+} from "react-icons/fa";
+import {
   FiTag,
   FiUser,
   FiLayers,
@@ -25,7 +28,6 @@ import {
   FiBarChart3,
   FiTarget,
   FiUsers,
-  FiBuilding,
   FiMail,
   FiPhone,
   FiMapPin,
@@ -322,7 +324,7 @@ const TicketDetails = () => {
                       <div className="space-y-3">
                         <div className={`${isMobile ? 'p-3' : 'p-4'} bg-gray-50 rounded-xl border border-gray-200`}>
                           <div className="flex items-center gap-2 mb-2">
-                            <FiBuilding className="text-blue-500" />
+                            <FaBuilding className="text-blue-500" />
                             <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600`}>Department</span>
                           </div>
                           <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-800 font-medium`}>{ticket.department}</p>
@@ -517,7 +519,7 @@ const TicketDetails = () => {
                   { title: "Time Open", value: "2.5 days", icon: <FiClock />, color: "from-blue-500 to-blue-600" },
                   { title: "SLA Status", value: "On Track", icon: <FiTarget />, color: "from-green-500 to-green-600" },
                   { title: "Priority Level", value: ticket.priority, icon: <FiAlertCircle />, color: "from-orange-500 to-orange-600" },
-                  { title: "Department", value: ticket.department, icon: <FiBuilding />, color: "from-purple-500 to-purple-600" }
+                  { title: "Department", value: ticket.department, icon: <FaBuilding />, color: "from-purple-500 to-purple-600" }
                 ].map((metric, index) => (
                   <motion.div
                     key={metric.title}
