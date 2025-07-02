@@ -25,7 +25,7 @@ import {
   FiXCircle,
   FiInfo,
   FiTrendingUp,
-  FiBarChart3,
+  FiBarChart2,
   FiTarget,
   FiUsers,
   FiMail,
@@ -174,7 +174,7 @@ const TicketDetails = () => {
   const tabs = [
     { id: "details", label: "Details", icon: <FiFileText /> },
     { id: "activity", label: "Activity", icon: <FiActivity /> },
-    { id: "analytics", label: "Analytics", icon: <FiBarChart3 /> }
+    { id: "analytics", label: "Analytics", icon: <FiBarChart2 /> }
   ];
 
   return (
