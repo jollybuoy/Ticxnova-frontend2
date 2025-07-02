@@ -19,6 +19,18 @@ const AdvancedDashboard = () => {
   const [realTimeData, setRealTimeData] = useState([]);
   const [isOffline, setIsOffline] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fallback data for when API is unavailable
   const fallbackData = {
@@ -166,7 +178,7 @@ const AdvancedDashboard = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ scale: 1.05, rotateY: 5 }}
-      className={`relative p-6 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-xl overflow-hidden group cursor-pointer`}
+      className={`relative ${isMobile ? 'p-4' : 'p-6'} rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-xl overflow-hidden group cursor-pointer`}
     >
       {/* Animated Background Elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-700"></div>
@@ -174,40 +186,40 @@ const AdvancedDashboard = () => {
       
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-4xl opacity-80">{icon}</div>
+          <div className={`${isMobile ? 'text-2xl' : 'text-4xl'} opacity-80`}>{icon}</div>
           {change && (
-            <div className={`px-2 py-1 rounded-full text-xs font-bold ${
+            <div className={`px-2 py-1 rounded-full ${isMobile ? 'text-xs' : 'text-xs'} font-bold ${
               change.startsWith('+') ? 'bg-green-500/30' : 'bg-red-500/30'
             }`}>
               {change}
             </div>
           )}
         </div>
-        <h3 className="text-lg font-semibold opacity-90 mb-2">{title}</h3>
-        <p className="text-3xl font-bold">{value}</p>
+        <h3 className={`${isMobile ? 'text-sm' : 'text-lg'} font-semibold opacity-90 mb-2`}>{title}</h3>
+        <p className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold`}>{value}</p>
       </div>
     </motion.div>
   );
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className={`${isMobile ? 'p-4' : 'p-6'} min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100`}>
       {/* Enhanced Offline Banner */}
       {isOffline && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg flex items-center gap-3"
+          className={`mb-4 ${isMobile ? 'p-3' : 'p-4'} bg-yellow-100 border border-yellow-400 rounded-lg flex items-center gap-3`}
         >
           <div className="text-yellow-600 text-xl">⚠️</div>
           <div className="flex-1">
-            <div className="text-yellow-800 font-semibold">Demo Mode Active</div>
-            <div className="text-yellow-700 text-sm">
+            <div className={`text-yellow-800 font-semibold ${isMobile ? 'text-sm' : ''}`}>Demo Mode Active</div>
+            <div className={`text-yellow-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {connectionError || "Unable to connect to server. Showing demo data."}
             </div>
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="px-3 py-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded-md text-sm font-medium transition-colors"
+            className={`${isMobile ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-sm'} bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded-md font-medium transition-colors`}
           >
             Retry
           </button>
@@ -218,13 +230,13 @@ const AdvancedDashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex justify-between items-center mb-8"
+        className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'} mb-8`}
       >
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
             Advanced Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className={`text-gray-600 mt-2 ${isMobile ? 'text-sm' : ''}`}>
             {isOffline ? "Demo data - Real-time insights and analytics" : "Real-time insights and analytics"}
           </p>
         </div>
@@ -232,7 +244,7 @@ const AdvancedDashboard = () => {
           <select
             value={filterBy}
             onChange={(e) => setFilterBy(e.target.value)}
-            className="px-4 py-2 rounded-xl bg-white shadow-lg border-0 focus:ring-2 focus:ring-blue-500"
+            className={`${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2'} rounded-xl bg-white shadow-lg border-0 focus:ring-2 focus:ring-blue-500`}
             disabled={isOffline}
           >
             <option value="all">🌐 All Tickets</option>
@@ -241,13 +253,13 @@ const AdvancedDashboard = () => {
           <motion.div
             animate={{ rotate: isOffline ? 0 : 360 }}
             transition={{ duration: 2, repeat: isOffline ? 0 : Infinity, ease: "linear" }}
-            className={`w-8 h-8 border-2 ${isOffline ? 'border-yellow-500' : 'border-blue-500'} border-t-transparent rounded-full`}
+            className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} border-2 ${isOffline ? 'border-yellow-500' : 'border-blue-500'} border-t-transparent rounded-full`}
           />
         </div>
       </motion.div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className={`grid grid-cols-2 ${isMobile ? 'lg:grid-cols-4 gap-3' : 'md:grid-cols-2 lg:grid-cols-4 gap-6'} mb-8`}>
         <MetricCard
           title="Total Tickets"
           value={summary?.total || 0}
@@ -287,13 +299,13 @@ const AdvancedDashboard = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
-        className="mb-8 p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20"
+        className={`mb-8 ${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20`}
       >
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold mb-4 flex items-center gap-2`}>
           <div className={`w-3 h-3 ${isOffline ? 'bg-yellow-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
           {isOffline ? 'Demo Activity' : 'Real-time Activity'}
         </h2>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={isMobile ? 150 : 200}>
           <AreaChart data={realTimeData}>
             <defs>
               <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
@@ -317,23 +329,23 @@ const AdvancedDashboard = () => {
       </motion.div>
 
       {/* Advanced Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 xl:grid-cols-3 gap-6'} mb-8`}>
         {/* 3D Pie Chart */}
         <motion.div
           initial={{ opacity: 0, rotateY: -90 }}
           animate={{ opacity: 1, rotateY: 0 }}
           transition={{ delay: 0.5 }}
-          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl"
+          className={`${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl`}
         >
-          <h3 className="text-xl font-bold mb-4">Ticket Types Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-4`}>Ticket Types Distribution</h3>
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
             <PieChart>
               <Pie
                 data={types}
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
-                innerRadius={40}
+                outerRadius={isMobile ? 60 : 80}
+                innerRadius={isMobile ? 30 : 40}
                 paddingAngle={5}
                 dataKey="count"
                 nameKey="type"
@@ -353,15 +365,15 @@ const AdvancedDashboard = () => {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
-          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl"
+          className={`${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl`}
         >
-          <h3 className="text-xl font-bold mb-4">SLA Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-4`}>SLA Performance</h3>
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
             <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={[
               { name: 'SLA', value: slaStats?.slaCompliancePercent || 95, fill: '#8884d8' }
             ]}>
               <RadialBar dataKey="value" cornerRadius={10} fill="#8884d8" />
-              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-2xl font-bold">
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
                 {slaStats?.slaCompliancePercent || 95}%
               </text>
             </RadialBarChart>
@@ -373,10 +385,10 @@ const AdvancedDashboard = () => {
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.7 }}
-          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl"
+          className={`${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl`}
         >
-          <h3 className="text-xl font-bold mb-4">Priority Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-4`}>Priority Distribution</h3>
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
             <BarChart data={priorityData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="priority" />
@@ -397,10 +409,10 @@ const AdvancedDashboard = () => {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl"
+        className={`${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl`}
       >
-        <h2 className="text-2xl font-bold mb-4">Monthly Trends Analysis</h2>
-        <ResponsiveContainer width="100%" height={400}>
+        <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold mb-4`}>Monthly Trends Analysis</h2>
+        <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
           <LineChart data={monthlyTrends}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
@@ -424,22 +436,22 @@ const AdvancedDashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="mt-8 p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl"
+        className={`mt-8 ${isMobile ? 'p-4' : 'p-6'} bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl`}
       >
-        <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-        <div className="space-y-3 max-h-60 overflow-y-auto">
+        <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold mb-4`}>Recent Activity</h2>
+        <div className={`space-y-3 ${isMobile ? 'max-h-48' : 'max-h-60'} overflow-y-auto`}>
           {activityLog.slice(0, 5).map((activity, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.9 + index * 0.1 }}
-              className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+              className={`flex items-center gap-4 ${isMobile ? 'p-2' : 'p-3'} rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors`}
             >
               <div className={`w-2 h-2 ${isOffline ? 'bg-yellow-500' : 'bg-blue-500'} rounded-full animate-pulse`}></div>
               <div className="flex-1">
-                <p className="text-sm font-medium">{activity.action || "Ticket updated"}</p>
-                <p className="text-xs text-gray-500">{activity.timestamp || "Just now"}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>{activity.action || "Ticket updated"}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500`}>{activity.timestamp || "Just now"}</p>
               </div>
             </motion.div>
           ))}

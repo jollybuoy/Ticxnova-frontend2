@@ -18,7 +18,24 @@ const EnhancedLayout = ({ setAuth }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(5);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { instance } = useMsal();
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsCollapsed(true); // Always collapsed on mobile
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Update time every second
   useEffect(() => {
@@ -137,14 +154,40 @@ const EnhancedLayout = ({ setAuth }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleMenuItemClick = (item) => {
+    if (item.submenu) {
+      toggleSubmenu(item.id);
+    } else {
+      navigate(item.path);
+      if (isMobile) {
+        setShowMobileMenu(false);
+      }
+    }
+  };
+
   return (
     <div className={`min-h-screen flex ${theme === 'dark' ? 'dark' : ''}`}>
-      {/* Professional White Sidebar */}
+      {/* Mobile Menu Overlay */}
+      {isMobile && showMobileMenu && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       <motion.div
         initial={false}
-        animate={{ width: isCollapsed ? 80 : 320 }}
+        animate={{ 
+          width: isMobile ? (showMobileMenu ? 280 : 0) : (isCollapsed ? 80 : 320),
+          x: isMobile ? (showMobileMenu ? 0 : -280) : 0
+        }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
-        className="relative bg-white text-gray-800 shadow-2xl overflow-hidden border-r border-gray-200"
+        className={`${isMobile ? 'fixed' : 'relative'} bg-white text-gray-800 shadow-2xl overflow-hidden border-r border-gray-200 z-50`}
+        style={{ height: isMobile ? '100vh' : 'auto' }}
       >
         {/* Professional White Background with Subtle Patterns */}
         <div className="absolute inset-0">
@@ -186,7 +229,7 @@ const EnhancedLayout = ({ setAuth }) => {
           {/* Enhanced Header */}
           <div className="flex items-center justify-between mb-8">
             <motion.div
-              animate={{ opacity: isCollapsed ? 0 : 1 }}
+              animate={{ opacity: (isCollapsed && !isMobile) ? 0 : 1 }}
               transition={{ duration: 0.3 }}
               className="flex items-center gap-4"
             >
@@ -200,7 +243,7 @@ const EnhancedLayout = ({ setAuth }) => {
                 />
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full animate-pulse border-2 border-white shadow-lg"></div>
               </div>
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <div>
                   <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                     TICXNOVA
@@ -212,28 +255,30 @@ const EnhancedLayout = ({ setAuth }) => {
                 </div>
               )}
             </motion.div>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 shadow-md border border-gray-200"
-            >
-              <motion.div
-                animate={{ rotate: isCollapsed ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-lg text-gray-600"
+            {!isMobile && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 shadow-md border border-gray-200"
               >
-                ◀
-              </motion.div>
-            </motion.button>
+                <motion.div
+                  animate={{ rotate: isCollapsed ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-lg text-gray-600"
+                >
+                  ◀
+                </motion.div>
+              </motion.button>
+            )}
           </div>
 
           {/* Enhanced User Profile */}
           <motion.div
             animate={{ 
-              opacity: isCollapsed ? 0 : 1, 
-              height: isCollapsed ? 0 : "auto",
-              marginBottom: isCollapsed ? 0 : 24
+              opacity: (isCollapsed && !isMobile) ? 0 : 1, 
+              height: (isCollapsed && !isMobile) ? 0 : "auto",
+              marginBottom: (isCollapsed && !isMobile) ? 0 : 24
             }}
             transition={{ duration: 0.3 }}
             className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 border border-blue-100 shadow-sm overflow-hidden"
@@ -273,13 +318,7 @@ const EnhancedLayout = ({ setAuth }) => {
                       ? 'bg-gradient-to-r from-blue-50 to-purple-50 shadow-lg border border-blue-200' 
                       : 'hover:bg-gray-50 hover:shadow-md'
                   }`}
-                  onClick={() => {
-                    if (item.submenu) {
-                      toggleSubmenu(item.id);
-                    } else {
-                      navigate(item.path);
-                    }
-                  }}
+                  onClick={() => handleMenuItemClick(item)}
                 >
                   {/* Background gradient on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
@@ -289,14 +328,14 @@ const EnhancedLayout = ({ setAuth }) => {
                       <div className={`text-2xl p-3 rounded-xl bg-gradient-to-r ${item.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300 text-white`}>
                         {item.icon}
                       </div>
-                      {!isCollapsed && (
+                      {(!isCollapsed || isMobile) && (
                         <div>
                           <span className="font-semibold text-gray-800">{item.label}</span>
                           <p className="text-xs text-gray-500 mt-1">{item.description}</p>
                         </div>
                       )}
                     </div>
-                    {!isCollapsed && item.submenu && (
+                    {(!isCollapsed || isMobile) && item.submenu && (
                       <motion.div
                         animate={{ rotate: activeSubmenu === item.id ? 90 : 0 }}
                         transition={{ duration: 0.2 }}
@@ -319,7 +358,7 @@ const EnhancedLayout = ({ setAuth }) => {
 
                 {/* Enhanced Submenu */}
                 <AnimatePresence>
-                  {!isCollapsed && item.submenu && activeSubmenu === item.id && (
+                  {(!isCollapsed || isMobile) && item.submenu && activeSubmenu === item.id && (
                     <motion.div
                       initial={{ opacity: 0, height: 0, y: -10 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
@@ -339,7 +378,10 @@ const EnhancedLayout = ({ setAuth }) => {
                               ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 shadow-md border border-blue-200' 
                               : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 hover:shadow-sm'
                           }`}
-                          onClick={() => navigate(subItem.path)}
+                          onClick={() => {
+                            navigate(subItem.path);
+                            if (isMobile) setShowMobileMenu(false);
+                          }}
                         >
                           <span className="text-lg">{subItem.icon}</span>
                           <div>
@@ -364,7 +406,7 @@ const EnhancedLayout = ({ setAuth }) => {
           >
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl">🔓</span>
-              {!isCollapsed && <span>Logout</span>}
+              {(!isCollapsed || isMobile) && <span>Logout</span>}
             </div>
           </motion.button>
         </div>
@@ -372,45 +414,67 @@ const EnhancedLayout = ({ setAuth }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Enhanced Top Bar with User Presence */}
+        {/* Enhanced Top Bar with Mobile Menu Button */}
         <motion.header
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white/95 backdrop-blur-xl border-b border-gray-200 p-6 shadow-sm"
+          className="bg-white/95 backdrop-blur-xl border-b border-gray-200 p-4 sm:p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+              {/* Mobile Menu Button */}
+              {isMobile && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <div className="w-6 h-6 flex flex-col justify-center items-center">
+                    <span className="block w-5 h-0.5 bg-gray-600 mb-1"></span>
+                    <span className="block w-5 h-0.5 bg-gray-600 mb-1"></span>
+                    <span className="block w-5 h-0.5 bg-gray-600"></span>
+                  </div>
+                </motion.button>
+              )}
+              
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent`}>
                   {location.pathname.split('/')[1]?.charAt(0).toUpperCase() + location.pathname.split('/')[1]?.slice(1) || 'Dashboard'}
                 </h1>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 mt-1`}>
                   {new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
+                    weekday: isMobile ? 'short' : 'long', 
                     year: 'numeric', 
-                    month: 'long', 
+                    month: isMobile ? 'short' : 'long', 
                     day: 'numeric' 
                   })}
                 </p>
               </div>
-              <div className="flex items-center gap-3 px-4 py-2 bg-green-50 rounded-full border border-green-200">
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-3 h-3 bg-green-500 rounded-full"
-                />
-                <span className="text-sm font-medium text-green-700">System Online</span>
-              </div>
+              
+              {!isMobile && (
+                <div className="flex items-center gap-3 px-4 py-2 bg-green-50 rounded-full border border-green-200">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-3 h-3 bg-green-500 rounded-full"
+                  />
+                  <span className="text-sm font-medium text-green-700">System Online</span>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors shadow-md border border-gray-200"
-              >
-                {theme === 'light' ? '🌙' : '☀️'}
-              </motion.button>
+            
+            <div className="flex items-center gap-2 sm:gap-4">
+              {!isMobile && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors shadow-md border border-gray-200"
+                >
+                  {theme === 'light' ? '🌙' : '☀️'}
+                </motion.button>
+              )}
               
               {/* Enhanced User Presence Button */}
               <div className="relative">
@@ -418,41 +482,45 @@ const EnhancedLayout = ({ setAuth }) => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all shadow-md border border-blue-200 group"
+                  className={`flex items-center gap-2 sm:gap-3 ${isMobile ? 'p-2' : 'p-3'} rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all shadow-md border border-blue-200 group`}
                 >
                   <div className="relative">
                     <img
                       src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff&size=32`}
                       alt="Avatar"
-                      className="w-8 h-8 rounded-full border-2 border-blue-200 shadow-sm group-hover:scale-110 transition-transform"
+                      className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full border-2 border-blue-200 shadow-sm group-hover:scale-110 transition-transform`}
                     />
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                   </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-gray-800">{userName}</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-2 h-2 bg-green-500 rounded-full"
-                        />
-                        <span className="text-xs text-green-600 font-medium">{onlineUsers} online</span>
+                  
+                  {!isMobile && (
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-gray-800">{userName}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="w-2 h-2 bg-green-500 rounded-full"
+                          />
+                          <span className="text-xs text-green-600 font-medium">{onlineUsers} online</span>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.2, rotate: 5 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowChatWindow(true);
+                            setShowUserDropdown(false);
+                          }}
+                          className="p-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all"
+                        >
+                          <span className="text-xs">💬</span>
+                        </motion.button>
                       </div>
-                      <motion.button
-                        whileHover={{ scale: 1.2, rotate: 5 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowChatWindow(true);
-                          setShowUserDropdown(false);
-                        }}
-                        className="p-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all"
-                      >
-                        <span className="text-xs">💬</span>
-                      </motion.button>
                     </div>
-                  </div>
+                  )}
+                  
                   <motion.div
                     animate={{ rotate: showUserDropdown ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -469,7 +537,7 @@ const EnhancedLayout = ({ setAuth }) => {
                       initial={{ opacity: 0, scale: 0.9, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                      className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+                      className={`absolute top-full right-0 mt-2 ${isMobile ? 'w-56' : 'w-64'} bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden`}
                     >
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
                         <div className="flex items-center gap-3">
@@ -550,7 +618,7 @@ const EnhancedLayout = ({ setAuth }) => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md border border-blue-200"
+                  className={`${isMobile ? 'p-2' : 'p-3'} rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md border border-blue-200`}
                 >
                   🔔
                 </motion.button>
@@ -558,7 +626,7 @@ const EnhancedLayout = ({ setAuth }) => {
                   <motion.div
                     animate={{ scale: [1, 1.3, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg"
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg"
                   >
                     {notifications}
                   </motion.div>
