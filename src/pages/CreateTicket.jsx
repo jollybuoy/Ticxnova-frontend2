@@ -104,6 +104,34 @@ const slaTimes = {
   P4: { response: 24 * 60, resolution: 7 * 24 * 60 },
 };
 
+// Fallback data for when backend is not available
+const fallbackDepartments = [
+  "IT Support",
+  "Network Operations", 
+  "Security",
+  "Database Administration",
+  "Application Development",
+  "Infrastructure",
+  "Help Desk"
+];
+
+const fallbackUsers = [
+  { name: "John Smith", email: "john.smith@company.com", department: "IT Support" },
+  { name: "Sarah Johnson", email: "sarah.johnson@company.com", department: "IT Support" },
+  { name: "Mike Chen", email: "mike.chen@company.com", department: "Network Operations" },
+  { name: "Lisa Rodriguez", email: "lisa.rodriguez@company.com", department: "Network Operations" },
+  { name: "David Wilson", email: "david.wilson@company.com", department: "Security" },
+  { name: "Emily Davis", email: "emily.davis@company.com", department: "Security" },
+  { name: "Alex Thompson", email: "alex.thompson@company.com", department: "Database Administration" },
+  { name: "Maria Garcia", email: "maria.garcia@company.com", department: "Database Administration" },
+  { name: "James Brown", email: "james.brown@company.com", department: "Application Development" },
+  { name: "Jennifer Lee", email: "jennifer.lee@company.com", department: "Application Development" },
+  { name: "Robert Taylor", email: "robert.taylor@company.com", department: "Infrastructure" },
+  { name: "Amanda White", email: "amanda.white@company.com", department: "Infrastructure" },
+  { name: "Kevin Martinez", email: "kevin.martinez@company.com", department: "Help Desk" },
+  { name: "Rachel Anderson", email: "rachel.anderson@company.com", department: "Help Desk" }
+];
+
 const formatToLocal = (date) => {
   const pad = (n) => (n < 10 ? "0" + n : n);
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -135,6 +163,7 @@ const CreateTicket = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [backendAvailable, setBackendAvailable] = useState(true);
 
   // Check if mobile
   useEffect(() => {
@@ -155,8 +184,22 @@ const CreateTicket = () => {
       ]);
       setDepartments(deptRes.data);
       setUsers(usersRes.data);
+      setBackendAvailable(true);
     } catch (err) {
-      console.error("Failed to fetch metadata", err);
+      console.warn("Backend not available, using fallback data:", err.message);
+      // Use fallback data when backend is not available
+      setDepartments(fallbackDepartments);
+      setUsers(fallbackUsers);
+      setBackendAvailable(false);
+      
+      // Show a subtle notification that we're in demo mode
+      toast.success("🚀 Demo mode active - using sample data", {
+        duration: 3000,
+        style: {
+          background: '#3B82F6',
+          color: 'white',
+        },
+      });
     }
   };
 
@@ -222,16 +265,40 @@ const CreateTicket = () => {
     setIsSubmitting(true);
     
     try {
-      const res = await axios.post("/tickets", { ...formData, ticketType: selectedType });
-      const newTicketId = res.data.ticketId;
-      const newId = res.data.id;
-      setCreatedTicketId(newTicketId);
-      setCreatedTicketDbId(newId);
+      if (backendAvailable) {
+        // Try to submit to real backend
+        const res = await axios.post("/tickets", { ...formData, ticketType: selectedType });
+        const newTicketId = res.data.ticketId;
+        const newId = res.data.id;
+        setCreatedTicketId(newTicketId);
+        setCreatedTicketDbId(newId);
+      } else {
+        // Demo mode - simulate ticket creation
+        const mockTicketId = `TIC-${Date.now().toString().slice(-6)}`;
+        const mockDbId = Math.floor(Math.random() * 1000) + 1;
+        setCreatedTicketId(mockTicketId);
+        setCreatedTicketDbId(mockDbId);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
       setShowSuccessModal(true);
       toast.success("Ticket created successfully!");
     } catch (err) {
       console.error("Ticket creation failed", err);
-      toast.error("❌ Failed to create ticket. Please check the required fields.");
+      if (err.code === 'ERR_NETWORK') {
+        // Network error - switch to demo mode
+        setBackendAvailable(false);
+        const mockTicketId = `TIC-${Date.now().toString().slice(-6)}`;
+        const mockDbId = Math.floor(Math.random() * 1000) + 1;
+        setCreatedTicketId(mockTicketId);
+        setCreatedTicketDbId(mockDbId);
+        setShowSuccessModal(true);
+        toast.success("✨ Ticket created in demo mode!");
+      } else {
+        toast.error("❌ Failed to create ticket. Please check the required fields.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -265,6 +332,17 @@ const CreateTicket = () => {
             >
               Select the type of ticket you want to create. Each type has specific fields and workflows designed for optimal resolution.
             </motion.p>
+            {!backendAvailable && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm"
+              >
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                Demo Mode Active
+              </motion.div>
+            )}
           </div>
 
           <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'sm:grid-cols-2 lg:grid-cols-3 gap-8'}`}>
@@ -387,8 +465,10 @@ const CreateTicket = () => {
           {/* Progress Indicator */}
           <div className={`flex items-center gap-2 ${isMobile ? 'justify-center' : ''}`}>
             <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg border border-gray-200">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>Form Active</span>
+              <div className={`w-3 h-3 ${backendAvailable ? 'bg-green-500' : 'bg-blue-500'} rounded-full animate-pulse`}></div>
+              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>
+                {backendAvailable ? 'Connected' : 'Demo Mode'}
+              </span>
             </div>
           </div>
         </div>
@@ -677,6 +757,9 @@ const CreateTicket = () => {
                 <div className={`flex items-center gap-2 ${isMobile ? 'text-sm' : 'text-base'} text-gray-600`}>
                   <FiInfo className="w-5 h-5 text-blue-500" />
                   <span>All fields marked with * are required</span>
+                  {!backendAvailable && (
+                    <span className="text-blue-600 font-medium">• Demo Mode</span>
+                  )}
                 </div>
                 
                 <div className={`flex gap-4 ${isMobile ? 'w-full' : ''}`}>
@@ -755,16 +838,29 @@ const CreateTicket = () => {
                 <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-blue-600`}>
                   {createdTicketId}
                 </p>
+                {!backendAvailable && (
+                  <p className="text-xs text-blue-500 mt-2">
+                    ✨ Created in demo mode
+                  </p>
+                )}
               </div>
               
               <div className={`flex gap-3 ${isMobile ? 'flex-col' : ''}`}>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/ticket/${createdTicketDbId}`)}
+                  onClick={() => {
+                    if (backendAvailable) {
+                      navigate(`/ticket/${createdTicketDbId}`);
+                    } else {
+                      // In demo mode, just show a message
+                      toast.success("🚀 In demo mode - ticket details would open here");
+                      setShowSuccessModal(false);
+                    }
+                  }}
                   className={`${isMobile ? 'w-full' : 'flex-1'} px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors`}
                 >
-                  View Ticket
+                  {backendAvailable ? 'View Ticket' : 'Demo View'}
                 </motion.button>
                 
                 <motion.button
