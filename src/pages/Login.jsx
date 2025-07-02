@@ -401,7 +401,7 @@ const Login = ({ setAuth }) => {
               transition={{ delay: 0.3 }}
             >
               <h2 className={`${isMobile ? 'text-2xl mb-1' : 'text-4xl mb-2'} font-bold bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent`}>
-                Welcome Back
+                Welcome..!!
               </h2>
               <p className={`text-gray-600 ${isMobile ? 'mb-6 text-sm' : 'mb-8'} font-medium`}>
                 Sign in to access your dashboard
