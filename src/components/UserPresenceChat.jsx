@@ -371,7 +371,7 @@ const UserPresenceChat = ({ currentUser, isOpen, onClose }) => {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed top-20 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden"
+      className="fixed top-20 left-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden"
     >
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 text-white">

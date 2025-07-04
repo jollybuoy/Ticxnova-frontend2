@@ -177,12 +177,12 @@ const AdvancedDashboard = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
-      whileHover={{ scale: 1.05, rotateY: 5 }}
+      whileHover={{ scale: 1.02 }}
       className={`relative ${isMobile ? 'p-4' : 'p-6'} rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-xl overflow-hidden group cursor-pointer`}
     >
       {/* Animated Background Elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-700"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12 group-hover:scale-125 transition-transform duration-500"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
       
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
@@ -250,11 +250,7 @@ const AdvancedDashboard = () => {
             <option value="all">🌐 All Tickets</option>
             <option value="mine">👤 My Tickets</option>
           </select>
-          <motion.div
-            animate={{ rotate: isOffline ? 0 : 360 }}
-            transition={{ duration: 2, repeat: isOffline ? 0 : Infinity, ease: "linear" }}
-            className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} border-2 ${isOffline ? 'border-yellow-500' : 'border-blue-500'} border-t-transparent rounded-full`}
-          />
+          <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} border-2 ${isOffline ? 'border-yellow-500' : 'border-blue-500'} border-t-transparent rounded-full ${isOffline ? '' : 'animate-spin'}`} />
         </div>
       </motion.div>
 
