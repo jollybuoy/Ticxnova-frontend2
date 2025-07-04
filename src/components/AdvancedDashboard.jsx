@@ -180,7 +180,7 @@ const AdvancedDashboard = () => {
       whileHover={{ scale: 1.02 }}
       className={`relative ${isMobile ? 'p-4' : 'p-6'} rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-xl overflow-hidden group cursor-pointer`}
     >
-      {/* Animated Background Elements */}
+      {/* Static Background Elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
       
